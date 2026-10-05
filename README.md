@@ -56,6 +56,7 @@ In Streamer.bot open **Servers/Clients → WebSocket Server**, switch on **Authe
 ### Updating
 
 - A new version is a new `import.txt` in this repository. Download the ZIP again and replace the folder, delete the old **Printer Bot** action in Streamer.bot and import the new `import.txt` as in step 1. An import creates the triggers again, so switch **Channel Reward** on again if you use it. Your settings stay in their own folder, and the first receipt after an upgrade can take a second longer. If you host your own dock, upload its files again too.
+- The dock matches your Printer Bot version. The page you open in OBS first asks Streamer.bot which version of the action you run, then shows the dock made for that version. A new dock never reaches an action that can't use it, and an older action keeps the dock it came with until you import a new one. After importing a new action, reload the dock. If Streamer.bot is off when the dock opens, the launcher uses the version it saw last for up to 7 days, then shows the newest dock and lets that dock read the real version. What changed in each version is listed in [CHANGELOG.txt](CHANGELOG.txt).
 - If you used the two-action version before 2.0 (actions named *Printer Bot | Events* and *Printer Bot | Print Routine*), disable or delete both.
 
 ## Which dock?
@@ -66,9 +67,11 @@ The dock is the control panel from step 2. Printer Bot prints without it (see *W
 
 **Host it yourself.** Any static web server will do, because the dock is plain files.
 
-- Upload `index.html`, `css/`, `js/`, `vendor/`, `assets/`, `config.json`, `import.txt`, `renderer.html`, `renderer.html.sig` and `version.json`, keeping the folders. You can skip `README.md`, `LICENSE`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md`, `.gitignore` and `.gitattributes`. Do **not** upload `import.sha256.txt`. Keep that one from GitHub, so the check under *Check your import* uses a fingerprint your web host can't change.
-- Keep `renderer.html` and `renderer.html.sig` together, byte for byte. The signature covers the exact bytes, so if the web server or a CDN changes them (minifying, adding a script), the action refuses the layout and keeps its current one.
-- Send `Cache-Control: no-cache` with every file (the NGINX sample below does). New versions then apply at once, and `index.html` never runs against an older `js/app.js` or `css/dock.css`.
+- Upload `index.html`, `dock-2.2.1.html`, `versions.json`, `css/`, `js/`, `vendor/`, `assets/`, `v/`, `config.json`, `import.txt`, `renderer.html`, `renderer.html.sig` and `version.json`, keeping the folders. You can skip `README.md`, `CHANGELOG.txt`, `LICENSE`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md`, `.gitignore` and `.gitattributes`. Do **not** upload `import.sha256.txt`. Keep that one from GitHub, so the check under *Check your import* uses a fingerprint your web host can't change.
+- `index.html` is a small launcher. It asks the Printer Bot action for its version and opens the matching dock page. Dock pages for Printer Bot 2.3.0 and later live in folders under `v/`. `dock-2.2.1.html` and the other top-level dock files (`css/dock.css`, `js/app.js`, `config.json`, `renderer.html`, `renderer.html.sig`, `version.json`) belong to version 2.2.1 and older. Keep them as they are. `versions.json` lists the dock pages, so upload it with the rest.
+- Keep each `renderer.html` and its `renderer.html.sig` together, byte for byte. The signature covers the exact bytes, so if the web server or a CDN changes them (minifying, adding a script), the action refuses the layout and keeps its current one.
+- Send `Cache-Control: no-cache` with every file (the NGINX sample below does). New versions then apply at once. The addresses of a dock page's files also carry a stamp that changes with the file, so even a browser that caches hard fetches a changed file.
+- Allow framing from your own site. The launcher shows the dock page in a frame of the same web address, so send no `X-Frame-Options` header or `SAMEORIGIN`, and if you set `frame-ancestors`, include `'self'`. A server that forbids framing leaves the launcher on "The dock page did not load."
 - Use HTTPS, which lets the dock use a Streamer.bot password (see *Lock the WebSocket server*). Certificates are free, for example from Let's Encrypt.
 - A minimal NGINX server block:
 
@@ -91,8 +94,8 @@ The dock is the control panel from step 2. Printer Bot prints without it (see *W
   ```
 
 - To try it without a web server (this needs Python), run `python -m http.server 8090 --bind 127.0.0.1` in the folder with `index.html` and use `http://127.0.0.1:8090/` as the dock's address. It works only while that window stays open. Pick a port other than Streamer.bot's WebSocket port. A `file:///` address doesn't work, because the dock needs a web address.
-- The update source is the web folder the first connected dock was served from. The action checks it each time the dock connects. A new layout arrives only if that folder holds the new `renderer.html`, `renderer.html.sig` and `version.json`, so upload all three together (an old `version.json` hides a new layout). When you switch docks, press **Use this dock** in the new one.
-- The dock recognises itself as the update source by host name and port only. If you move your dock to another folder, or from `http` to `https`, on the same host, it still says it is the update source while the action keeps the old address. With Streamer.bot closed, set `rendererUrl` in `settings.json` (see *Without the dock*) to the new folder address.
+- The update source is the web folder of the dock page that connected first (`v/2.3.0/` for the current version). The action checks it each time the dock connects. A new layout arrives only if that folder holds the new `renderer.html`, `renderer.html.sig` and `version.json`, so upload all three together (an old `version.json` hides a new layout). When you switch docks, press **Use this dock** in the new one.
+- The dock recognises itself as the update source by host name and port. From version 2.3.0 the action follows a dock to another folder on the same host (for example when a new dock version arrives in its own folder under `v/`). Moving from `http` to `https` on the same host is the one change the dock does not notice: it still says it is the update source while the action keeps the old address. With Streamer.bot closed, set `rendererUrl` in `settings.json` (see *Without the dock*) to the new folder address.
 
 **Trust.** A dock host serves code that runs in your OBS and connects to your Streamer.bot. That takes the same trust as importing the action, and the code can do more than the Printer Bot commands, because Streamer.bot's WebSocket allows more. The author's signature doesn't cover the dock's code, and the SHA-256 check covers only the import text. The fingerprint the dock shows after **Copy import code** comes from the dock itself, so it helps only if you trust the host. Use a host you trust, host the dock yourself, or import `import.txt` from your own download and skip **Copy import code**. Keep WebSocket authentication, the password and **Enforce** on (see *Lock the WebSocket server*).
 
@@ -104,7 +107,7 @@ Every event below has a trigger in the action. All of them are switched on, exce
 
 | Platform | Receipts for |
 |---|---|
-| Twitch | cheers (bits), channel-point rewards (off until you switch the trigger on), subscriptions, resubscriptions, gifted subs (a gift bomb prints one receipt that lists every recipient, up to 200), raids of 5 or more viewers (the Raid trigger's minimum, which you can change in the trigger list) |
+| Twitch | cheers (bits), channel-point rewards (off until you switch the trigger on), subscriptions, resubscriptions, gifted subs (a gift bomb prints one receipt that lists every recipient, however many there are), raids of 5 or more viewers (the Raid trigger's minimum, which you can change in the trigger list) |
 | YouTube | new members, member milestones, gifted memberships (the gifter's and each recipient's), Super Chats, Super Stickers |
 | Kick | subscriptions, resubscriptions, gifted subscriptions (single and mass), raids, gifted Kicks (only gifts of type LEVEL_UP). Streamer.bot has to be logged in to Kick for any of these (see *Troubleshooting*) |
 | StreamElements | tips |
@@ -137,6 +140,7 @@ Each printed (or saved) receipt raises a Streamer.bot custom trigger called **Pr
 | **Ignore test triggers** | Skips "Test" and "Simulate" events from Streamer.bot. Off by default. |
 | **Keep debug files** | Saves the last event and receipt picture in the data folder. Off by default. |
 | **Advanced → High Roller: bits per inch** | Caps the printed length of a High Roller message. Default 0, no limit. |
+| **Advanced → High Roller: maximum length** | The longest a High Roller message can print, in inches (0 to 40). It overrides *bits per inch* and applies to cheers only. Default 0, which keeps the built-in limit of about 16.7 inches. |
 | **Advanced → Hide links in messages** | Replaces text that looks like a web address in a normal message with [link] (not every bare domain name is caught). High Roller messages are untouched. Off by default. |
 | **Advanced → Free receipts per minute** | Stops a flood of free prints. Only channel-point redemptions and raids count, never cheers, subs, gifts or tips. Default 30, and 0 means no limit. A warning is logged at most every 30 seconds, and the dock shows the count ("Skipped by that limit"). |
 | **Advanced → Renderer updates** | Where Printer Bot looks for layout updates, normally this dock. **Check now** looks at once. **Use this dock** switches to this dock's address. |
@@ -151,7 +155,7 @@ The dock calls the receipt layout the "renderer".
 - `dither` `floyd` is *Detailed*, `atkinson` is *Soft* and `threshold` is *Crisp (no shading)*.
 - `cut` is `partial`, `full` or `none`, `paperWidthMm` is 80 or 58 and `printer` is the exact Windows printer name.
 - `allowHostedUpdates` (`true` or `false`) is *Advanced → Download renderer updates*.
-- The other keys are `feedDots`, `highRollerBits`, `highRollerBitsPerInch`, `freePrintsPerMinute`, `hideLinks`, `ignoreTestTriggers` and `keepDebugFiles`.
+- The other keys are `feedDots`, `highRollerBits`, `highRollerBitsPerInch`, `highRollerMaxInches`, `freePrintsPerMinute`, `hideLinks`, `ignoreTestTriggers` and `keepDebugFiles`.
 
 `rendererUrl` holds where layout updates come from. Leave it alone, except as described under *Which dock?*. It must be the dock folder's full address ending with `/`, for example `https://dock.example.com/printer-bot/`, or the last part is taken for a file name and dropped. An unusable value is cleared, and the next dock that connects sets it again.
 
@@ -159,14 +163,15 @@ Close Streamer.bot before editing the file. Printer Bot reads it only at startup
 
 **Auto-detect** guesses from printer names. In thermal (ESC/POS) mode it accepts only receipt-looking names (receipt, thermal, RONGTA, Epson TM, Star, Xprinter, POS), because raw printer commands sent to an office printer print pages of garbage. In the other modes it skips virtual printers (PDF, XPS, Fax, OneNote) and prefers a receipt-looking name. A printer you pick is used as long as it's installed, so pick a receipt printer.
 
-**Test print** offers fourteen samples for Twitch, YouTube and Kick. **TwitchCheerLong** (60 lines, a lot of paper) is a 100-bit cheer, or as many bits as your High Roller threshold if that's higher, for trying out *bits per inch*. With the threshold at 0 it prints as plain text. **TwitchGiftBomb** lists 50 recipients, one to a line (about 40 cm of paper). Streamer.bot's own Test button sends sparse events, for example a gift bomb with no names and a YouTube member with no level name, so use these samples to see a full receipt.
+**Test print** offers fifteen samples for Twitch, YouTube and Kick. **TwitchCheerLong** (60 lines, a lot of paper) is a 100-bit cheer, or as many bits as your High Roller threshold if that's higher, for trying out *bits per inch*. With the threshold at 0 it prints as plain text. **TwitchGiftBomb** lists 50 recipients, one to a line (about 40 cm of paper). **TwitchGiftBombBig** lists 500 (about 3 m of paper) and shows that a long list prints in full. It counts as ten of the 20 test prints a minute that the dock allows. Streamer.bot's own Test button sends sparse events, for example a gift bomb with no names and a YouTube member with no level name, so use these samples to see a full receipt.
 
 ### What viewers can put on a receipt
 
 - Normal messages print as plain text, so markup shows up literally. They are cut at 500 characters and aren't moderated. Twitch AutoMod and Streamer.bot's own filters are the only filters.
 - A cheer of at least the **High Roller (bits)** threshold may style its message with HTML: bold, colours, sizes, rotated text, tables, and Twitch, Kick, BTTV, 7TV and FFZ emotes. Always removed, High Roller or not: clickable links, scripts, event handlers, forms, frames, `<style>`, `<link>`, `<meta>`, SVG, CSS that loads anything, and images from any other site. A web address typed as plain text still prints as text. Allowed HTML can still look ugly or obnoxious, so set the threshold as high as you're comfortable with.
-- A High Roller message is cut at 4000 characters of HTML and 400 elements or pieces of text. Its pictures are limited to 64 pixels (about 17 mm). A receipt can never be longer than about 1.3 m of paper. Names are cleaned of invisible and text-direction characters and cut at 48 characters.
-- *Bits per inch* limits a High Roller message to *bits ÷ this number* inches. At `10`, a 100-bit cheer gets up to 10 inches and a 25-bit cheer up to 2.5 (decimals such as `2.5` work, and `0` means no limit of its own). Longer messages fade out at the limit, and the Streamer.bot log notes how much was cut. Avatars, names, logos, dates and normal messages are never limited. No message prints longer than about 16.7 inches whatever the setting.
+- A High Roller message is cut at 4000 characters of HTML and 400 elements or pieces of text. Its pictures are limited to 64 pixels (about 17 mm). A receipt with a viewer's message in it is never longer than about 1.3 m of paper. Gift sub lists have no limit, because one receipt lists every recipient. Names are cleaned of invisible and text-direction characters and cut at 48 characters.
+- *Bits per inch* limits a High Roller message to *bits ÷ this number* inches. At `10`, a 100-bit cheer gets up to 10 inches and a 25-bit cheer up to 2.5 (decimals such as `2.5` work, and `0` means no limit of its own). Longer messages fade out at the limit, and the Streamer.bot log notes how much was cut. Avatars, names, logos, dates and normal messages are never limited. Without a *maximum length* (next bullet), no message prints longer than about 16.7 inches whatever the setting.
+- *Maximum length* has the last word on how long a High Roller message can be. A message never prints longer than this many inches (up to 40), whatever *bits per inch* says. When it is set it also replaces the built-in 16.7 inch limit, so `30` allows messages up to 30 inches. It applies to cheers only and never shortens a gift sub list or any other receipt.
 - A Fourthwall order or donation that arrives without a user name prints **Anonymous supporter** and never shows the buyer's e-mail address.
 
 When something that matters is removed from a message, the Streamer.bot log says who sent it.
@@ -235,10 +240,11 @@ The dock's status line and the Streamer.bot log (lines starting with `[Printer B
   - The browser built into OBS 32 (Chromium 127 in OBS 32.2.2) is older and doesn't ask. It isn't known yet whether a later OBS will ask or refuse silently.
   - In Chrome and Edge 147 and later, a plain-`http` dock from the internet can't reach Streamer.bot on your PC at all, and no question is asked.
 - **"The Printer Bot action in Streamer.bot is older than this dock, so some settings below are switched off."** Delete the old action and import the current `import.txt` or use **Copy import code** (see **Trust** under *Which dock?*). Then switch Channel Reward on again if you use it, and reload the dock.
+- **The dock looks out of date after an update.** Reload the dock, or restart OBS. The dock asks Streamer.bot which Printer Bot version you run and opens the matching page, so after you import a new action the next reload shows the new dock. If OBS still shows an old page, add `?1` to the dock's address once (**Docks → Custom Browser Docks**), which forces a fresh copy.
 - **"Updates come from: another address: ..."** The action remembers the first dock it met, so this appears after a dock moves to another host name or port. **Advanced → Renderer updates** shows the old address. To use this dock, press **Use this dock**, then press it again within 5 seconds when it asks "Are you sure? Click again".
 - **The dock's Renderer row says "refused: ..." or "update check failed" (a dock you host yourself).** Printer Bot keeps its current layout. Upload `renderer.html`, `renderer.html.sig` and `version.json` again from the same ZIP, unchanged, and make sure no web server or CDN alters them (see *Which dock?*). If you moved your dock to another folder on the same host, see the update source bullet there.
 - **A receipt is blank or looks wrong after you added `theme.css`.** Move `theme.css` out of the folder and print again.
-- **Receipts are very long.** Check `theme.css` for `vh`, `height: 100%` or `min-height: 100vh`. For a long cheer message, set **High Roller: bits per inch**.
+- **Receipts are very long.** Check `theme.css` for `vh`, `height: 100%` or `min-height: 100vh`. For a long cheer message, set **High Roller: bits per inch** or **maximum length**. Gift sub lists are long on purpose and have no limit.
 - **One receipt took longer than the others.** The Streamer.bot log line for each receipt lists its time in parts that add up to **TOTAL**. After a quiet spell Streamer.bot unloads the action's code and loads it again for the next event. Printer Bot then warms up first, and that receipt waits for it. The line shows `Wait: ... (warm-up)`, usually under a second.
 - **Nothing from Kick prints, not even a test from Streamer.bot.** Streamer.bot has to be logged in to Kick first. Its log (lines that start with `KickService` or `TokenManager`) says "Kick Broadcaster requested an access token, but no credentials exist" when it isn't. Log in your Kick broadcaster account in Streamer.bot's Kick settings, then try again.
 - **A test from Streamer.bot prints a bare receipt.** Streamer.bot's own Test button sends sparse events. A gift bomb comes without names and a YouTube member without a level name. Real events carry that data. The dock's **Test print** samples show a full receipt (see *Test print*).
@@ -268,11 +274,14 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 | `README.md`, `LICENSE`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md` | this guide, the licence, security reporting and third-party notices |
 | `import.txt` | **the Streamer.bot import code**, the one file you need to install Printer Bot |
 | `import.sha256.txt` | the SHA-256 fingerprint of `import.txt`, for the optional check under *Check your import* |
-| `index.html`, `css/dock.css`, `js/app.js` | the dock web page |
-| `config.json` | tells the dock which Printer Bot action to look for and the oldest action version it accepts |
+| `index.html`, `js/router.js`, `css/router.css`, `versions.json` | the launcher that asks the action for its version and opens the matching dock page, and the list of dock pages |
+| `v/` | the dock pages for Printer Bot 2.3.0 and later, one folder for each version, with its own receipt layout, signature and `version.json` |
+| `dock-2.2.1.html`, `css/dock.css`, `js/app.js` | the dock page for Printer Bot 2.2.1 and older, kept as it was |
+| `CHANGELOG.txt` | what changed in each version |
+| `config.json` | tells the 2.2.1 dock which Printer Bot action to look for and the oldest action version it accepts (each folder under `v/` has its own) |
 | `vendor/streamerbot-client.js`, `vendor/LICENSE-streamerbot-client.txt` | Streamer.bot's own client library for the dock (MIT licence, notice included) |
 | `assets/logo.png`, `assets/icons/*.svg` | the dock's header picture and connection icons |
-| `renderer.html`, `renderer.html.sig`, `version.json` | the receipt layout, the author's signature over it, and a small file naming the current layout version (served by the dock's host for signed updates) |
+| `renderer.html`, `renderer.html.sig`, `version.json` | the receipt layout of version 2.2.1, the author's signature over it, and a small file naming the layout version (served by the dock's host for signed updates). Newer versions keep theirs under `v/` |
 | `.gitignore`, `.gitattributes` | repository settings |
 
 ## Licence

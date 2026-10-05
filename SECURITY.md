@@ -8,7 +8,7 @@ If that option is not offered, open an issue titled "Security contact request" t
 
 ## What helps in a report
 
-- The Printer Bot version. The import in `import.txt` is Printer Bot 2.2.1 at the time of writing.
+- The Printer Bot version. The import in `import.txt` is Printer Bot 2.3.0 at the time of writing.
 - The receipt layout version, shown in the dock's **Renderer** row. It is a "v" followed by 12 digits, such as v202610050006. The digits are the build time as year, month, day, hour and minute in UTC.
 - What you did, what you expected and what happened.
 - Whether it needs access to the Streamer.bot WebSocket, access to the dock's web host, or only a viewer's chat message.
@@ -23,7 +23,7 @@ The latest version in this repository.
 - The receipt page and its sanitizer: viewer-controlled text turning into markup, script, network requests or something that prints.
 - The signed update path: how a downloaded receipt layout is accepted or refused.
 - The Printer Bot action's command channel (what the dock, or anything else on Streamer.bot's WebSocket, can ask it to do).
-- The dock, as published in this repository. Servers that host a dock are out of scope. Whoever runs a server is responsible for its security.
+- The dock, as published in this repository: the launcher (`index.html`, which asks the action for its version and opens the matching dock page in a frame) and the dock pages. Servers that host a dock are out of scope. Whoever runs a server is responsible for its security.
 
 ## What is deliberately not protected
 

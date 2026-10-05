@@ -4,9 +4,11 @@
 # Files served by the dock's host and checked by signature or hash. Git must keep them byte for byte
 # and never convert them. renderer.html.sig is a signature over the exact bytes of renderer.html, and
 # import.sha256.txt holds the SHA-256 of the exact bytes of import.txt. One converted line ending breaks them.
+# versions.json is written by the build tool and holds a hash of the exact bytes of every dock file.
 renderer.html            -text linguist-generated
 renderer.html.sig        -text linguist-generated
 version.json             -text linguist-generated
+versions.json            -text linguist-generated
 config.json              -text linguist-generated
 import.txt               -text linguist-generated
 import.sha256.txt        -text linguist-generated

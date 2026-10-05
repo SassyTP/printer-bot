@@ -1,0 +1,133 @@
+/*
+ * Printer Bot router (the page in front of the dock)
+ *
+ * It shows a short loading screen or an error with a Retry button, and then one full-window frame with the dock.
+ * The background is the same dark color as the dock, so the window never flashes white while one page hands over to the other.
+ * Do not set color-scheme here. A frame whose color scheme differs from its parent gets an opaque white backdrop.
+ */
+
+:root {
+    --background-color: #181818;
+    --button-color: #2e2e2e;
+    --border-color: #404040;
+    --error-color: #c65e5e;
+    --error-background: #a82d2e33;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Inter, system-ui, sans-serif;
+    color: white;
+    background-color: var(--background-color);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Loading and error screen                                           */
+/* ------------------------------------------------------------------ */
+
+#router-view {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9em;
+    width: 100%;
+    height: 100%;
+    padding: 1em;
+    text-align: center;
+}
+
+.router-logo {
+    width: 72px;
+    height: 72px;
+}
+
+.router-title {
+    font-weight: 900;
+    font-size: 1.2em;
+    text-transform: uppercase;
+}
+
+.router-text {
+    margin: 0;
+    max-width: 28em;
+    font-size: 0.9em;
+    font-weight: 100;
+    overflow-wrap: anywhere;
+}
+
+#router-view.loading .router-logo {
+    animation: router-pulse 1.6s ease-in-out infinite;
+}
+
+#router-view.error .router-text {
+    padding: 0.7em 0.9em;
+    font-weight: 400;
+    color: var(--error-color);
+    background: var(--error-background);
+    border: 1px solid var(--error-color);
+    border-radius: 0.5em;
+}
+
+#retry-button {
+    min-width: 8em;
+    padding: 0.5em 1em;
+    font-size: 1em;
+    font-weight: 600;
+    color: white;
+    background-color: var(--button-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5em;
+    opacity: 0.8;
+    transition: all 0.2s ease-in-out;
+}
+
+#retry-button:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
+@keyframes router-pulse {
+    0% { opacity: 0.55; }
+    50% { opacity: 1; }
+    100% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #router-view.loading .router-logo {
+        animation: none;
+    }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* The dock frame                                                     */
+/* ------------------------------------------------------------------ */
+
+/* Hidden until the dock page has loaded, so the loading screen stays visible behind it and nothing flashes */
+.dock-frame {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background-color: var(--background-color);
+    visibility: hidden;
+}
+
+.dock-frame.ready {
+    visibility: visible;
+}
