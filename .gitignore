@@ -1,0 +1,26 @@
+# Files that can end up in this folder by accident and must never be committed
+
+# signing keys and backups
+*signing-key*
+update-signing-key.json
+*.bak
+*.bad
+*.tmp
+*.zip
+
+# files Printer Bot writes to its data folder, in case that folder gets copied in here
+settings.json
+avatars.json
+receipts/
+last_event.json
+last_receipt.png
+
+# the hidden Edge's profile folders
+edge-profile/
+edge-cdp-profile*/
+
+# editors and IDEs
+.vs/
+.vscode/
+.idea/
+*.user
