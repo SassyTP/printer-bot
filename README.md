@@ -10,7 +10,7 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 
 ## LLM disclosure
 
-1. LLM Disclosure: Yes
+1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
 ## Requirements
