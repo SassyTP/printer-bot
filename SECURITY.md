@@ -8,7 +8,7 @@ If that option is not offered, open an issue titled "Security contact request" t
 
 ## What helps in a report
 
-- The Printer Bot version. The import in `import.txt` is Printer Bot 2.4.0 at the time of writing. The dock's **Updates** card shows the version that runs, whether it is built in or downloaded, and the updater's number.
+- The Printer Bot version. The import in `import.txt` is Printer Bot 2.4.1 at the time of writing. The dock's **Updates** card shows the version that runs, whether it is built in or downloaded, and the updater's number.
 - The receipt layout version, shown in the dock's **Renderer** row. It is a "v" followed by 12 digits, such as v202610051510. The digits are the build time as year, month, day, hour and minute in UTC.
 - What you did, what you expected and what happened.
 - Whether it needs access to the Streamer.bot WebSocket, access to the dock's web host, or only a viewer's chat message.
@@ -30,7 +30,7 @@ The latest version in this repository.
 - **What is checked.** A program update is used only if all of this holds. The author signed it with a code key that is built into your import. The downloaded file matches the signed list byte for byte. The update is newer than the program that runs and not older than the newest update you installed before. It starts. Printer Bot checks a stored update again every time it starts. Before an install, it asks the host for the signed list once more and refuses a key that was revoked in the meantime.
 - **Three things stay true.** Nothing that reaches Printer Bot through Streamer.bot's WebSocket carries a program or a file. The update commands carry no address. The `configure` command can still set the update source, under the rules Printer Bot has always had, and the author's signature decides what runs. Printer Bot runs program code from two places only: the import you pasted, and a program update signed with a code key that is built into that import. So a WebSocket client, a dock host, a CDN, a connection in between or a hostile dock page cannot make Printer Bot run a program that the author did not sign.
 - **Where updates come from.** Printer Bot asks the web host that its update source points at, in the folder `core/api1/` at the top of that site.
-- **A click, and a way out.** You press **Update** twice. Printer Bot installs by itself only if you switch on **Install updates automatically**, which is off by default, and then only while it is idle. To stop all downloads, switch off **Download updates (layouts and program updates)** in Advanced. A program you already installed keeps running until you press **Use the built-in version**.
+- **A click, and a way out.** You press **Update** twice. Printer Bot installs by itself only if you switch on **Install updates automatically**, which is off by default, and then only while it is idle. To stop all downloads, switch off **Download updates (layouts and program updates)** in the Updates card. A program you already installed keeps running until you press **Use the built-in version**.
 - **The checksum.** The checksum in `import.sha256.txt` covers the import, the loader and the built-in program only. A program update is covered by the signature.
 
 ## What is deliberately not protected

@@ -13,6 +13,14 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
+## What is new in 2.4.1
+
+1. **A tidier dock.** **Settings** and **Test** come first, and the **Updates** box is last. A small blue dot at the top still shows when an update is waiting.
+2. **Customize receipts** (the `theme.css` folder) is the last row inside **Advanced**.
+3. **Renderer updates, Download updates and Renderer** moved from Advanced into the **Updates** box. The button that looks for a new receipt layout there is **Check layouts**.
+
+From 2.4.0 you reload the dock for the new layout and press **Update** twice in the Updates box for the program (see *Updating*).
+
 ## What is new in 2.4.0
 
 1. **Updates from the dock.** Printer Bot can now replace its own program while Streamer.bot keeps running. When the author publishes a new version, the **Updates** card in the dock says "Update available" and lists what changed. You press **Update** twice and it installs. You no longer delete and import the action for every version.
@@ -83,7 +91,7 @@ Until you import, the dock shows a bar above it that says: "Printer Bot 2.4.0 ca
 
 ### From 2.4.0 on: update from the dock
 
-The dock has an **Updates** card between the status and the settings. It shows the version that runs ("2.4.0 (built in)", or "(downloaded)" after an update), the updater's number and when Printer Bot last checked.
+The dock shows its cards in this order: the status, **Settings**, **Test** and **Updates**. The **Updates** card is the last one. It shows the version that runs ("2.4.0 (built in)", or "(downloaded)" after an update), the updater's number and when Printer Bot last checked. Its **Check now** next to *Last checked* looks for a program update. The **Check layouts** button under *Renderer updates*, lower in the card, looks for a new receipt layout.
 
 - **How it checks.** Printer Bot asks the dock's web host whether a newer program exists. It asks:
   - when a dock connects (at most once every 15 minutes, and sooner when the update source changed),
@@ -104,7 +112,7 @@ The dock has an **Updates** card between the status and the settings. It shows t
 
 The switch **Install updates automatically** in the Updates card is off by default. With it on, Printer Bot installs an update by itself only when all of these hold:
 
-- **Download updates (layouts and program updates)** in Advanced is on.
+- **Download updates (layouts and program updates)** in the Updates card is on.
 - It found a newer update that the author signed. The author can mark an update so that it always needs your click, and then it is never installed automatically.
 - No event and no dock command reached Printer Bot for at least two minutes (the buttons of the Updates card do not count).
 - Nothing was installed or tried in the last 24 hours.
@@ -217,10 +225,11 @@ Each printed (or saved) receipt raises a Streamer.bot custom trigger called **Pr
 | **Advanced → High Roller: maximum length** | The longest a High Roller message can print, in inches (0 to 40). It overrides *bits per inch* and applies to cheers only. Default 0, which keeps the built-in limit of about 16.7 inches. |
 | **Advanced → Hide links in messages** | Replaces text that looks like a web address in a normal message with [link] (not every bare domain name is caught). High Roller messages are untouched. Off by default. |
 | **Advanced → Free receipts per minute** | Stops a flood of free prints. Only channel-point redemptions and raids count, never cheers, subs, gifts or tips. Default 30, and 0 means no limit. A warning is logged at most every 30 seconds, and the dock shows the count ("Skipped by that limit"). |
-| **Advanced → Renderer updates** | Where Printer Bot looks for layout updates, normally this dock. Program updates look in the same place (see *Updating*). Its **Check now** looks for a new layout at once. The **Check now** in the Updates card looks for a new program. **Use this dock** switches to this dock's address. |
-| **Advanced → Download updates (layouts and program updates)** | On by default, so Printer Bot fetches newer receipt layouts and program updates from the update source and uses them only if the author signed them. Off downloads nothing and uses the built-in layout, and the Updates card says "Updates are switched off in Advanced." A program update you installed earlier keeps running until you press **Use the built-in version**. Until a dock has connected once, no update source is stored and nothing is downloaded. |
-| **Advanced → Renderer** | Shows the layout version. **Reset to built-in renderer** drops a downloaded layout. |
+| **Advanced → Customize receipts** | The last row of Advanced. Shows the folder where `theme.css` goes, relative to your Streamer.bot folder, with a **Copy folder path** button (see *How receipts look, and theme.css*). |
 | **Updates → Install updates automatically** | Off by default. On lets Printer Bot install a program update by itself when it is idle (see *Updating*). The switch is greyed out while **Download updates** is off. |
+| **Updates → Renderer updates** | Where Printer Bot looks for layout updates, normally this dock. Program updates look in the same place (see *Updating*). Its **Check layouts** button looks for a new layout at once. The **Check now** next to *Last checked*, higher in the Updates card, looks for a new program. **Use this dock** switches to this dock's address. |
+| **Updates → Download updates (layouts and program updates)** | On by default, so Printer Bot fetches newer receipt layouts and program updates from the update source and uses them only if the author signed them. Off downloads nothing and uses the built-in layout, and the Updates card says "Updates are switched off. Turn on "Download updates" below." A program update you installed earlier keeps running until you press **Use the built-in version**. Until a dock has connected once, no update source is stored and nothing is downloaded. |
+| **Updates → Renderer** | Shows the layout version. **Reset to built-in renderer** drops a downloaded layout. |
 
 The dock calls the receipt layout the "renderer".
 
@@ -229,7 +238,7 @@ The dock calls the receipt layout the "renderer".
 - `mode` `escpos` is *Thermal printer (ESC/POS)*, `windows` is *Windows printer driver* and `png` is *Preview only*.
 - `dither` `floyd` is *Detailed*, `atkinson` is *Soft* and `threshold` is *Crisp (no shading)*.
 - `cut` is `partial`, `full` or `none`, `paperWidthMm` is 80 or 58 and `printer` is the exact Windows printer name.
-- `allowHostedUpdates` (`true` or `false`) is *Advanced → Download updates (layouts and program updates)*. Write it as a plain `true` or `false` without quotes. The updater treats anything else as off.
+- `allowHostedUpdates` (`true` or `false`) is *Updates → Download updates (layouts and program updates)*. Write it as a plain `true` or `false` without quotes. The updater treats anything else as off.
 - `autoUpdateCore` (`true` or `false`) is *Install updates automatically*. The default is `false`.
 - The other keys are `feedDots`, `highRollerBits`, `highRollerBitsPerInch`, `highRollerMaxInches`, `freePrintsPerMinute`, `hideLinks`, `ignoreTestTriggers` and `keepDebugFiles`.
 
@@ -266,7 +275,7 @@ If the printer you chose was removed or renamed, Printer Bot warns in the Stream
 
 Receipts use one typeface (Segoe UI) in two weights: bold for titles, names and amounts, regular for the rest. Only High Roller messages can use italics. Everything is pure black on white, with a black Twitch, YouTube or Kick logo at the bottom where the platform has one and a short date in your computer's language and 12/24-hour style. The profile picture is 390 dots (about 49 mm) wide on 80 mm paper, at the very top, and shrinks on narrower paper.
 
-To change the look, put CSS in `theme.css` in the data folder (the dock's **Customize** card shows the folder, relative to your Streamer.bot folder, and has a **Copy folder path** button). It applies on the next print with no restart. For example:
+To change the look, put CSS in `theme.css` in the data folder (**Advanced → Customize receipts** in the dock shows the folder, relative to your Streamer.bot folder, and has a **Copy folder path** button). It applies on the next print with no restart. For example:
 
 ```css
 #receipt-icon { height: 2em; }       /* smaller platform logo */
@@ -317,15 +326,15 @@ The dock's status line and the Streamer.bot log (lines starting with `[Printer B
   - Chrome and Edge 147 and later ask once per site whether it may connect to devices on your computer or local network (**Apps on device** in Chrome, worded a little differently elsewhere). Choose **Allow**. If you blocked it, change it under **Site settings**, from the icon at the left end of the address bar.
   - The browser built into OBS 32 (Chromium 127 in OBS 32.2.2) is older and doesn't ask. It isn't known yet whether a later OBS will ask or refuse silently.
   - In Chrome and Edge 147 and later, a plain-`http` dock from the internet can't reach Streamer.bot on your PC at all, and no question is asked.
-- **"The Printer Bot action in Streamer.bot is older than this dock, so some settings below are switched off."** If the note says "Open Updates above and install the new version.", press **Update** in the Updates card. Otherwise your Printer Bot is older than 2.4.0 and can't update itself. Delete the old action and import the current `import.txt` or use **Copy import code** (see **Trust** under *Which dock?*). Then switch Channel Reward on again if you use it, and reload the dock.
+- **"The Printer Bot action in Streamer.bot is older than this dock, so some settings below are switched off."** If the note says "Open Updates below and install the new version.", press **Update** in the Updates card. Otherwise your Printer Bot is older than 2.4.0 and can't update itself. Delete the old action and import the current `import.txt` or use **Copy import code** (see **Trust** under *Which dock?*). Then switch Channel Reward on again if you use it, and reload the dock.
 - **The dock looks out of date after an update.** Press **Reload dock** in the Updates card, reload the dock, or restart OBS. The dock asks Streamer.bot which Printer Bot version you run and opens the matching page, so after you import a new action the next reload shows the new dock. If OBS still shows an old page, add `?1` to the dock's address once (**Docks → Custom Browser Docks**), which forces a fresh copy.
-- **"Updates come from: another address: ..."** The action remembers the first dock it met, so this appears after a dock moves to another host name or port. **Advanced → Renderer updates** shows the old address. To use this dock, press **Use this dock**, then press it again within 5 seconds when it asks "Are you sure? Click again".
+- **"Updates come from: another address: ..."** The action remembers the first dock it met, so this appears after a dock moves to another host name or port. **Renderer updates** in the Updates card shows the old address. To use this dock, press **Use this dock**, then press it again within 5 seconds when it asks "Are you sure? Click again".
 - **The dock's Renderer row says "refused: ..." or "update check failed" (a dock you host yourself).** Printer Bot keeps its current layout. Upload `renderer.html`, `renderer.html.sig` and `version.json` again from the same ZIP, unchanged, and make sure no web server or CDN alters them (see *Which dock?*). If you moved your dock to another folder on the same host, see the update source bullet there.
 - **The bar "Printer Bot 2.4.0 can update itself from this dock" shows above the dock.** Your Printer Bot is 2.2.1, 2.3.0 or 2.3.1. Import 2.4.0 once as described under *Updating*, or press **Hide**. Your current version keeps working either way.
-- **The Updates card says "Updates are switched off in Advanced."** Switch on **Download updates (layouts and program updates)** in Advanced. A program update that you installed earlier keeps running while it is off. Press **Use the built-in version** to leave it.
-- **The Updates card says "Checking soon."** Printer Bot has not asked for updates since its code started, or you have just switched **Download updates** on again. The dock asks for a check by itself within a moment. If the card stays like that, press **Check now**.
+- **The Updates card says "Updates are switched off. Turn on "Download updates" below."** Switch on **Download updates (layouts and program updates)** at the bottom of the Updates card. A program update that you installed earlier keeps running while it is off. Press **Use the built-in version** to leave it.
+- **The Updates card says "Checking soon."** Printer Bot has not asked for updates since its code started, or you have just switched **Download updates** on again. The dock asks for a check by itself within a moment. If the card stays like that, press **Check now** next to *Last checked*.
 - **The Updates card says "Updates are not available."** The sentence under it names the reason:
-  - "Printer Bot does not know where to get updates yet. Open the dock from its web address and connect once." Open the dock from a web address (a file on your PC doesn't work), let it connect and press **Check now**.
+  - "Printer Bot does not know where to get updates yet. Open the dock from its web address and connect once." Open the dock from a web address (a file on your PC doesn't work), let it connect and press **Check now** next to *Last checked*.
   - "The update host did not answer. Check your internet connection." or "The update host answered with error 503." (the number can differ). The dock's host is down or can't be reached. Try again later. Printer Bot keeps working.
   - "This dock host does not offer program updates." The host has no `core/` folder. On a dock you host yourself, upload it (see *Which dock?*).
   - "The update was not signed by the author, so it was refused." or "The downloaded update was damaged, so it was refused." On a dock you host yourself, upload `core/` again from the same ZIP, unchanged. Make sure no web server or CDN changes the files. On the author's dock, try again later. If it stays, report it as described in [SECURITY.md](SECURITY.md).

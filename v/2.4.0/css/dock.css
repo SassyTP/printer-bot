@@ -598,7 +598,8 @@ button.confirming {
 /* narrow docks (OBS panels): the input or buttons go under their text, so the text doesn't get squeezed into a thin column
    (rows with a toggle switch keep the switch on the right) */
 @media (max-width: 640px) {
-    .advanced > .setting.stack-narrow {
+    .advanced > .setting.stack-narrow,
+    .update-layouts > .setting.stack-narrow {
         flex-direction: column;
         align-items: stretch;
     }
@@ -608,17 +609,20 @@ button.confirming {
     }
 
     .advanced > .setting.stack-narrow > input,
-    .advanced > .setting.stack-narrow > .setting-actions {
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions {
         width: 100%;                /* 100% wide including padding and border (everything is border-box), so it lines up with the text above */
         max-width: 100%;
         margin-left: 0;
     }
 
-    .advanced > .setting.stack-narrow > .setting-actions {
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions {
         flex-direction: row;
     }
 
-    .advanced > .setting.stack-narrow > .setting-actions button {
+    .advanced > .setting.stack-narrow > .setting-actions button,
+    .update-layouts > .setting.stack-narrow > .setting-actions button {
         flex: 1;
     }
 }
@@ -628,6 +632,16 @@ button.confirming {
 /* Updates card                                                       */
 /* ------------------------------------------------------------------ */
 
+.update-layouts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    padding-top: 0.9em;
+    border-top: 1px solid var(--border-soft);
+}
+#update-source-state {
+    overflow-wrap: anywhere;
+}
 .update-main {
     display: flex;
     flex-direction: column;
@@ -793,6 +807,12 @@ textarea.import-code {
     text-align: center;
 }
 
+.setting-description + .callout {
+    margin-top: 0.5em;
+}
+.callout + .setting-description {
+    margin-top: 0.4em;
+}
 .callout {
     padding: 0.7em 0.9em;
     font-family: monospace;

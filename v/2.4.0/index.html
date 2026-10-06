@@ -9,9 +9,9 @@
     <title>Printer Bot</title>
     <!-- Every address below ends in ?v=<build>. The build tool rewrites the stamp when a file of this folder changes,
          so a changed file gets a new address and a browser that caches hard still fetches it. -->
-    <link rel="icon" href="assets/logo.png?v=da8da89f3896" type="image/png">
+    <link rel="icon" href="assets/logo.png?v=230164befb39" type="image/png">
 
-    <link rel="stylesheet" href="css/dock.css?v=da8da89f3896" />
+    <link rel="stylesheet" href="css/dock.css?v=230164befb39" />
 </head>
 
 <body>
@@ -19,7 +19,7 @@
 
         <!-- Header -->
         <div id="header">
-            <img class="brand-logo" src="assets/logo.png?v=da8da89f3896" alt="" />
+            <img class="brand-logo" src="assets/logo.png?v=230164befb39" alt="" />
             <label id="title" class="title"></label>
             <div id="header-end">
                 <!-- A small dot while an update is available. It scrolls to the Updates card. -->
@@ -68,93 +68,6 @@
                     <dl id="status-grid" class="kv"></dl>
                 </section>
 
-                <section class="card" id="updates-card">
-                    <h2>Updates</h2>
-                    <dl id="update-grid" class="kv"></dl>
-
-                    <!-- Printer Bot 2.4.0 and later: the updater is part of the action -->
-                    <div id="update-main" class="update-main" hidden>
-                        <div class="setting">
-                            <div>
-                                <div class="setting-label">Last checked</div>
-                                <div class="setting-description" id="update-checked">not yet</div>
-                            </div>
-                            <div class="setting-actions">
-                                <button type="button" id="core-check-button">Check now</button>
-                            </div>
-                        </div>
-
-                        <div class="status-line">
-                            <span id="update-dot" class="dot"></span>
-                            <span id="update-state-text">Waiting for the updater…</span>
-                        </div>
-                        <progress id="update-progress" max="100" value="0" hidden></progress>
-                        <p id="update-message" class="note" hidden></p>
-
-                        <div id="update-notes" hidden>
-                            <div class="setting-label">What's new</div>
-                            <p id="update-notes-text" class="update-notes"></p>
-                        </div>
-
-                        <div class="button-row">
-                            <button type="button" id="core-update-button" hidden>Update</button>
-                            <button type="button" id="core-reload-button" hidden>Reload dock</button>
-                        </div>
-                        <p id="update-refused" class="hint" hidden></p>
-                        <p id="update-hint" class="hint" hidden>Receipts pause for a moment while the new version starts.</p>
-                        <p id="update-auto-info" class="hint" hidden></p>
-
-                        <div class="setting">
-                            <div>
-                                <label class="setting-label" for="autoUpdateCore">Install updates automatically</label>
-                                <div class="setting-description">Installs a new version by itself when Printer Bot has been idle for a while.</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="autoUpdateCore">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <details id="update-more" class="advanced">
-                            <summary>More</summary>
-                            <div class="setting stack-narrow">
-                                <div>
-                                    <div class="setting-label">Previous version</div>
-                                    <div class="setting-description">Switches back to the version that ran before the last update. Without an earlier downloaded version it uses the built-in one, which stays until you press Update.</div>
-                                </div>
-                                <div class="setting-actions">
-                                    <button type="button" id="core-rollback-button">Go back to the previous version</button>
-                                </div>
-                            </div>
-                            <div class="setting stack-narrow">
-                                <div>
-                                    <div class="setting-label">Built-in version</div>
-                                    <div class="setting-description">Switches to the version that came with the import. It stays until you press Update.</div>
-                                </div>
-                                <div class="setting-actions">
-                                    <button type="button" id="core-builtin-button">Use the built-in version</button>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-
-                    <!-- A Printer Bot that has no updater (before 2.4.0), or one whose updater needs a newer one: import once -->
-                    <div id="update-reimport" class="note" hidden>
-                        <p id="update-reimport-text"></p>
-                        <p id="update-reimport-notes" hidden></p>
-                        <ol class="steps">
-                            <li>Click <b>Copy import code</b>.</li>
-                            <li>In Streamer.bot, delete the old <b>Printer Bot</b> action.</li>
-                            <li>Open <b>Import</b> (top bar), paste, and click <b>Import</b>.</li>
-                            <li>Reload this dock.</li>
-                        </ol>
-                        <div class="button-row">
-                            <button type="button" id="copy-import-updates-button">Copy import code</button>
-                        </div>
-                        <div id="import-result-updates" class="import-result" hidden></div>
-                    </div>
-                </section>
-
                 <section class="card">
                     <h2>Settings <span id="saved-flag" class="saved" hidden>Saved ✓</span></h2>
 
@@ -168,11 +81,12 @@
                     <div id="action-outdated" class="note" hidden>
                         The Printer Bot action in Streamer.bot is older than this dock, so some settings below are switched off.
                         <div id="outdated-import">
-                            Import it again (delete the old Printer Bot action first), then reload this dock.
+                            Import it again (delete the old Printer Bot action first), then reload this dock. The steps are in Updates, at the bottom of this page.
+                            <button type="button" id="show-updates-button" class="inline-button">Show the steps</button>
                             <button type="button" id="copy-import-outdated-button" class="inline-button">Copy import code</button>
                             <div id="import-result-outdated" class="import-result" hidden></div>
                         </div>
-                        <div id="outdated-update" hidden>Open Updates above and install the new version.</div>
+                        <div id="outdated-update" hidden>Open Updates below and install the new version.</div>
                     </div>
 
                     <div class="setting">
@@ -311,12 +225,129 @@
 
                         <div class="setting stack-narrow">
                             <div>
+                                <div class="setting-label">Customize receipts</div>
+                                <div class="setting-description">Put a file named <b>theme.css</b> in this folder to restyle your receipts. It applies on the next print, no restart needed.</div>
+                                <div id="folder" class="callout"></div>
+                                <div id="folder-hint" class="setting-description" hidden>This folder is inside your Streamer.bot folder.</div>
+                            </div>
+                            <div class="setting-actions">
+                                <button type="button" id="copy-folder-button">Copy folder path</button>
+                            </div>
+                        </div>
+                    </details>
+                </section>
+
+                <section class="card">
+                    <h2>Test</h2>
+                    <div class="button-row">
+                        <select id="sample"></select>
+                        <button type="button" id="test-print-button">Test print</button>
+                    </div>
+                    <div class="button-row">
+                        <button type="button" id="preview-button">Show last receipt</button>
+                    </div>
+                    <div id="preview-box" hidden>
+                        <img id="preview-img" alt="Last receipt">
+                        <div id="preview-caption" class="hint"></div>
+                    </div>
+                </section>
+
+                <section class="card" id="updates-card">
+                    <h2>Updates <span id="updates-saved" class="saved" hidden>Saved ✓</span></h2>
+                    <dl id="update-grid" class="kv"></dl>
+
+                    <!-- Printer Bot 2.4.0 and later: the updater is part of the action -->
+                    <div id="update-main" class="update-main" hidden>
+                        <div class="setting">
+                            <div>
+                                <div class="setting-label">Last checked</div>
+                                <div class="setting-description" id="update-checked">not yet</div>
+                            </div>
+                            <div class="setting-actions">
+                                <button type="button" id="core-check-button">Check now</button>
+                            </div>
+                        </div>
+
+                        <div class="status-line">
+                            <span id="update-dot" class="dot"></span>
+                            <span id="update-state-text">Waiting for the updater…</span>
+                        </div>
+                        <progress id="update-progress" max="100" value="0" hidden></progress>
+                        <p id="update-message" class="note" hidden></p>
+
+                        <div id="update-notes" hidden>
+                            <div class="setting-label">What's new</div>
+                            <p id="update-notes-text" class="update-notes"></p>
+                        </div>
+
+                        <div class="button-row">
+                            <button type="button" id="core-update-button" hidden>Update</button>
+                            <button type="button" id="core-reload-button" hidden>Reload dock</button>
+                        </div>
+                        <p id="update-refused" class="hint" hidden></p>
+                        <p id="update-hint" class="hint" hidden>Receipts pause for a moment while the new version starts.</p>
+                        <p id="update-auto-info" class="hint" hidden></p>
+
+                        <div class="setting">
+                            <div>
+                                <label class="setting-label" for="autoUpdateCore">Install updates automatically</label>
+                                <div class="setting-description">Installs a new version by itself when Printer Bot has been idle for a while.</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="autoUpdateCore">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <details id="update-more" class="advanced">
+                            <summary>More</summary>
+                            <div class="setting stack-narrow">
+                                <div>
+                                    <div class="setting-label">Previous version</div>
+                                    <div class="setting-description">Switches back to the version that ran before the last update. Without an earlier downloaded version it uses the built-in one, which stays until you press Update.</div>
+                                </div>
+                                <div class="setting-actions">
+                                    <button type="button" id="core-rollback-button">Go back to the previous version</button>
+                                </div>
+                            </div>
+                            <div class="setting stack-narrow">
+                                <div>
+                                    <div class="setting-label">Built-in version</div>
+                                    <div class="setting-description">Switches to the version that came with the import. It stays until you press Update.</div>
+                                </div>
+                                <div class="setting-actions">
+                                    <button type="button" id="core-builtin-button">Use the built-in version</button>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- A Printer Bot that has no updater (before 2.4.0), or one whose updater needs a newer one: import once -->
+                    <div id="update-reimport" class="note" hidden>
+                        <p id="update-reimport-text"></p>
+                        <p id="update-reimport-notes" hidden></p>
+                        <ol class="steps">
+                            <li>Click <b>Copy import code</b>.</li>
+                            <li>In Streamer.bot, delete the old <b>Printer Bot</b> action.</li>
+                            <li>Open <b>Import</b> (top bar), paste, and click <b>Import</b>.</li>
+                            <li>Reload this dock.</li>
+                        </ol>
+                        <div class="button-row">
+                            <button type="button" id="copy-import-updates-button">Copy import code</button>
+                        </div>
+                        <div id="import-result-updates" class="import-result" hidden></div>
+                    </div>
+
+                    <!-- Receipt layouts and the switch for all downloads -->
+                    <div class="update-layouts">
+                        <div class="setting stack-narrow">
+                            <div>
                                 <div class="setting-label">Renderer updates</div>
                                 <div class="setting-description">Where Printer Bot looks for newer receipt layouts. Normally this dock.</div>
                                 <div class="setting-description example-line" id="update-source-state"></div>
                             </div>
                             <div class="setting-actions">
-                                <button type="button" id="update-check-button">Check now</button>
+                                <button type="button" id="update-check-button">Check layouts</button>
                                 <button type="button" id="update-use-button" hidden>Use this dock</button>
                             </div>
                         </div>
@@ -342,33 +373,6 @@
                                 <button type="button" id="renderer-reset-button">Reset to built-in renderer</button>
                             </div>
                         </div>
-                    </details>
-                </section>
-
-                <section class="card">
-                    <h2>Test</h2>
-                    <div class="button-row">
-                        <select id="sample"></select>
-                        <button type="button" id="test-print-button">Test print</button>
-                    </div>
-                    <div class="button-row">
-                        <button type="button" id="preview-button">Show last receipt</button>
-                    </div>
-                    <div id="preview-box" hidden>
-                        <img id="preview-img" alt="Last receipt">
-                        <div id="preview-caption" class="hint"></div>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h2>Customize</h2>
-                    <p class="hint">
-                        Put a file named <b>theme.css</b> in this folder to restyle your receipts. It applies on the next print, no restart needed.
-                    </p>
-                    <div id="folder" class="callout"></div>
-                    <p id="folder-hint" class="hint" hidden>This folder is inside your Streamer.bot folder.</p>
-                    <div class="button-row">
-                        <button type="button" id="copy-folder-button">Copy folder path</button>
                     </div>
                 </section>
 
@@ -382,7 +386,7 @@
         <div id="sb-connect-dialog" class="dialog" role="dialog" aria-label="Connect to Streamer.bot">
             <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">×</button>
             <div class="dialog-brand">
-                <img class="brand-logo" src="assets/icons/plug.svg?v=da8da89f3896" loading="lazy" decoding="async" alt="" />
+                <img class="brand-logo" src="assets/icons/plug.svg?v=230164befb39" loading="lazy" decoding="async" alt="" />
                 <label class="title">Streamer.bot</label>
             </div>
             <div class="field-row">
@@ -421,8 +425,8 @@
         </div>
     </div>
 
-    <script src="vendor/streamerbot-client.js?v=da8da89f3896"></script>
-    <script src="js/app.js?v=da8da89f3896"></script>
+    <script src="vendor/streamerbot-client.js?v=230164befb39"></script>
+    <script src="js/app.js?v=230164befb39"></script>
 </body>
 
 </html>

@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 1,
-  "version": "2.4.0",
-  "built": "202610061828",
+  "version": "2.4.1",
+  "built": "202610062031",
   "minDock": "2.4.0",
   "install": true,
-  "auto": true,
+  "auto": false,
   "files": [
     {
-      "name": "core-2.4.0.bin",
+      "name": "core-2.4.1.bin",
       "size": 287232,
-      "sha256": "ad942365661bd2d3a79c8ace78d6ad8e7810348ecb53a849caf30f5835d25d4b"
+      "sha256": "e34b2f5edf4abcc6635cdfd738bcb23adfd9aca9ca3bcccb9f18914087cd9a91"
     }
   ],
-  "notes": "Printer Bot 2.4.0 can update its own program from the dock. When a new version is published, the Updates card shows it and the Update button installs it.",
+  "notes": "Printer Bot 2.4.1 tidies the dock. Settings and Test come first and the Updates box is last. Customize receipts is now inside Advanced, and the layout rows (Renderer updates, Download updates and Renderer) are in the Updates box. One log message now points to the Updates box too. Your settings stay.",
   "successor": null,
   "revokeKeys": []
 }

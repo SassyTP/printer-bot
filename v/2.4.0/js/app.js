@@ -570,7 +570,7 @@ function FillSettings(s) {
         if (supported) $(id).removeAttribute('title');
         else $(id).title = 'The Printer Bot action is older than this dock. Import it again to use this setting.';
     }
-    // Installing by itself needs program updates to be switched on in Advanced
+    // Installing by itself needs program updates to be switched on in the Updates card
     if (hasOwn(st, 'autoUpdateCore') && HostedUpdatesOff(s)) {
         $('autoUpdateCore').disabled = true;
         $('autoUpdateCore').title = HOSTED_OFF_TEXT;
@@ -685,7 +685,7 @@ function CheckForUpdates() {
     button.disabled = true;
     button.textContent = 'Checking…';
     // The check runs in the action and its answer arrives later as a status (see the Renderer rows). This timer just resets the button.
-    setTimeout(() => { checkingUpdate = false; button.textContent = 'Check now'; if (pbStatus) RenderUpdateRows(pbStatus); }, 3000);
+    setTimeout(() => { checkingUpdate = false; button.textContent = 'Check layouts'; if (pbStatus) RenderUpdateRows(pbStatus); }, 3000);
     Send('configure', { rendererUrl: FOLDER_URL });
 }
 
@@ -725,13 +725,13 @@ function ResetRenderer() {
 
 const UPDATE_STATES = ['idle', 'checking', 'current', 'available', 'downloading', 'verifying', 'waiting', 'installing', 'installed', 'failed', 'paused', 'unavailable', 'reimport'];
 const WORKING_STATES = ['downloading', 'verifying', 'waiting', 'installing'];      // an update is on its way: nothing else can be started
-const HOSTED_OFF_TEXT = 'Turn on "Download updates" in Advanced first.';
+const HOSTED_OFF_TEXT = 'Turn on "Download updates" below first.';
 const ARM_MS = 5000;                  // the first click on Update stays armed this long
 const PAUSE_MS = 4000;                // a button that sent a command stays off this long, or until the updater answers
 
 const UPDATE_ERRORS = {
     'no-source': 'Printer Bot does not know where to get updates yet. Open the dock from its web address and connect once.',
-    'off': 'Updates are switched off in Advanced.',
+    'off': 'Updates are switched off. Turn on "Download updates" below.',
     'unreachable': 'The update host did not answer. Check your internet connection.',
     'missing': 'This dock host does not offer program updates.',
     'signature': 'The update was not signed by the author, so it was refused.',
@@ -983,7 +983,7 @@ function RenderUpdates() {
     // that does not explain itself. The paused state and the re-import block say it already.
     // The error "off" is the one case that says nothing once Download updates is on again, and the card says "switched off" itself while it is off.
     if (u && u.error && u.error !== 'off' && !message && state !== 'paused' && state !== 'reimport') message = UpdateErrorText(u.error);
-    if (hostedOff && !working) { text = 'Updates are switched off in Advanced.'; level = 'warn'; message = ''; notes = false; }
+    if (hostedOff && !working) { text = 'Updates are switched off. Turn on "Download updates" below.'; level = 'warn'; message = ''; notes = false; }
     $('update-dot').className = 'dot' + (level ? ' ' + level : '');
     $('update-state-text').textContent = text;
     $('update-progress').hidden = progress < 0;
@@ -1194,8 +1194,9 @@ function SaveSettings() {
 function FlashSaved() {
     $('saved-flag').hidden = false;
     $('advanced-saved').hidden = false;                       // the Settings header can be scrolled out of sight
+    $('updates-saved').hidden = false;                        // the two switches in the Updates card sit at the bottom of the page
     clearTimeout(savedFlagTimer);
-    savedFlagTimer = setTimeout(() => { $('saved-flag').hidden = true; $('advanced-saved').hidden = true; }, 1800);
+    savedFlagTimer = setTimeout(() => { $('saved-flag').hidden = true; $('advanced-saved').hidden = true; $('updates-saved').hidden = true; }, 1800);
 }
 
 // Settings used to live in this page's browser storage. Offer the old printer name once.
@@ -1419,7 +1420,9 @@ $('copy-import-button').addEventListener('click', (e) => CopyImportCode(e.curren
 $('copy-import-outdated-button').addEventListener('click', (e) => CopyImportCode(e.currentTarget, $('import-result-outdated')));
 $('copy-import-updates-button').addEventListener('click', (e) => CopyImportCode(e.currentTarget, $('import-result-updates')));
 $('check-action-button').addEventListener('click', CheckAction);
-$('update-badge').addEventListener('click', () => $('updates-card').scrollIntoView({ block: 'start' }));
+const ShowUpdatesCard = () => $('updates-card').scrollIntoView({ block: 'start' });
+$('update-badge').addEventListener('click', ShowUpdatesCard);
+$('show-updates-button').addEventListener('click', ShowUpdatesCard);
 $('core-check-button').addEventListener('click', CheckCore);
 $('core-update-button').addEventListener('click', UpdateCore);
 $('core-reload-button').addEventListener('click', ReloadDock);
