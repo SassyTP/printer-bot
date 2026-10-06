@@ -8,7 +8,7 @@ If that option is not offered, open an issue titled "Security contact request" t
 
 ## What helps in a report
 
-- The Printer Bot version. The import in `import.txt` is Printer Bot 2.3.0 at the time of writing.
+- The Printer Bot version. The import in `import.txt` is Printer Bot 2.3.1 at the time of writing.
 - The receipt layout version, shown in the dock's **Renderer** row. It is a "v" followed by 12 digits, such as v202610050006. The digits are the build time as year, month, day, hour and minute in UTC.
 - What you did, what you expected and what happened.
 - Whether it needs access to the Streamer.bot WebSocket, access to the dock's web host, or only a viewer's chat message.
