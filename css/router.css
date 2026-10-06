@@ -12,6 +12,11 @@
     --border-color: #404040;
     --error-color: #c65e5e;
     --error-background: #a82d2e33;
+    --warn-color: #e0a73a;
+    --banner-background: #2b2515;
+
+    /* The height of the banner above the frame. js/router.js measures it, because the text wraps in a narrow dock. */
+    --banner-height: 0px;
 }
 
 html,
@@ -45,6 +50,7 @@ body {
     width: 100%;
     height: 100%;
     padding: 1em;
+    padding-top: calc(1em + var(--banner-height));
     text-align: center;
 }
 
@@ -112,17 +118,71 @@ body {
 
 
 /* ------------------------------------------------------------------ */
+/* Banner for an action that cannot update itself                     */
+/* ------------------------------------------------------------------ */
+
+/* One bar above the frame. Its height depends on how the text wraps, so js/router.js measures it and sets --banner-height. */
+#router-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em 0.9em;
+    padding: 0.6em 0.9em;
+    font-size: 0.9em;
+    background-color: var(--banner-background);
+    border-bottom: 1px solid var(--warn-color);
+}
+
+.router-banner-text {
+    flex: 1 1 14em;
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.router-banner-buttons {
+    display: flex;
+    gap: 0.5em;
+    margin-left: auto;
+}
+
+.router-banner-buttons button {
+    padding: 0.3em 0.9em;
+    font-size: 1em;
+    font-weight: 600;
+    color: white;
+    background-color: var(--button-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5em;
+    opacity: 0.85;
+    cursor: pointer;
+}
+
+.router-banner-buttons button:hover {
+    opacity: 1;
+}
+
+
+/* ------------------------------------------------------------------ */
 /* The dock frame                                                     */
 /* ------------------------------------------------------------------ */
 
-/* Hidden until the dock page has loaded, so the loading screen stays visible behind it and nothing flashes */
+/* Hidden until the dock page has loaded, so the loading screen stays visible behind it and nothing flashes.
+   The banner, when there is one, sits above it, and the frame starts below the banner. */
 .dock-frame {
     position: fixed;
     inset: 0;
+    top: var(--banner-height);
     z-index: 1;
     display: block;
     width: 100%;
-    height: 100%;
+    height: calc(100% - var(--banner-height));     /* a frame is a replaced element, so top and bottom alone would not set its height */
     border: 0;
     background-color: var(--background-color);
     visibility: hidden;

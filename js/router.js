@@ -11,11 +11,17 @@
 //   3. Pick the newest dock page that is not newer than the action (see PickFrontend).
 //   4. Show that page in a frame at   <page>?b=<build>   so a changed dock page is always a new address.
 //
+// Two more jobs since router 2:
+//   - A banner above the frame for an action that cannot update itself (it has no loader, see versions.json "core"). Show how swaps the frame
+//     to the newest dock page, which explains the one-time re-import. Hide keeps the banner away until versions.json names a later version.
+//   - The dock reports the backend version again when it changes (after a program update). That can swap the frame to the matching dock page.
+//
 // Rules this file follows:
 //   - Everything from Streamer.bot and from versions.json is untrusted. Versions are cut to 40 characters and must be 1 to 4 numbers
 //     separated by dots. Page names must match a strict pattern, and anything else in the list is ignored.
 //   - The only thing sent to Streamer.bot is the one status command the dock sends on every connect anyway.
 //   - index.html has no inline script, style or handler, so the page can carry a strict CSP. Every element is made here or in index.html.
+//     The one size this file sets is a CSS variable (the banner height), which the CSP allows because it goes through the style object.
 //   - Browser storage may be blocked (OBS profiles, privacy modes), so every access is in try/catch with an in-memory fallback.
 // ============================================================================
 
@@ -23,7 +29,7 @@
 
 // The number of this router. A larger "router" number in versions.json makes this page reload itself once at ./?r=<number>,
 // which is a new address, so an old cached index.html and router.js are replaced. The build tool keeps the two numbers in step.
-const ROUTER_BUILD = 1;
+const ROUTER_BUILD = 2;
 
 const MANIFEST_TIMEOUT_MS = 8000;      // fetching versions.json
 const CONNECT_TIMEOUT_MS = 3000;       // connecting to Streamer.bot, up to and including its greeting
@@ -36,7 +42,17 @@ const LOAD_LIMIT_MS = 20000;           // a frame that has no page of its own af
 const REVEAL_POLL_MS = 1000;           // how often a frame that still has no page is looked at again
 const REMEMBER_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;   // a remembered backend version older than this counts as unknown
 const REMEMBER_FUTURE_MS = 60 * 1000;                  // a time stamp this far ahead of the clock cannot be trusted either
-const MAX_SWITCHES = 2;                // how often the frame may be swapped because the dock reported another backend version
+
+// Two separate limits on swapping the frame because a dock page reported another backend version.
+//   MAX_SWITCHES is the loop guard. It counts the swaps that follow the FIRST report of a dock page that was just loaded (the router chose
+//   from a remembered version, or two pages disagree about which one fits). Two per page load, as in router 1.
+//   MAX_UPDATE_SWITCHES counts the swaps that follow a LATER report of a dock page that was already open. That happens when the version of the
+//   action changes while the dock stays open: a program update or a rollback. Each of those needs a button press and a real change of version,
+//   and the action allows only a few updates per hour, so a budget of 6 is safe.
+//   A swap of the second kind loads a new page, and that page's own first report counts against MAX_SWITCHES. A loop of first reports ends
+//   after 2 swaps and a loop of later reports after 6.
+const MAX_SWITCHES = 2;
+const MAX_UPDATE_SWITCHES = 6;
 const MAX_MANIFEST_BYTES = 65536;
 const MAX_FRONTENDS = 50;
 
@@ -44,6 +60,7 @@ const FRAME_NAME = 'printer-bot-dock';
 const REMEMBER_KEY = 'pbBackendVersion';       // the last backend version seen (localStorage)
 const REMEMBER_AT_KEY = 'pbBackendVersionAt';  // when it was seen, in milliseconds (localStorage)
 const UPDATE_KEY = 'pbRouterUpdate';           // the router number a self-update was tried for (sessionStorage)
+const BANNER_KEY = 'pbUpdateBanner';           // the selfUpdateSince version the person hid the banner for (localStorage)
 
 // Shown when no dock page can be put in the frame. A browser gives the router no way to tell a host that forbids framing
 // from any other failed load, because it replaces the page with its own error page that this page may not read. So one text covers all causes.
@@ -52,6 +69,9 @@ const FRAME_FAILED = 'The dock page did not load. The web host may forbid framin
 const DROPPED_PARAMS = new Set(['b', 't', 'r']);   // query parameters of this page that are not passed on to the dock
 
 const $ = (id) => document.getElementById(id);
+// Adds a listener to the element with this id. A page that is missing the element is skipped. A browser or a web host that still serves an
+// index.html from before the banner existed runs this script too, and that page has no banner buttons.
+const on = (id, event, fn) => { const el = $(id); if (el) el.addEventListener(event, fn); };
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const str = (v, max) => { const s = v == null ? '' : String(v); return s.length > max ? s.slice(0, max) : s; };
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -146,6 +166,17 @@ function ValidPage(page) {
         && !page.includes('..') && !page.includes('//') && !page.startsWith('/');
 }
 
+// The "core" block of versions.json: a hint about program updates. selfUpdateSince is the first Printer Bot version that can update itself
+// and latest is the newest published one. The block needs a selfUpdateSince that reads as a version, otherwise it is left out. A latest that
+// does not read as a version becomes ''. The hint is unsigned, so the router uses it for the banner only and it never enables anything.
+function NormalizeCore(raw) {
+    if (!isObj(raw) || typeof raw.selfUpdateSince !== 'string' || !ParseVersion(raw.selfUpdateSince)) return null;
+    return {
+        selfUpdateSince: str(raw.selfUpdateSince, 40).trim(),
+        latest: typeof raw.latest === 'string' && ParseVersion(raw.latest) ? str(raw.latest, 40).trim() : '',
+    };
+}
+
 // Reduces the content of versions.json to what the router uses, or null when it has no list of dock pages at all.
 // Entries that break a rule are left out. The frontends come back oldest first. Giving the result to this function again changes nothing.
 function NormalizeManifest(raw) {
@@ -163,8 +194,20 @@ function NormalizeManifest(raw) {
         router: Number.isInteger(raw.router) && raw.router >= 0 ? raw.router : 0,
         actionId: typeof raw.actionId === 'string' && ACTION_RX.test(raw.actionId) ? raw.actionId : '',
         latest: typeof raw.latest === 'string' && ParseVersion(raw.latest) ? raw.latest.trim() : '',
+        core: NormalizeCore(raw.core),
         frontends,
     };
+}
+
+// Does an action of this version get the banner? It needs a valid core block, a version that reads as one and sits below selfUpdateSince, and no sign
+// of a loader (a version below selfUpdateSince has none by definition, and an action that sent pb:'updater' has one whatever its version says).
+// Returns { since, latest } for the banner text, or null.
+function NeedsBanner(manifest, backendVersion, hasLoader) {
+    const m = NormalizeManifest(manifest);
+    if (!m || !m.core || hasLoader === true) return null;
+    const have = ParseVersion(backendVersion), since = ParseVersion(m.core.selfUpdateSince);
+    if (!have || !since || CompareParts(have, since) >= 0) return null;
+    return { since: m.core.selfUpdateSince, latest: m.core.latest };
 }
 
 // Which dock page serves which action:
@@ -247,14 +290,17 @@ function ReadConnection() {
 }
 
 // One connection, one status command, then it closes. The answer is one of
-//   { kind: 'version', version }   the status arrived (version is '' when the status has none)
-//   { kind: 'no-action' }          Streamer.bot answered and the Printer Bot action is not in its list
-//   { kind: 'failed', why }        no connection, wrong password, no answer in time
+//   { kind: 'version', version, updater }   the status arrived (version is '' when the status has none).
+//                                           updater is true when the action also sent pb:'updater' until then, which only an action with a loader does.
+//   { kind: 'no-action' }                   Streamer.bot answered and the Printer Bot action is not in its list
+//   { kind: 'failed', why }                 no connection, wrong password, no answer in time
+// The probe does not wait for a pb:'updater' message that comes after the status. A version below selfUpdateSince has no loader anyway.
+// The loader of 2.4.0 sends pb:'updater' after its status, so updater is false in practice. The field and its banner rule stay for a loader that sends it first.
 function ProbeBackend(actionId) {
     return new Promise((resolve) => {
         if (!actionId) { resolve({ kind: 'failed', why: 'versions.json names no action' }); return; }
         if (typeof StreamerbotClient !== 'function') { resolve({ kind: 'failed', why: 'the Streamer.bot client did not load' }); return; }
-        let client = null, settled = false, timer = null, waitingForStatus = false;
+        let client = null, settled = false, timer = null, waitingForStatus = false, sawUpdater = false;
 
         const finish = async (result) => {
             if (settled) return;
@@ -270,8 +316,10 @@ function ProbeBackend(actionId) {
 
         const onStatus = (response) => {
             const data = response && response.data;
-            if (!waitingForStatus || !isObj(data) || data.pb !== 'status') return;
-            finish({ kind: 'version', version: typeof data.version === 'string' ? str(data.version, 40) : '' });
+            if (!isObj(data)) return;
+            if (data.pb === 'updater') { sawUpdater = true; return; }
+            if (!waitingForStatus || data.pb !== 'status') return;
+            finish({ kind: 'version', version: typeof data.version === 'string' ? str(data.version, 40) : '', updater: sawUpdater });
         };
 
         const ask = async () => {
@@ -308,16 +356,68 @@ function ProbeBackend(actionId) {
 // SCREEN  //
 /////////////
 
-let current = null;              // { entry, frame } while a dock page is shown or loading
+let current = null;              // { entry, frame, startedAt, reported } while a dock page is shown or loading. reported is the version its last message named.
 let currentManifest = null;
 let runId = 0, retryTimer = null, revealTimer = null, titleObserver = null;
-let switches = 0, fellBack = false;
+let switches = 0, updateSwitches = 0, fellBack = false;
+let backendVersion = null;       // the version of the action when the router knows it from a live answer (the probe or a dock message), else null
+let backendHasLoader = false;    // did that action send pb:'updater' while the probe listened?
+let pinned = false;              // the person asked how to re-import: the dock page stays as it is and dock messages about the backend are ignored
+let bannerSince = '';            // the selfUpdateSince the banner on screen is about
 
 function SetView(kind, text, showRetry) {
     $('router-view').hidden = false;
     $('router-view').className = kind;
     $('router-text').textContent = text;
     $('retry-button').hidden = !showRetry;
+}
+
+
+///////////
+// BANNER //
+///////////
+
+// The banner is a bar above the frame. It has no fixed height (the text wraps in a narrow OBS dock), so the frame and the loading screen
+// are moved down by the measured height through one CSS variable. router.css reads it.
+function ApplyBannerOffset() {
+    const bar = $('router-banner');
+    if (!bar) return;                                    // an index.html from before router 2 has no banner
+    document.documentElement.style.setProperty('--banner-height', (bar.hidden ? 0 : bar.offsetHeight) + 'px');
+}
+
+// Has the person hidden the banner for this selfUpdateSince or a later one?
+function BannerDismissed(since) {
+    const kept = ParseVersion(local.get(BANNER_KEY));
+    const wanted = ParseVersion(since);
+    return !!kept && !!wanted && CompareParts(kept, wanted) >= 0;
+}
+
+// Shows or hides the banner for what the router knows now. It is called after the probe, after a dock message and after each of its buttons.
+function RefreshBanner() {
+    if (!$('router-banner') || !$('router-banner-text')) { bannerSince = ''; return; }       // an index.html from before router 2 has no banner
+    const need = current && !pinned && backendVersion !== null ? NeedsBanner(currentManifest, backendVersion, backendHasLoader) : null;
+    const show = !!need && !BannerDismissed(need.since);
+    bannerSince = show ? need.since : '';
+    if (show) {
+        $('router-banner-text').textContent = `Printer Bot ${need.since} can update itself from this dock. Your Printer Bot is ${str(backendVersion, 40)}, so it needs one re-import first.`;
+    }
+    $('router-banner').hidden = !show;
+    ApplyBannerOffset();
+}
+
+// Show how: the newest dock page explains the re-import. It stays, whatever the dock says about the backend, so the swap cannot undo itself.
+function ShowHow() {
+    if (!current || !currentManifest) return;
+    const latest = PickFrontend(currentManifest, null);
+    pinned = true;
+    RefreshBanner();
+    if (latest && latest.page !== current.entry.page) ShowFrame(latest, 'the person asked how to re-import');
+}
+
+// Hide: the banner stays away for this selfUpdateSince and every earlier one. With storage blocked it stays away until this page is loaded again.
+function HideBanner() {
+    if (bannerSince) local.set(BANNER_KEY, bannerSince);
+    RefreshBanner();
 }
 
 function RemoveFrame() {
@@ -329,6 +429,7 @@ function RemoveFrame() {
 
 function Fail(text, autoRetry) {
     RemoveFrame();
+    RefreshBanner();
     SetView('error', autoRetry ? `${text} Trying again in a few seconds.` : text, true);
     document.title = 'Printer Bot';
     if (autoRetry) retryTimer = setTimeout(() => Start(true), RETRY_MS);
@@ -358,7 +459,7 @@ function ShowFrame(entry, why) {
     frame.className = 'dock-frame';
     frame.addEventListener('load', () => OnFrameLoad(frame, entry));
     frame.src = src;
-    current = { entry, frame, startedAt: Date.now() };
+    current = { entry, frame, startedAt: Date.now(), reported: null };
     document.body.append(frame);
     revealTimer = setTimeout(() => CheckSlowFrame(frame), REVEAL_MS);
 }
@@ -420,19 +521,26 @@ function FollowTitle(doc) {
 }
 
 // The dock tells this page which backend version it saw (dock pages from 2.3.0 on). If that points to another dock page, the frame is swapped.
+// A dock page from 2.4.0 on reports again when the version changes while it is open, which is how a program update reaches this page.
+// See MAX_SWITCHES and MAX_UPDATE_SWITCHES for the two budgets. While the frame is pinned, every message is ignored.
 window.addEventListener('message', (event) => {
     if (!current || event.source !== current.frame.contentWindow || event.origin !== location.origin) return;
     const data = event.data;
     if (!isObj(data) || data.printerBot !== 'backend' || typeof data.version !== 'string') return;
+    if (pinned) return;
     const version = str(data.version, 40);
+    const later = current.reported !== null && current.reported !== version;      // this page named another version before: the backend changed under it
+    current.reported = version;
     RememberVersion(version);
+    backendVersion = version;
+    RefreshBanner();
     const next = currentManifest && PickFrontend(currentManifest, version);
     if (!next || next.page === current.entry.page) return;
-    if (switches >= MAX_SWITCHES) {
-        console.warn(`[Printer Bot router] The dock reported backend ${version}. The frame was already swapped ${switches} times, so it stays.`);
+    if (later ? updateSwitches >= MAX_UPDATE_SWITCHES : switches >= MAX_SWITCHES) {
+        console.warn(`[Printer Bot router] The dock reported backend ${version}. The frame was already swapped ${later ? updateSwitches : switches} times, so it stays.`);
         return;
     }
-    switches++;
+    if (later) updateSwitches++; else switches++;
     ShowFrame(next, `the dock reported backend ${version}`);
 });
 
@@ -442,7 +550,12 @@ async function Start(quiet) {
     clearTimeout(retryTimer);
     RemoveFrame();
     switches = 0;
+    updateSwitches = 0;
     fellBack = false;
+    backendVersion = null;
+    backendHasLoader = false;
+    pinned = false;
+    RefreshBanner();
     if (!quiet) SetView('loading', 'Loading Printer Bot…', false);
     try {
         let manifest;
@@ -468,6 +581,8 @@ async function Start(quiet) {
         if (probe.kind === 'version') {
             RememberVersion(probe.version);
             backend = probe.version;
+            backendVersion = probe.version;
+            backendHasLoader = probe.updater === true;
             why = `the action reports version "${probe.version}"`;
         }
         else if (probe.kind === 'no-action') {
@@ -481,6 +596,7 @@ async function Start(quiet) {
                 : kept.expired !== null ? `the remembered version "${kept.expired}" is too old to trust` : 'nothing remembered'}`;
         }
         ShowFrame(PickFrontend(manifest, backend), why);
+        RefreshBanner();
     }
     catch (err) {
         console.error('[Printer Bot router] Unexpected error:', err);
@@ -488,10 +604,14 @@ async function Start(quiet) {
     }
 }
 
-$('retry-button').addEventListener('click', () => Start(false));
+on('retry-button', 'click', () => Start(false));
+on('banner-show-button', 'click', ShowHow);
+on('banner-hide-button', 'click', HideBanner);
+if (typeof ResizeObserver === 'function' && $('router-banner')) new ResizeObserver(ApplyBannerOffset).observe($('router-banner'));
+else window.addEventListener('resize', ApplyBannerOffset);
 
 // The pure parts are public so that tests can call them
-window.PrinterBotRouter = Object.freeze({ ROUTER_BUILD, ParseVersion, NormalizeManifest, PickFrontend });
+window.PrinterBotRouter = Object.freeze({ ROUTER_BUILD, ParseVersion, NormalizeManifest, PickFrontend, NeedsBanner });
 
 if (window.name === FRAME_NAME) SetView('error', 'This page is the router. It cannot open inside the dock frame.', false);
 else Start(false);

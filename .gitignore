@@ -2,6 +2,7 @@
 
 # signing keys and backups
 *signing-key*
+*standby-key*
 update-signing-key.json
 *.bak
 *.bad

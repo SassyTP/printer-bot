@@ -12,6 +12,8 @@ versions.json            -text linguist-generated
 config.json              -text linguist-generated
 import.txt               -text linguist-generated
 import.sha256.txt        -text linguist-generated
+# The program package (core/api1/): the manifest is signed and the library is hashed in it, byte for byte.
+core/**                  -text linguist-generated
 
 # Binary
 *.png binary
