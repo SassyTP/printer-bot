@@ -7,7 +7,7 @@
   "version": "2.4.0",
   "built": "202610061828",
   "minDock": "2.4.0",
-  "install": false,
+  "install": true,
   "auto": true,
   "files": [
     {
