@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 1,
-  "version": "2.4.1",
-  "built": "202610062031",
+  "version": "2.4.2",
+  "built": "202610072349",
   "minDock": "2.4.0",
   "install": true,
-  "auto": false,
+  "auto": true,
   "files": [
     {
-      "name": "core-2.4.1.bin",
-      "size": 287232,
-      "sha256": "e34b2f5edf4abcc6635cdfd738bcb23adfd9aca9ca3bcccb9f18914087cd9a91"
+      "name": "core-2.4.2.bin",
+      "size": 289792,
+      "sha256": "25acbcd1070aa03db5e33cbf5da9ab925e7aa424c1878594d6be56495a1214ab"
     }
   ],
-  "notes": "Printer Bot 2.4.1 tidies the dock. Settings and Test come first and the Updates box is last. Customize receipts is now inside Advanced, and the layout rows (Renderer updates, Download updates and Renderer) are in the Updates box. One log message now points to the Updates box too. Your settings stay.",
+  "notes": "Printer Bot 2.4.2 keeps the text of a High Roller banner on one line when the banner asks for white-space: nowrap. Before, the text wrapped. Table spacing (border-spacing) in High Roller messages now works. Your settings stay. Reload the dock to get its new look.",
   "successor": null,
   "revokeKeys": []
 }

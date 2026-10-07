@@ -9,9 +9,9 @@
     <title>Printer Bot</title>
     <!-- Every address below ends in ?v=<build>. The build tool rewrites the stamp when a file of this folder changes,
          so a changed file gets a new address and a browser that caches hard still fetches it. -->
-    <link rel="icon" href="assets/logo.png?v=230164befb39" type="image/png">
+    <link rel="icon" href="assets/logo.png?v=393a955956e9" type="image/png">
 
-    <link rel="stylesheet" href="css/dock.css?v=230164befb39" />
+    <link rel="stylesheet" href="css/dock.css?v=393a955956e9" />
 </head>
 
 <body>
@@ -19,7 +19,7 @@
 
         <!-- Header -->
         <div id="header">
-            <img class="brand-logo" src="assets/logo.png?v=230164befb39" alt="" />
+            <img class="brand-logo" src="assets/logo.png?v=393a955956e9" alt="" />
             <label id="title" class="title"></label>
             <div id="header-end">
                 <!-- A small dot while an update is available. It scrolls to the Updates card. -->
@@ -63,13 +63,13 @@
                 <section class="card">
                     <div class="status-line">
                         <span id="status-dot" class="dot"></span>
-                        <span id="status-text">Waiting for Streamer.bot…</span>
+                        <span id="status-text">Waiting for Streamer.bot&#x2026;</span>
                     </div>
                     <dl id="status-grid" class="kv"></dl>
                 </section>
 
                 <section class="card">
-                    <h2>Settings <span id="saved-flag" class="saved" hidden>Saved ✓</span></h2>
+                    <h2>Settings <span id="saved-flag" class="saved" hidden>Saved &#x2713;</span></h2>
 
                     <!-- Shown when this dock page is older than the action says it should be (the action's minDock) -->
                     <div id="dock-outdated" class="note" hidden>
@@ -185,11 +185,11 @@
                     </div>
 
                     <details id="advanced" class="advanced">
-                        <summary>Advanced<span id="advanced-hint" class="muted"></span><span id="advanced-saved" class="saved" hidden>Saved ✓</span></summary>
+                        <summary>Advanced<span id="advanced-hint" class="muted"></span><span id="advanced-saved" class="saved" hidden>Saved &#x2713;</span></summary>
                         <div class="setting stack-narrow">
                             <div>
                                 <label class="setting-label" for="highRollerBitsPerInch">High Roller: bits per inch</label>
-                                <div class="setting-description" id="bits-per-inch-description">Caps how long a High Roller message can print: up to (bits ÷ this number) inches, so at 10, a 100-bit cheer gets 10 inches. Shorter messages print in full. Longer ones fade out at the limit. 0 = no limit.</div>
+                                <div class="setting-description" id="bits-per-inch-description">Caps how long a High Roller message can print: up to (bits &#xF7; this number) inches, so at 10, a 100-bit cheer gets 10 inches. Shorter messages print in full. Longer ones fade out at the limit. 0 = no limit.</div>
                                 <div class="setting-description example" id="bits-per-inch-example"></div>
                             </div>
                             <input type="number" id="highRollerBitsPerInch" min="0" step="0.5" placeholder="0" aria-describedby="bits-per-inch-description bits-per-inch-example">
@@ -253,127 +253,133 @@
                 </section>
 
                 <section class="card" id="updates-card">
-                    <h2>Updates <span id="updates-saved" class="saved" hidden>Saved ✓</span></h2>
-                    <dl id="update-grid" class="kv"></dl>
+                    <!-- The whole card is one collapsible group. It stays closed until it is opened, and the summary line says what needs attention. -->
+                    <details id="updates-box" class="advanced updates-box">
+                        <summary><h2>Updates</h2><span id="updates-hint" class="muted"></span><span id="updates-saved" class="saved" hidden>Saved &#x2713;</span></summary>
+                        <div class="updates-body">
+                            <dl id="update-grid" class="kv"></dl>
 
-                    <!-- Printer Bot 2.4.0 and later: the updater is part of the action -->
-                    <div id="update-main" class="update-main" hidden>
-                        <div class="setting">
-                            <div>
-                                <div class="setting-label">Last checked</div>
-                                <div class="setting-description" id="update-checked">not yet</div>
-                            </div>
-                            <div class="setting-actions">
-                                <button type="button" id="core-check-button">Check now</button>
-                            </div>
-                        </div>
-
-                        <div class="status-line">
-                            <span id="update-dot" class="dot"></span>
-                            <span id="update-state-text">Waiting for the updater…</span>
-                        </div>
-                        <progress id="update-progress" max="100" value="0" hidden></progress>
-                        <p id="update-message" class="note" hidden></p>
-
-                        <div id="update-notes" hidden>
-                            <div class="setting-label">What's new</div>
-                            <p id="update-notes-text" class="update-notes"></p>
-                        </div>
-
-                        <div class="button-row">
-                            <button type="button" id="core-update-button" hidden>Update</button>
-                            <button type="button" id="core-reload-button" hidden>Reload dock</button>
-                        </div>
-                        <p id="update-refused" class="hint" hidden></p>
-                        <p id="update-hint" class="hint" hidden>Receipts pause for a moment while the new version starts.</p>
-                        <p id="update-auto-info" class="hint" hidden></p>
-
-                        <div class="setting">
-                            <div>
-                                <label class="setting-label" for="autoUpdateCore">Install updates automatically</label>
-                                <div class="setting-description">Installs a new version by itself when Printer Bot has been idle for a while.</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="autoUpdateCore">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <details id="update-more" class="advanced">
-                            <summary>More</summary>
-                            <div class="setting stack-narrow">
-                                <div>
-                                    <div class="setting-label">Previous version</div>
-                                    <div class="setting-description">Switches back to the version that ran before the last update. Without an earlier downloaded version it uses the built-in one, which stays until you press Update.</div>
+                            <!-- Printer Bot 2.4.0 and later: the updater is part of the action -->
+                            <div id="update-main" class="update-main" hidden>
+                                <div class="setting">
+                                    <div>
+                                        <div class="setting-label">Last checked</div>
+                                        <div class="setting-description" id="update-checked">not yet</div>
+                                    </div>
+                                    <div class="setting-actions">
+                                        <button type="button" id="core-check-button">Check now</button>
+                                    </div>
                                 </div>
-                                <div class="setting-actions">
-                                    <button type="button" id="core-rollback-button">Go back to the previous version</button>
+
+                                <div class="status-line">
+                                    <span id="update-dot" class="dot"></span>
+                                    <span id="update-state-text">Waiting for the updater&#x2026;</span>
+                                </div>
+                                <progress id="update-progress" max="100" value="0" hidden></progress>
+                                <p id="update-message" class="note" hidden></p>
+
+                                <div id="update-notes" hidden>
+                                    <div class="setting-label">What's new</div>
+                                    <p id="update-notes-text" class="update-notes"></p>
+                                </div>
+
+                                <div class="button-row">
+                                    <button type="button" id="core-update-button" hidden>Update</button>
+                                    <button type="button" id="core-reload-button" hidden>Reload dock</button>
+                                </div>
+                                <p id="update-refused" class="hint" hidden></p>
+                                <p id="update-restart" class="note" hidden>Restart Streamer.bot first. Then press Reload dock, so the update takes properly.</p>
+                                <p id="update-hint" class="hint" hidden>Receipts pause for a moment while the new version starts.</p>
+                                <p id="update-auto-info" class="hint" hidden></p>
+
+                                <div class="setting">
+                                    <div>
+                                        <label class="setting-label" for="autoUpdateCore">Install updates automatically</label>
+                                        <div class="setting-description">Installs a new version by itself when Printer Bot has been idle for a while.</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="autoUpdateCore">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <details id="update-more" class="advanced">
+                                    <summary>More</summary>
+                                    <div class="setting stack-narrow">
+                                        <div>
+                                            <div class="setting-label">Previous version</div>
+                                            <div class="setting-description">Switches back to the version that ran before the last update. Without an earlier downloaded version it uses the built-in one, which stays until you press Update.</div>
+                                        </div>
+                                        <div class="setting-actions">
+                                            <button type="button" id="core-rollback-button">Go back to the previous version</button>
+                                        </div>
+                                    </div>
+                                    <div class="setting stack-narrow">
+                                        <div>
+                                            <div class="setting-label">Built-in version</div>
+                                            <div class="setting-description">Switches to the version that came with the import. It stays until you press Update.</div>
+                                        </div>
+                                        <div class="setting-actions">
+                                            <button type="button" id="core-builtin-button">Use the built-in version</button>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- A Printer Bot that has no updater (before 2.4.0), or one whose updater needs a newer one: import once -->
+                            <div id="update-reimport" class="note" hidden>
+                                <p id="update-reimport-text"></p>
+                                <p id="update-reimport-notes" hidden></p>
+                                <ol class="steps">
+                                    <li>Click <b>Copy import code</b>.</li>
+                                    <li>In Streamer.bot, delete the old <b>Printer Bot</b> action.</li>
+                                    <li>Open <b>Import</b> (top bar), paste, and click <b>Import</b>.</li>
+                                    <li>Reload this dock.</li>
+                                </ol>
+                                <div class="button-row">
+                                    <button type="button" id="copy-import-updates-button">Copy import code</button>
+                                </div>
+                                <div id="import-result-updates" class="import-result" hidden></div>
+                            </div>
+
+                            <!-- Receipt layouts and the switch for all downloads -->
+                            <div class="update-layouts">
+                                <div class="setting stack-narrow">
+                                    <div>
+                                        <div class="setting-label">Renderer updates</div>
+                                        <div class="setting-description">Where Printer Bot looks for newer receipt layouts. Normally this dock.</div>
+                                        <div class="setting-description example-line" id="update-source-state"></div>
+                                    </div>
+                                    <div class="setting-actions">
+                                        <button type="button" id="update-check-button">Check layouts</button>
+                                        <button type="button" id="update-use-button" hidden>Use this dock</button>
+                                    </div>
+                                </div>
+
+                                <div class="setting">
+                                    <div>
+                                        <label class="setting-label" for="allowHostedUpdates">Download updates (layouts and program updates)</label>
+                                        <div class="setting-description">Newer receipt layouts and program updates are only used if the author signed them. Off downloads nothing and uses the built-in layout, and a program update you installed earlier keeps running until you press Use the built-in version.</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="allowHostedUpdates">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="setting stack-narrow">
+                                    <div>
+                                        <div class="setting-label">Renderer</div>
+                                        <div class="setting-description" id="renderer-detail"></div>
+                                        <div class="setting-description">Reset throws away any downloaded copy and goes back to the layout built into the action.</div>
+                                    </div>
+                                    <div class="setting-actions">
+                                        <button type="button" id="renderer-reset-button">Reset to built-in renderer</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="setting stack-narrow">
-                                <div>
-                                    <div class="setting-label">Built-in version</div>
-                                    <div class="setting-description">Switches to the version that came with the import. It stays until you press Update.</div>
-                                </div>
-                                <div class="setting-actions">
-                                    <button type="button" id="core-builtin-button">Use the built-in version</button>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-
-                    <!-- A Printer Bot that has no updater (before 2.4.0), or one whose updater needs a newer one: import once -->
-                    <div id="update-reimport" class="note" hidden>
-                        <p id="update-reimport-text"></p>
-                        <p id="update-reimport-notes" hidden></p>
-                        <ol class="steps">
-                            <li>Click <b>Copy import code</b>.</li>
-                            <li>In Streamer.bot, delete the old <b>Printer Bot</b> action.</li>
-                            <li>Open <b>Import</b> (top bar), paste, and click <b>Import</b>.</li>
-                            <li>Reload this dock.</li>
-                        </ol>
-                        <div class="button-row">
-                            <button type="button" id="copy-import-updates-button">Copy import code</button>
                         </div>
-                        <div id="import-result-updates" class="import-result" hidden></div>
-                    </div>
-
-                    <!-- Receipt layouts and the switch for all downloads -->
-                    <div class="update-layouts">
-                        <div class="setting stack-narrow">
-                            <div>
-                                <div class="setting-label">Renderer updates</div>
-                                <div class="setting-description">Where Printer Bot looks for newer receipt layouts. Normally this dock.</div>
-                                <div class="setting-description example-line" id="update-source-state"></div>
-                            </div>
-                            <div class="setting-actions">
-                                <button type="button" id="update-check-button">Check layouts</button>
-                                <button type="button" id="update-use-button" hidden>Use this dock</button>
-                            </div>
-                        </div>
-
-                        <div class="setting">
-                            <div>
-                                <label class="setting-label" for="allowHostedUpdates">Download updates (layouts and program updates)</label>
-                                <div class="setting-description">Newer receipt layouts and program updates are only used if the author signed them. Off downloads nothing and uses the built-in layout, and a program update you installed earlier keeps running until you press Use the built-in version.</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="allowHostedUpdates">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="setting stack-narrow">
-                            <div>
-                                <div class="setting-label">Renderer</div>
-                                <div class="setting-description" id="renderer-detail"></div>
-                                <div class="setting-description">Reset throws away any downloaded copy and goes back to the layout built into the action.</div>
-                            </div>
-                            <div class="setting-actions">
-                                <button type="button" id="renderer-reset-button">Reset to built-in renderer</button>
-                            </div>
-                        </div>
-                    </div>
+                    </details>
                 </section>
 
             </div>
@@ -384,9 +390,9 @@
 
         <!-- Streamer.bot connect dialog -->
         <div id="sb-connect-dialog" class="dialog" role="dialog" aria-label="Connect to Streamer.bot">
-            <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">×</button>
+            <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">&#xD7;</button>
             <div class="dialog-brand">
-                <img class="brand-logo" src="assets/icons/plug.svg?v=230164befb39" loading="lazy" decoding="async" alt="" />
+                <img class="brand-logo" src="assets/icons/plug.svg?v=393a955956e9" loading="lazy" decoding="async" alt="" />
                 <label class="title">Streamer.bot</label>
             </div>
             <div class="field-row">
@@ -419,14 +425,14 @@
                 This dock is loaded from a web server but talks only to Streamer.bot on this computer. If your browser asks whether this site may connect to
                 devices on your computer or local network (it may be called "Apps on device"), choose <b>Allow</b>.
             </p>
-            <p class="hint">In Streamer.bot, enable <b>Servers/Clients → WebSocket Server</b> and keep the port here in sync.</p>
+            <p class="hint">In Streamer.bot, enable <b>Servers/Clients &#x2192; WebSocket Server</b> and keep the port here in sync.</p>
             <label id="sb-error-label"></label>
             <button type="button" id="sb-connect-button">Connect</button>
         </div>
     </div>
 
-    <script src="vendor/streamerbot-client.js?v=230164befb39"></script>
-    <script src="js/app.js?v=230164befb39"></script>
+    <script src="vendor/streamerbot-client.js?v=393a955956e9"></script>
+    <script src="js/app.js?v=393a955956e9"></script>
 </body>
 
 </html>

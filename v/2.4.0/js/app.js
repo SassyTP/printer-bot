@@ -177,7 +177,7 @@ const configPromise = (async () => {
 
 configPromise.then(config => {
     const domain = getComputedStyle(document.documentElement).getPropertyValue('--domain').trim();
-    document.title = `${domain} • ${config.title}`;
+    document.title = `${domain} \u2022 ${config.title}`;
     $('title').textContent = config.title;
     minActionVersion = config.minActionVersion;
     if (pbStatus) RenderOutdated(pbStatus);          // a status can arrive before the config has loaded
@@ -683,7 +683,7 @@ function CheckForUpdates() {
     const button = $('update-check-button');
     checkingUpdate = true;
     button.disabled = true;
-    button.textContent = 'Checking…';
+    button.textContent = 'Checking\u2026';
     // The check runs in the action and its answer arrives later as a status (see the Renderer rows). This timer just resets the button.
     setTimeout(() => { checkingUpdate = false; button.textContent = 'Check layouts'; if (pbStatus) RenderUpdateRows(pbStatus); }, 3000);
     Send('configure', { rendererUrl: FOLDER_URL });
@@ -709,7 +709,7 @@ function ResetRenderer() {
     const button = $('renderer-reset-button');
     resettingRenderer = true;
     button.disabled = true;
-    button.textContent = 'Resetting…';
+    button.textContent = 'Resetting\u2026';
     setTimeout(() => { resettingRenderer = false; button.textContent = 'Reset to built-in renderer'; if (pbStatus) RenderUpdateRows(pbStatus); }, 2000);
     Send('resetRenderer');
 }
@@ -728,6 +728,10 @@ const WORKING_STATES = ['downloading', 'verifying', 'waiting', 'installing'];   
 const HOSTED_OFF_TEXT = 'Turn on "Download updates" below first.';
 const ARM_MS = 5000;                  // the first click on Update stays armed this long
 const PAUSE_MS = 4000;                // a button that sent a command stays off this long, or until the updater answers
+
+// The short form of a state, for the summary line of the closed card (the line after the heading Updates)
+const UPDATED_BRIEF = 'Updated. Restart Streamer.bot, then reload the dock';
+function SetUpdatesHint(text) { $('updates-hint').textContent = text; }
 
 const UPDATE_ERRORS = {
     'no-source': 'Printer Bot does not know where to get updates yet. Open the dock from its web address and connect once.',
@@ -862,11 +866,11 @@ const RollbackUnderWay = () => rollbackAskedAt > 0 && Date.now() - rollbackAsked
 const CoreKey = (core) => `${core.version}|${core.source}`;
 
 // The text while the core is switched. The version is named only for an update to a newer version than the one that ran before. A rollback keeps
-// the version of the offer it started from in the message, so it says "Switching versions…" in place of a version that is not the target.
-// A page that has seen no calm state yet (it was opened in the middle of a switch) cannot tell an update from a rollback and says "Switching versions…" too.
+// the version of the offer it started from in the message, so it says "Switching versions\u2026" in place of a version that is not the target.
+// A page that has seen no calm state yet (it was opened in the middle of a switch) cannot tell an update from a rollback and says "Switching versions\u2026" too.
 function SwitchingText(latest) {
     const newer = !!VersionParts(latest) && idleVersion !== '' && !RollbackUnderWay() && IsOlderVersion(idleVersion, latest);
-    return newer ? `Switching to ${latest}…` : 'Switching versions…';
+    return newer ? `Switching to ${latest}\u2026` : 'Switching versions\u2026';
 }
 
 function ResetUpdateArm() {
@@ -945,7 +949,7 @@ function RenderUpdates() {
     $('update-reimport-notes').hidden = !reasonNotes;
 
     $('update-main').hidden = !hasUpdater;
-    if (!hasUpdater) { $('update-badge').hidden = true; return; }
+    if (!hasUpdater) { $('update-badge').hidden = true; SetUpdatesHint('needs a re-import'); return; }
 
     // the state line
     const u = up ? up.update : null;
@@ -953,37 +957,42 @@ function RenderUpdates() {
     // A newer version that the updater does not offer for installing (can.update is false) and that is on its list of rejected versions was set aside
     // after it failed to start on this PC. A version the person went back from is on that list too, and the updater still lets them install it.
     const setAside = !!u && offered !== '' && !up.can.update && u.rejected.includes(offered);
-    let text = 'Waiting for the updater…', level = '', message = '', notes = false, progress = -1;
+    // brief is the short form of the state for the summary line of the closed card
+    let text = 'Waiting for the updater\u2026', brief = 'Waiting for the updater', level = '', message = '', notes = false, progress = -1;
     if (u) switch (state) {
-        case 'idle': text = 'Checking soon.'; break;
-        case 'checking': text = 'Checking for updates…'; level = 'info'; break;
+        case 'idle': text = 'Checking soon.'; brief = 'Checking soon'; break;
+        case 'checking': text = 'Checking for updates\u2026'; brief = 'Checking'; level = 'info'; break;
         case 'current':
-            if (u.error === 'rejected' && offered) { text = `Update ${offered} was set aside.`; level = 'warn'; }
-            else { text = 'Up to date.'; level = 'ok'; }
+            if (u.error === 'rejected' && offered) { text = `Update ${offered} was set aside.`; brief = `Update ${offered} set aside`; level = 'warn'; }
+            else { text = 'Up to date.'; brief = 'Up to date'; level = 'ok'; }
             break;
-        case 'available': if (offered) { text = `Update available: ${offered}`; level = 'info'; notes = true; } else { text = 'Up to date.'; level = 'ok'; } break;
-        case 'downloading': text = `Downloading ${target}…${u.progress > 0 ? ' ' + u.progress + '%' : ''}`; level = 'info'; notes = true; progress = u.progress; break;
-        case 'verifying': text = `Checking the download of ${target}…`; level = 'info'; notes = true; break;
-        case 'waiting': text = 'Waiting for a receipt to finish…'; level = 'warn'; notes = true; break;
-        case 'installing': text = SwitchingText(u.latest); level = 'info'; notes = true; break;
-        case 'installed': text = `Updated to ${up.core.version || target}.`; level = 'ok'; notes = true; break;
+        case 'available':
+            if (offered) { text = `Update available: ${offered}`; brief = `Update ${offered} available`; level = 'info'; notes = true; }
+            else { text = 'Up to date.'; brief = 'Up to date'; level = 'ok'; }
+            break;
+        case 'downloading': text = `Downloading ${target}\u2026${u.progress > 0 ? ' ' + u.progress + '%' : ''}`; brief = 'Updating'; level = 'info'; notes = true; progress = u.progress; break;
+        case 'verifying': text = `Checking the download of ${target}\u2026`; brief = 'Updating'; level = 'info'; notes = true; break;
+        case 'waiting': text = 'Waiting for a receipt to finish\u2026'; brief = 'Updating'; level = 'warn'; notes = true; break;
+        case 'installing': text = SwitchingText(u.latest); brief = 'Updating'; level = 'info'; notes = true; break;
+        case 'installed': text = `Updated to ${up.core.version || target}.`; brief = UPDATED_BRIEF; level = 'ok'; notes = true; break;
         case 'failed':
-            if (droppedFrom) { text = 'Printer Bot went back to the built-in version.'; level = 'warn'; message = `Version ${droppedFrom} stopped working, so Printer Bot set it aside.`; }
-            else { text = 'The update did not work.'; level = 'bad'; message = UpdateErrorText(u.error) + FailedTail(u, up.core, running) + (setAside ? ` Version ${offered} will not be tried again.` : ''); notes = !!offered; }
+            if (droppedFrom) { text = 'Printer Bot went back to the built-in version.'; brief = 'went back to the built-in version'; level = 'warn'; message = `Version ${droppedFrom} stopped working, so Printer Bot set it aside.`; }
+            else { text = 'The update did not work.'; brief = 'did not work'; level = 'bad'; message = UpdateErrorText(u.error) + FailedTail(u, up.core, running) + (setAside ? ` Version ${offered} will not be tried again.` : ''); notes = !!offered; }
             break;
-        case 'paused': text = 'The author has paused updates.'; level = 'warn'; break;
+        case 'paused': text = 'The author has paused updates.'; brief = 'paused'; level = 'warn'; break;
         case 'unavailable':
             // The updater records "off" when it asked while Download updates was off. Once the person has switched it on again, that line is out of date until the next message.
-            if (u.error === 'off' && !hostedOff) { text = 'Checking soon.'; break; }
-            text = 'Updates are not available.'; level = 'warn'; message = UpdateErrorText(u.error); break;
-        case 'reimport': text = 'This Printer Bot needs a one-time re-import to update.'; level = 'warn'; break;
-        default: text = 'The update state is not known.'; break;
+            if (u.error === 'off' && !hostedOff) { text = 'Checking soon.'; brief = 'Checking soon'; break; }
+            text = 'Updates are not available.'; brief = 'not available'; level = 'warn'; message = UpdateErrorText(u.error); break;
+        case 'reimport': text = 'This Printer Bot needs a one-time re-import to update.'; brief = 'needs a re-import'; level = 'warn'; break;
+        default: text = 'The update state is not known.'; brief = ''; break;
     }
     // A refused command (an Update 60 seconds after a failure, for example) leaves the state as it is and sets an error. The reason shows in every state
     // that does not explain itself. The paused state and the re-import block say it already.
     // The error "off" is the one case that says nothing once Download updates is on again, and the card says "switched off" itself while it is off.
     if (u && u.error && u.error !== 'off' && !message && state !== 'paused' && state !== 'reimport') message = UpdateErrorText(u.error);
-    if (hostedOff && !working) { text = 'Updates are switched off. Turn on "Download updates" below.'; level = 'warn'; message = ''; notes = false; }
+    if (hostedOff && !working) { text = 'Updates are switched off. Turn on "Download updates" below.'; brief = 'switched off'; level = 'warn'; message = ''; notes = false; }
+    SetUpdatesHint(brief);
     $('update-dot').className = 'dot' + (level ? ' ' + level : '');
     $('update-state-text').textContent = text;
     $('update-progress').hidden = progress < 0;
@@ -999,7 +1008,7 @@ function RenderUpdates() {
     // the buttons
     const check = $('core-check-button');
     check.disabled = !up || !up.can.check || state === 'checking' || working || hostedOff || checkingCore;
-    check.textContent = checkingCore || state === 'checking' ? 'Checking…' : 'Check now';
+    check.textContent = checkingCore || state === 'checking' ? 'Checking\u2026' : 'Check now';
     check.title = hostedOff ? HOSTED_OFF_TEXT : up && !up.can.check ? 'The updater cannot check right now.' : '';
 
     // The button is there only when the updater says it can install the offer (can.update). A version that was set aside gets no button.
@@ -1009,13 +1018,14 @@ function RenderUpdates() {
     button.hidden = !showUpdate;
     button.disabled = updateSending;
     button.title = '';
-    button.textContent = !showUpdate ? 'Update' : updateSending ? 'Starting…' : updateArmed ? 'Update now? Click again' : `Update to ${offered}`;
+    button.textContent = !showUpdate ? 'Update' : updateSending ? 'Starting\u2026' : updateArmed ? 'Update now? Click again' : `Update to ${offered}`;
     button.classList.toggle('confirming', updateArmed);
     $('update-hint').hidden = !showUpdate;
     // The updater turned a click down because it tried an update a moment ago. This is a note under the button and leaves the reason of the failure alone.
     $('update-refused').textContent = showUpdate && u.refused === 'wait' ? REFUSED_WAIT_TEXT : '';
     $('update-refused').hidden = !$('update-refused').textContent;
     $('core-reload-button').hidden = state !== 'installed';
+    $('update-restart').hidden = state !== 'installed';                    // the program is new: Streamer.bot should restart first, then the dock reloads
     $('update-badge').hidden = !(state === 'available' && showUpdate);
 
     // The line is for an automatic install that is under way or has just finished. A failure and a new offer never carry it.
@@ -1130,6 +1140,12 @@ const advancedBox = $('advanced');
 advancedBox.open = store.get('pbAdvancedOpen') === '1';
 advancedBox.addEventListener('toggle', () => store.set('pbAdvancedOpen', advancedBox.open ? '1' : '0'));
 
+// The Updates card is a group like that. It is closed until opened and remembers whether it was left open. Nothing opens it by itself:
+// the summary line shows what needs attention, and only a click opens the card (on its heading, on the dot in the header or on Show the steps).
+const updatesBox = $('updates-box');
+updatesBox.open = store.get('pbUpdatesOpen') === '1';
+updatesBox.addEventListener('toggle', () => store.set('pbUpdatesOpen', updatesBox.open ? '1' : '0'));
+
 // The maximum length in the box: a number of inches from 0.01 to 40, or 0 when the box is empty, junk or off (then the built-in limit applies)
 function MaxInchesSetting() {
     const v = parseFloat($('highRollerMaxInches').value);
@@ -1158,7 +1174,7 @@ function RenderBitsPerInchExample() {
     else {
         const low = threshold, high = threshold * 4;
         if (inches(low) === null) text = `At ${bits(perInch)} per inch, even ${bits(low)} reaches ${ceiling}, ${ceilingName}.`;
-        else text = `At ${bits(perInch)} per inch: ${bits(low)} → up to ${inches(low)}, ${bits(high)} → up to ` +
+        else text = `At ${bits(perInch)} per inch: ${bits(low)} \u2192 up to ${inches(low)}, ${bits(high)} \u2192 up to ` +
             (inches(high) === null ? `${ceiling} (${ceilingName}).` : `${inches(high)}.`);
     }
     $('bits-per-inch-example').textContent = text;
@@ -1176,7 +1192,7 @@ function RenderAdvancedHint() {
         if (cap > 0) parts.push(`max ${cap} in`);
     }
     if (pbStatus && pbStatus.skippedFree > 0) parts.push(`${pbStatus.skippedFree} skipped`);
-    $('advanced-hint').textContent = parts.length ? ' · ' + parts.join(' · ') : '';
+    $('advanced-hint').textContent = parts.length ? ' \u00B7 ' + parts.join(' \u00B7 ') : '';
 }
 $('highRollerBitsPerInch').addEventListener('input', RenderBitsPerInchExample);
 $('highRollerMaxInches').addEventListener('input', RenderBitsPerInchExample);
@@ -1266,7 +1282,7 @@ function RenderPreview(p) {
     }
     $('preview-img').src = 'data:image/png;base64,' + png;
     lastPreviewAt = str(p.at, 60);
-    $('preview-caption').textContent = `${Math.round(num(p.width))}×${Math.round(num(p.height))}, exactly what the printer receives`;
+    $('preview-caption').textContent = `${Math.round(num(p.width))}\u00D7${Math.round(num(p.height))}, exactly what the printer receives`;
 }
 
 
@@ -1420,7 +1436,8 @@ $('copy-import-button').addEventListener('click', (e) => CopyImportCode(e.curren
 $('copy-import-outdated-button').addEventListener('click', (e) => CopyImportCode(e.currentTarget, $('import-result-outdated')));
 $('copy-import-updates-button').addEventListener('click', (e) => CopyImportCode(e.currentTarget, $('import-result-updates')));
 $('check-action-button').addEventListener('click', CheckAction);
-const ShowUpdatesCard = () => $('updates-card').scrollIntoView({ block: 'start' });
+// The dot in the header and Show the steps open the Updates card (when it is closed) and scroll it to the top of the page
+const ShowUpdatesCard = () => { updatesBox.open = true; $('updates-card').scrollIntoView({ block: 'start' }); };
 $('update-badge').addEventListener('click', ShowUpdatesCard);
 $('show-updates-button').addEventListener('click', ShowUpdatesCard);
 $('core-check-button').addEventListener('click', CheckCore);

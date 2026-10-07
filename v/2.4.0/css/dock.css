@@ -12,7 +12,7 @@
 /* ------------------------------------------------------------------ */
 
 :root {
-    /* Read by js/app.js to build the page title ("SassyTP • Printer Bot") */
+    /* Read by js/app.js to build the page title (the domain, a bullet character and the title) */
     --domain: SassyTP;
 
     /* Surfaces */
@@ -570,7 +570,7 @@ button.confirming {
 }
 
 .advanced > summary::before {
-    content: "▸";
+    content: "\25B8";
     display: inline-block;
     width: 1.1em;
     transition: transform 0.12s;
@@ -631,6 +631,42 @@ button.confirming {
 /* ------------------------------------------------------------------ */
 /* Updates card                                                       */
 /* ------------------------------------------------------------------ */
+
+/* The whole card is one collapsible group that stays closed until it is opened. It reuses the look of "Advanced" (the same marker and summary),
+   without the line above it, because the card has its own border. The heading is inside the summary and sits inline next to the marker. */
+.advanced.updates-box {
+    border-top: none;
+    padding-top: 0;
+}
+
+.updates-box > summary {
+    opacity: 1;
+}
+
+.updates-box > summary > h2 {
+    display: inline;
+}
+
+/* what needs attention while the card is closed. An open card says it in full, so the hint goes then. */
+#updates-hint:not(:empty)::before {
+    content: "\A0\B7\A0";
+}
+
+.updates-box[open] > summary > #updates-hint {
+    display: none;
+}
+
+/* the body keeps the layout the card had before it became a group: a column of blocks with a gap */
+.updates-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.updates-body .note {
+    margin-top: 0;
+}
 
 .update-layouts {
     display: flex;
