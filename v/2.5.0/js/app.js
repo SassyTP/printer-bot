@@ -1211,6 +1211,12 @@ SETTING_CONTROLS.forEach(id => {
     el.addEventListener('change', () => {
         let value = el.type === 'checkbox' ? el.checked : el.value;
         if (id === 'paperWidthMm' || id === 'feedDots' || id === 'highRollerBits') value = parseInt(value, 10) || 0;
+        if (id === 'feedDots' || id === 'highRollerBits') {
+            if (value < 0) value = 0;
+            const maximum = id === 'feedDots' ? 400 : 1000000;                // the action clamps the same way
+            if (value > maximum) value = maximum;
+            el.value = value;                                               // show what will actually be saved
+        }
         if (id === 'freePrintsPerMinute') {
             value = parseInt(value, 10);
             if (!(value > 0)) value = 0;                                      // blank / junk / negative = no limit
