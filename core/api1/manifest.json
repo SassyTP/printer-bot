@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "2.4.4",
-  "built": "202610081344",
+  "version": "2.4.5",
+  "built": "202610081532",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-2.4.4.bin",
-      "size": 298496,
-      "sha256": "18f218f98f475bc3cb08a6ef8ec46426dc6dba4cfb6dcdba16fe8a4ced7d7f30"
+      "name": "core-2.4.5.bin",
+      "size": 305664,
+      "sha256": "16cca638d94128fa0902f5c50d4708bbe38c31a6e5dccf6fd91796db1efaee4b"
     }
   ],
-  "notes": "Printer Bot 2.4.4 makes receipts cheaper to produce and shortens the slow first receipt after Streamer.bot loads the code again. Receipts print exactly as before. All settings remain the same.",
+  "notes": "Printer Bot 2.4.5 remembers a viewer whose profile picture could not be found for two hours, so a name that Twitch does not know costs one wait instead of one every ten minutes. The dock's Advanced section gets a Clear picture cache button that makes Printer Bot look every viewer's picture up again. Receipts print exactly as before. All settings remain the same.",
   "successor": null,
   "revokeKeys": []
 }
