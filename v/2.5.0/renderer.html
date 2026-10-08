@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Second layer behind the sanitizer. If a message gets something through, the page still can't run it or send anything out.
+     Only the renderer's own script (matched by hash) runs. Connections go only to the two avatar lookups. No frames, forms or objects. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-XLTu7OqnianCpqXX70uGCCGoReUpaywVA3IsDSfX0oU='; style-src 'unsafe-inline'; img-src data: https://static-cdn.jtvnw.net https://files.kick.com https://cdn.betterttv.net https://cdn.7tv.app https://cdn.frankerfacez.com https://kick.com https://*.ggpht.com https://*.googleusercontent.com https://*.ytimg.com; connect-src https://decapi.me https://kick.com; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'">
+<meta name="printer-bot-renderer" content="202610081727">
+<style>
+/*
+ * Printer Bot receipt
+ *
+ * One typeface, two weights: bold for what matters (title, names, amounts), regular for everything else.
+ * No italics and no mixed families. Everything is pure black on white, since thermal paper has no grey.
+ *
+ * To restyle your own receipts, put your CSS in theme.css next to settings.json.
+ * It is applied on top of this file. The receipt is 272px wide (72mm), and sizes below are in em.
+ */
+
+html, body {
+	margin: 0;
+	padding: 0;
+	background: #fff;
+	overflow: hidden;      /* a scrollbar would steal layout width and print as a bar */
+}
+
+#receipt-container {
+	box-sizing: border-box;
+	/* No blank paper above the avatar. It used to be 16px (33.9 dots, 4.2 mm). Everything else keeps its place relative to the picture.
+	   A receipt without a picture keeps the old margin, see .no-avatar below. */
+	padding: 0 14px 14px;
+	font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 16px;
+	font-weight: 400;
+	font-style: normal;
+	line-height: 1.35;
+	text-align: center;
+	color: #000;
+	font-synthesis: none;  /* no synthesized bold or italic, real faces only */
+}
+
+
+/* A receipt with no picture (not sent, refused, or failed to load) has nothing at the top edge to sit against. It keeps the old margin. */
+#receipt-container.no-avatar {
+	padding-top: 16px;
+}
+
+
+/* ---- banner: artwork above the header (the Hype Train receipts) ------------------------ */
+
+/* Empty and gone unless a receipt puts a picture in it. "art" is a picture across the receipt (the engine, a rail car, the caboose). "cap" is the
+   conductor's cap: it sits on top of the avatar and overlaps its top edge, the way a hat sits on a head. The pictures are inline vector drawings
+   in plain black and white, so they print as crisply as the text does. */
+#receipt-banner {
+	display: none;
+}
+
+#receipt-banner svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+#receipt-banner.art {
+	display: block;
+	margin: 4px 0 8px;
+}
+
+#receipt-banner.cap {
+	position: relative;
+	z-index: 2;
+	display: block;
+	width: 9em;
+	margin: 4px auto 0;
+}
+
+#receipt-banner.cap + #receipt-header #receipt-avatar {
+	margin-top: -26px;
+}
+
+#receipt-container.no-avatar #receipt-banner.cap {
+	margin-bottom: 8px;
+}
+
+/* The tail is the same kind of slot at the very bottom of the receipt, under the date line. A drawing that goes there is the last thing printed, so it
+   comes out of the printer at the end of the print (the engine and the rail car of a Hype Train). */
+#receipt-tail {
+	display: none;
+}
+
+#receipt-tail svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+#receipt-tail.art {
+	display: block;
+	margin: 18px 0 0;
+}
+
+
+/* ---- header: avatar, title, name --------------------------------------- */
+
+#receipt-avatar {
+	display: block;
+	box-sizing: border-box;
+	/* 11.5 em = 184 px = 390 dots on 80 mm paper. On narrower paper (58 mm) the picture shrinks to fit between the margins, so it never runs off the edge. */
+	width: min(11.5em, 100%);
+	height: auto;
+	aspect-ratio: 1 / 1;
+	margin: 0 auto 14px;
+	border: 3px solid #000;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+#receipt-title {
+	font-size: 1.35em;
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+/* amounts ($5.00, 100 BITS...) are the biggest text on the receipt */
+#receipt-title.big {
+	font-size: 2.2em;
+	letter-spacing: 0.01em;
+}
+
+#receipt-subtitle {
+	margin-top: 5px;
+	font-size: 1.15em;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+#receipt-title:empty,
+#receipt-subtitle:empty {
+	display: none;
+}
+
+
+/* ---- dividers -------------------------------------------------------------- */
+
+.rule {
+	margin: 16px 0;
+	border-top: 2px solid #000;
+}
+
+
+/* ---- content ----------------------------------------------------------------- */
+
+/* A hard box around whatever a viewer writes. It can't grow the receipt without limit or paint over the header
+   or footer, and absolutely positioned content stays inside it. theme.css may raise max-height. */
+#receipt-content {
+	position: relative;
+	overflow: hidden;
+	contain: paint;
+	max-height: 1600px;
+}
+
+/* A gift list (every recipient on its own line) has no height limit at all: every name that arrives has to print, and 500 names is
+   about 11,000 px. Only a handler sets this class, so event data cannot ask for it. The action photographs a page this tall in tiles.
+   theme.css cannot bring the limit back with a plain "max-height" on #receipt-content, since the rule below is more specific. */
+#receipt-content.roomy {
+	max-height: none;
+}
+
+/* a High Roller message cut off at its bits-per-inch limit fades out, so it doesn't stop mid-line.
+   The printer dithers the fade into dots. */
+#receipt-content.cut {
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - min(40px, 35%)), transparent);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - min(40px, 35%)), transparent);
+}
+
+.part {
+	margin: 0;
+}
+
+.part + .part {
+	margin-top: 0.7em;
+}
+
+/* the one line that says what happened ("First time subscriber!", "42 months") */
+.part.lead {
+	font-size: 1.1em;
+	font-weight: 700;
+}
+
+/* what the viewer wrote */
+.part.message::before { content: "\201C"; }
+.part.message::after  { content: "\201D"; }
+
+.part.left {
+	text-align: left;
+}
+
+/* Viewer text can be bold, and italics are turned off so receipts don't mix styles.
+   raw = a High Roller message, left exactly as the viewer wrote it. */
+.part:not(.raw) i,
+.part:not(.raw) em {
+	font-style: normal;
+}
+
+/* Hype Train receipts: a label on the left and a figure on the right, one pair to a line. A long name is cut with an ellipsis. */
+.part.rows {
+	text-align: left;
+}
+
+.hype-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 0.6em;
+}
+
+.hype-row + .hype-row {
+	margin-top: 0.15em;
+}
+
+.hype-row > span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.hype-row > b {
+	flex: none;
+}
+
+.hype-head {
+	margin: 0 0 0.3em;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.hype-cap {
+	display: inline-block;
+	width: 1.9em;
+	margin-right: 0.4em;
+	vertical-align: -0.4em;
+}
+
+.hype-cap svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+img.emote,
+img.bits {
+	height: 1.3em;
+	vertical-align: -0.28em;
+}
+
+
+/* ---- footer: platform mark and date ----------------------------------------------- */
+
+#receipt-footer {
+	margin-top: 16px;
+}
+
+#receipt-icon {
+	display: block;
+	height: 3em;
+	max-width: 70%;
+	margin: 14px auto 10px;
+}
+
+#receipt-icon:not([src]),
+#receipt-icon[src=""] {
+	display: none;
+}
+
+#receipt-date {
+	font-size: 0.8em;
+	font-weight: 400;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+</style>
+<style id="theme"></style>
+</head>
+<body>
+<div id="receipt-container">
+    <div id="receipt-banner"></div>
+    <div id="receipt-header">
+        <img id="receipt-avatar">
+        <div id="receipt-title"></div>
+        <div id="receipt-subtitle"></div>
+    </div>
+    <div id="receipt-rule-top" class="rule"></div>
+    <div id="receipt-content"></div>
+    <div id="receipt-footer">
+        <div class="rule"></div>
+        <img id="receipt-icon">
+        <div id="receipt-date"></div>
+    </div>
+    <div id="receipt-tail"></div>
+</div>
+<script>
+// ============================================================================
+// Printer Bot renderer
+//
+// Runs inside the headless Edge page that the Streamer.bot action owns.
+// Streamer.bot hands it a raw event (all trigger arguments + __source). It builds
+// the receipt on the page, then the routine screenshots and prints it.
+//
+//   PrinterBot.render(eventData, options)  -> { ok, height, avatars, trimmed, security } | { ok:false, reason }
+//                                  height  = the page height in CSS px. A receipt is cut at MAX_RECEIPT_HEIGHT (5000), except a gift list (Twitch gift
+//                                            bomb, Kick mass gift), which reports its real height however many names it has
+//                                  avatars = the lookups that finished since the last render, for the routine to keep: key -> { url, ts } for a
+//                                            picture, key -> { none: true, ts } for a viewer the lookup service does not know (kept NOT_FOUND_TTL_MS)
+//                                  trimmed = { limitIn, fullIn, by } when a High Roller message was cut. by is 'bits' when the bits-per-inch
+//                                  limit cut it and 'cap' when the maximum length cut it.
+//                                  options: { highRollerBits, highRollerBitsPerInch, highRollerMaxInches, hideLinks } from the dock's settings
+//                                    highRollerBits         cheers of at least this many bits may style their message with HTML (0 = never)
+//                                    highRollerBitsPerInch  a High Roller message prints at most (bits / this) inches long (0 = no limit of its own)
+//                                    highRollerMaxInches    the longest a High Roller message can print, 0 to 40 inches (0 = no cap of its own).
+//                                                           The final override: the message prints at most the smaller of this and the
+//                                                           bits-per-inch length. When it is set it also replaces the built-in 16.7 inch
+//                                                           message box ceiling, so 30 allows a 30 inch message. It never limits
+//                                                           gift lists or any other receipt.
+//                                    hideLinks              boolean, default false. true = URL-looking text in normal (plain) messages
+//                                                           (http://, https://, www., domain.tld/path, bare domains on common endings)
+//                                                           prints as "[link]". Does not apply to High Roller messages (their links are always removed).
+//   PrinterBot.setTheme(css)       -> extra CSS from the streamer's theme.css
+//   PrinterBot.loadAvatarCache(o)  -> restore avatar lookups saved by the routine (both shapes above)
+//   PrinterBot.clearAvatarCache()  -> forget every viewer, failure and pinned picture (the dock's "Clear picture cache"); returns how many were known
+//   PrinterBot.internals           -> pure helpers for tests (host matching, name cleaning, counters); no DOM, no network
+//
+// One handler per event type below: copy one to add a new event.
+// ============================================================================
+
+window.PrinterBot = (function () {
+    'use strict';
+
+    const VERSION = '202610081727';
+    const ICONS = {"twitch":"data:image/png;base64,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","youtube":"data:image/png;base64,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","kick":"data:image/png;base64,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"};
+
+    // CSS px (~1.3 m of paper). The hard ceiling for every receipt except a gift list. A gift list (the `roomy` flag, see show()) has no ceiling here,
+    // because every name that arrives has to print. The action holds that one to a far larger sanity limit (see MaxReceiptCssHeight in the C# code).
+    const MAX_RECEIPT_HEIGHT = 5000;
+
+    // ---- avatar and image timing ----------------------------------------------------------------
+    // A print waits at most AVATAR_LOOKUP_BUDGET_MS for the lookup that finds a viewer's picture (connecting, headers
+    // and body all count). A first-time viewer whose lookup answers in that time gets their photo. If it doesn't, the receipt
+    // prints without one this once, and the request finishes in the background so the NEXT receipt has the photo.
+    // The background request has its own hard stop, so a service that hangs forever can't pile up open requests.
+    const AVATAR_LOOKUP_BUDGET_MS = 2500;
+    const AVATAR_BACKGROUND_TIMEOUT_MS = 10000;
+    const AVATAR_TTL_MS = 24 * 60 * 60 * 1000;               // an entry older than this is refreshed in the background (and used meanwhile)
+    const AVATAR_STALE_MS = 30 * 24 * 60 * 60 * 1000;        // ...and dropped only once it is this old
+    const NEGATIVE_TTL_MS = 10 * 60 * 1000;                  // a failed or empty lookup / a dead image is not tried again for this long
+    const NOT_FOUND_TTL_MS = 2 * 60 * 60 * 1000;             // a viewer the lookup service does not know ("User not found", a 404 from Kick) is not asked about
+                                                             // again for this long. Unlike a failure, this answer goes to the routine's avatar file, so it
+                                                             // survives a page reload (the C# side keeps the same two hours)
+    const AVATAR_IMAGE_WAIT_MS = 2500;                       // the avatar's own wait for its image to load (separate from the emotes')
+    const EMOTE_WAIT_MS = 2500;                              // emotes in High Roller messages, the platform logo and fonts
+    const MAX_LOOKUP_BYTES = 512 * 1024;                     // a lookup answer is a short text or one small JSON object
+    const MAX_PINNED_IMAGES = 200;                           // recently used avatar / emote images kept alive so repeat viewers don't re-download or re-decode
+    const MAX_AVATAR_ENTRIES = 3000, MAX_NEGATIVE_ENTRIES = 1000, MAX_BAD_IMAGES = 500;     // in-page bookkeeping stays bounded
+
+
+    // ------------------------------------------------------------------
+    // Small helpers
+    // ------------------------------------------------------------------
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g,
+        c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const PARSER = new DOMParser();          // one parser for every message: parseFromString documents are inert, so it is safe to reuse
+
+    // Keeps a Map from growing without limit: drops the oldest entries (Maps iterate in insertion order)
+    function capMap(map, max) {
+        while (map.size > max) map.delete(map.keys().next().value);
+    }
+
+    // Resolves with the promise's value, or with undefined after `ms` (the timer never outlives the wait)
+    function withTimeout(promise, ms) {
+        let timer;
+        return Promise.race([promise, new Promise(resolve => { timer = setTimeout(resolve, ms); })]).finally(() => clearTimeout(timer));
+    }
+
+    // ------------------------------------------------------------------
+    // Safety: nothing a viewer writes may ever run code, load anything, or break the layout.
+    //
+    //   plainText(s)       normal messages: used as TEXT (textContent) and never parsed as HTML. There is
+    //                      nothing to sanitize, and no formatting from the viewer survives.
+    //   displayName(s)     names, amounts and other short labels (title, subtitle, "<b>name</b> gifted ..."): cleaned, one line,
+    //                      at most MAX_NAME_CHARS characters, no invisible direction/formatting characters.
+    //   sanitizeRich(html) High Roller messages: HTML styling is kept, code is dropped. The input is parsed in an inert
+    //                      document, then a NEW tree is built from an allow-list (tags, attributes, CSS properties,
+    //                      image hosts). Nothing from the input is re-serialized or re-parsed, so mutation
+    //                      tricks have nothing to work with. Anything not on the list is dropped.
+    //
+    // The page also runs under a Content-Security-Policy (set in the page header) as a second layer of protection.
+    // ------------------------------------------------------------------
+
+    const MAX_PLAIN_CHARS = 500;       // Twitch's own limit. Longer text is truncated
+    const MAX_RICH_CHARS = 4000;       // High Roller HTML source
+    const MAX_NODES = 400;             // nodes a High Roller message may create
+    const MAX_DEPTH = 24;              // nesting depth
+    const MAX_STYLE_PROPS = 40;
+    const MAX_NAME_CHARS = 48;         // a viewer / donor / reward / level name. Longer is cut and ends in "…". (Twitch logins are at most 25 characters. Display names and tip names are free text)
+    const MAX_VARIANTS = 50;           // line items of one Fourthwall order that are printed
+    const MAX_VIEWER_IMAGE_PX = 64;   // a viewer's image in a High Roller message can't be shown larger than this (about 17 mm on paper)
+    const MAX_DATA_IMAGE_CHARS = 2000; // base64 characters allowed in an inline (data:) image, enough for a tiny icon
+
+    // A viewer's image must come from a platform's own emote CDN (https, no port, no credentials)
+    // or be a tiny inline PNG / GIF / WebP. This also stops a message from making your computer request addresses on your own network.
+    // Both lists are filled in when the page is built, from the same list that the page's CSP and Edge's host rules come
+    // from. A leading '*.' means any subdomain. The bare domain does not match.
+    const TRUSTED_IMAGE_HOSTS = ["static-cdn.jtvnw.net","files.kick.com","cdn.betterttv.net","cdn.7tv.app","cdn.frankerfacez.com"];     // images a viewer's High Roller message may show
+    const AVATAR_HOSTS = ["static-cdn.jtvnw.net","files.kick.com","kick.com","*.ggpht.com","*.googleusercontent.com","*.ytimg.com"];           // avatars the platforms hand over
+
+    const ALLOWED_TAGS = new Set(['div', 'span', 'p', 'br', 'hr', 'b', 'strong', 'i', 'em', 'u', 's', 'del', 'ins', 'small', 'sub', 'sup',
+        'mark', 'code', 'pre', 'kbd', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'center',
+        'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th', 'caption', 'img']);
+
+    // Dropped together with everything inside them (their text must not print either)
+    const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet', 'template',
+        'noscript', 'noembed', 'noframes', 'title', 'head', 'textarea', 'select', 'option', 'audio', 'video', 'canvas', 'xmp',
+        'plaintext', 'link', 'meta', 'base', 'svg', 'math', 'portal', 'dialog']);
+
+    // Not on the allow-list and not dropped with their content: the tag goes, its text stays. Only these get a line in the log
+    // (links and form controls). A <font> or <marquee> is harmless and would only make the log noisy.
+    const NOTED_WHEN_UNWRAPPED = new Set(['a', 'area', 'map', 'form', 'input', 'button']);
+
+    // copyStyle walks the declaration of the CSSOM, and a browser hands out LONGHANDS only. A shorthand never shows up in that walk, so a shorthand on this
+    // list does nothing. Edge 154 expands `white-space` to white-space-collapse and text-wrap-mode, and `border-spacing` to -webkit-border-horizontal-spacing and
+    // -webkit-border-vertical-spacing. Both shorthands stay listed for an engine that still hands them out, and their longhands are listed too. Every other
+    // name here is a longhand. The bench group "High Roller styles" (renderer-hardening) walks every name on the list and names any that can no longer appear.
+    const ALLOWED_CSS = new Set([
+        'display', 'position', 'top', 'right', 'bottom', 'left', 'width', 'height', 'min-width', 'max-width', 'min-height', 'max-height',
+        'box-sizing', 'overflow-x', 'overflow-y', 'float', 'clear', 'vertical-align', 'z-index',
+        'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+        'flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content', 'align-self', 'row-gap', 'column-gap',
+        'flex-grow', 'flex-shrink', 'flex-basis', 'order',
+        'color', 'font-family', 'font-size', 'font-weight', 'font-style', 'font-stretch', 'font-variant-caps', 'font-variant-numeric',
+        'font-variant-ligatures', 'line-height', 'letter-spacing', 'word-spacing', 'text-align', 'text-decoration-line',
+        'text-decoration-style', 'text-decoration-color', 'text-decoration-thickness', 'text-transform', 'text-indent',
+        'white-space', 'white-space-collapse', 'text-wrap-mode', 'text-wrap-style', 'word-break', 'overflow-wrap', 'writing-mode', 'text-orientation', 'direction', 'unicode-bidi',
+        'background-color', 'list-style-type', 'list-style-position', 'table-layout', 'border-collapse', 'border-spacing',
+        '-webkit-border-horizontal-spacing', '-webkit-border-vertical-spacing',
+        'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+        'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
+        'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
+        'border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius',
+        'transform', 'transform-origin', 'rotate', 'scale', 'translate',
+    ]);
+    const CSS_VALUE_ALLOWED = {
+        position: ['static', 'relative', 'absolute'],            // fixed and sticky are excluded because they escape the receipt
+        display: ['none', 'block', 'inline', 'inline-block', 'flex', 'inline-flex', 'grid', 'inline-grid', 'table', 'table-row', 'table-cell', 'list-item'],
+        // The longhands of white-space and text-wrap take the keywords of the standard. The browser writes `initial` for the part of a shorthand that the author left out
+        // (text-wrap:nowrap hands out text-wrap-mode:nowrap and text-wrap-style:initial), so `initial` is accepted too. The other keywords that every property accepts are refused.
+        'white-space-collapse': ['initial', 'collapse', 'preserve', 'preserve-breaks', 'preserve-spaces', 'break-spaces'],
+        'text-wrap-mode': ['initial', 'wrap', 'nowrap'],
+        'text-wrap-style': ['initial', 'auto', 'balance', 'pretty', 'stable'],
+    };
+    // Second check: even for allowed properties, refuse anything that can fetch, execute or escape
+    const CSS_VALUE_FORBIDDEN = /url\s*\(|expression|javascript|@import|image-set|\\|<|>|\bvar\s*\(|\battr\s*\(|\benv\s*\(|\belement\s*\(|binding|behavior|\/\*/i;
+    const CSS_RISKY_FAMILY = /^(background|mask|filter|clip|cursor|content|list-style|behavior)/;
+
+    // What was removed from the last message, so the Streamer.bot log can say that someone tried something
+    const securityNotes = new Set();
+    let violationCount = 0;
+    const violationLog = [];
+    document.addEventListener('securitypolicyviolation', (e) => {
+        violationCount++; securityNotes.add('blocked by page policy');
+        if (violationLog.length < 40) violationLog.push(e.violatedDirective + ' <- ' + String(e.blockedURI).slice(0, 60));
+    });
+
+    // Removes control characters and text-direction overrides (overrides can make text read as something else)
+    const CONTROL_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g;
+    const chr = (...codes) => String.fromCharCode(...codes);          // (code units, so no invisible character has to sit in this file)
+    const BIDI_CONTROLS = new RegExp('[' + chr(0x202A, 0x202B, 0x202C, 0x202D, 0x202E, 0x2066, 0x2067, 0x2068, 0x2069) + ']', 'g');
+    function cleanText(value) {
+        const s = String(value ?? '').replace(CONTROL_CHARS, '');
+        const t = s.replace(BIDI_CONTROLS, '');
+        if (t.length !== s.length) securityNotes.add('bidi characters');          // rare in normal text, so it gets a line in the log
+        return t;
+    }
+
+    // Characters that print as nothing (or flip the reading direction) and only help a name pretend to be something else.
+    // ZWJ and ZWNJ (U+200D / U+200C) are left alone because emoji sequences and Persian / Indic scripts need them.
+    // (U+2028 / U+2029, the line and paragraph separators, are not listed here. They count as white space and become a space.)
+    const INVISIBLE_IN_NAMES = new RegExp('[' + chr(0xAD, 0x61C, 0x115F, 0x1160, 0x200B, 0x200E, 0x200F, 0x2060, 0x2061, 0x2062, 0x2063, 0x2064, 0x3164, 0xFEFF, 0xFFA0) +
+        String.fromCodePoint(0xE0000) + '-' + String.fromCodePoint(0xE007F) + ']', 'gu');
+    let segmenter = null;
+    function graphemes(s) {
+        try { if (!segmenter && typeof Intl.Segmenter === 'function') segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' }); } catch { segmenter = null; }
+        return segmenter ? Array.from(segmenter.segment(s), x => x.segment) : Array.from(s);
+    }
+
+    // A name, amount or other short label from an event: one line, no invisible/bidi characters, at most 3 stacked combining marks
+    // per letter ("zalgo" text), and at most `max` (default MAX_NAME_CHARS) characters (counted as what you see, so an emoji is one).
+    function displayName(value, max) {
+        const limit = max > 0 ? max : MAX_NAME_CHARS;
+        let s = String(value ?? '');
+        if (s.length > limit * 8) {                                    // don't walk a 20,000-character name
+            s = s.slice(0, limit * 8);
+            if (/[\uD800-\uDBFF]$/.test(s)) s = s.slice(0, -1);      // (don't cut a surrogate pair in half)
+        }
+        s = cleanText(s).replace(INVISIBLE_IN_NAMES, '').replace(/\s+/g, ' ').trim().replace(/(\p{M}{3})\p{M}+/gu, '$1');
+        const g = graphemes(s);
+        return g.length > limit ? g.slice(0, limit).join('').trimEnd() + '…' : s;
+    }
+    const nm = (value, max) => esc(displayName(value, max));        // the same, ready for an HTML template
+
+    // URL-looking text: scheme://..., www.xxx, domain.tld/path (any ending) and bare domains on common endings
+    const LINK_ENDINGS = 'com|net|org|io|gg|tv|co|xyz|app|dev|info|biz|link|live|shop|site|online|top|club|vip|ly|cc|ws|ru|icu|cloud|page|store|tech|fun|pro|lol|win|bid|click|download|cam|gift|gifts|free|rocks|ninja|zip|tk|ml|ga|cf|pw';
+    const DOMAIN_LABELS = '(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+';
+    const LINK_PATTERN = new RegExp(
+        '\\b[a-z][a-z0-9+.-]{1,15}:\\/\\/[^\\s]+' +                                       // anything://...
+        '|\\bwww\\.[^\\s]+' +                                                              // www.example.com...
+        '|\\b' + DOMAIN_LABELS + '[a-z]{2,24}(?::\\d{1,5})?\\/[^\\s]*' +                   // example.com/path
+        '|\\b' + DOMAIN_LABELS + '(?:' + LINK_ENDINGS + ')\\b(?![-.]?[a-z0-9])',           // example.com
+        'gi');
+    const replaceLinks = (s) => String(s).replace(LINK_PATTERN, '[link]');
+
+    function plainText(value, opts) {
+        let s = cleanText(value);
+        const chars = Array.from(s);
+        if (chars.length > MAX_PLAIN_CHARS) s = chars.slice(0, MAX_PLAIN_CHARS).join('') + '…';
+        if (opts && opts.hideLinks === true) s = replaceLinks(s);
+        return s;
+    }
+
+    // Entity-decodes text (e.g. "&amp;" -> "&") without ever creating elements
+    function decodeEntities(value) {
+        return PARSER.parseFromString(String(value ?? ''), 'text/html').documentElement.textContent;
+    }
+
+    // ---- host allow-lists ---------------------------------------------------------------------------
+    // 'a.example' matches exactly that host. '*.example' matches any subdomain of example ('x.example', 'x.y.example').
+    // It does not match 'example' itself or look-alikes such as 'evilexample' or 'example.evil.com'. `hostname` comes from the URL parser:
+    // already lower-case, punycode for non-ASCII names, brackets around IPv6, and a trailing dot kept (so it matches nothing).
+    function hostMatches(list, hostname) {
+        const h = String(hostname ?? '').toLowerCase();
+        for (const entry of list) {
+            if (entry.startsWith('*.')) {
+                const suffix = entry.slice(2);
+                if (h.length > suffix.length + 1 && h.endsWith('.' + suffix) &&
+                    /^[a-z0-9_-]+(\.[a-z0-9_-]+)*$/.test(h.slice(0, h.length - suffix.length - 1))) return true;
+            } else if (h === entry) return true;
+        }
+        return false;
+    }
+
+    // Checks a URL against a host list: https only, no user name or password, no port, and the host must be on the list.
+    // Returns { url } (the normalised URL) or { url: '', why, host? } saying what was wrong.
+    function vetUrl(value, hosts) {
+        let u;
+        try { u = new URL(String(value ?? '').trim()); } catch { return { url: '', why: 'not a valid URL' }; }
+        if (u.protocol !== 'https:') return { url: '', why: 'not https' };
+        if (u.username || u.password) return { url: '', why: 'credentials in the URL' };
+        if (u.port) return { url: '', why: 'port not allowed' };
+        if (!hostMatches(hosts, u.hostname)) return { url: '', why: 'host not allowed', host: u.hostname };
+        if (u.href.length > 2048) return { url: '', why: 'URL too long' };
+        return { url: u.href };
+    }
+
+    const DATA_IMAGE = new RegExp('^data:image\\/(?:png|gif|webp);base64,[A-Za-z0-9+\\/]{1,' + MAX_DATA_IMAGE_CHARS + '}={0,2}$', 'i');
+    function vetImage(value) {
+        const v = String(value ?? '').trim();
+        if (/^data:/i.test(v)) return DATA_IMAGE.test(v) ? { url: v, inline: true } : { url: '', why: 'inline image not allowed' };
+        return vetUrl(v, TRUSTED_IMAGE_HOSTS);
+    }
+    const trustedImageUrl = (value) => vetImage(value).url;
+
+    const hostNote = (what, v) => v.host ? what + ' host not allowed: ' + v.host.slice(0, 60) : what + ' URL rejected (' + v.why + ')';
+
+    // Avatars come from the platforms and are held to the allow-list too. A refusal names the host in the log.
+    function safeAvatarUrl(value) {
+        if (value === undefined || value === null || value === '') return '';
+        const v = vetUrl(value, AVATAR_HOSTS);
+        if (!v.url) securityNotes.add(hostNote('avatar', v));
+        return v.url;
+    }
+
+    // ---- viewer images (High Roller) ------------------------------------------------------------------
+    // Whatever size a viewer asks for, an image in a message is held to MAX_VIEWER_IMAGE_PX: width/height attributes are capped, the
+    // limits below are inline and !important (so the viewer's own style can't override them), and the image itself can't be scaled up.
+    // render() then measures the finished layout and hides any image that is still larger (a scaled parent can defeat the CSS).
+    function clampImage(el) {
+        const st = el.style;
+        if (/scale|matrix/i.test(st.getPropertyValue('transform'))) st.removeProperty('transform');
+        st.removeProperty('scale');
+        const px = MAX_VIEWER_IMAGE_PX + 'px';
+        for (const [prop, value] of [['max-width', px], ['max-height', px], ['min-width', '0'], ['min-height', '0'], ['object-fit', 'contain']])
+            st.setProperty(prop, value, 'important');
+    }
+
+    function copyStyle(srcEl, el) {
+        const st = srcEl.style;                          // the inert document's own CSSOM: parsed and normalised by the browser
+        let kept = 0;
+        for (let i = 0; i < st.length && kept < MAX_STYLE_PROPS; i++) {
+            const prop = st[i], value = st.getPropertyValue(prop).trim();
+            if (!ALLOWED_CSS.has(prop)) {
+                const family = CSS_RISKY_FAMILY.exec(prop);
+                if (family && prop !== 'background-color') securityNotes.add('css ' + family[1]);       // one line per kind (background-image, -position, ... are one)
+                continue;
+            }
+            if (!value || value.length > 200 || CSS_VALUE_FORBIDDEN.test(value)) { securityNotes.add('css value'); continue; }
+            if (CSS_VALUE_ALLOWED[prop] && !CSS_VALUE_ALLOWED[prop].includes(value.toLowerCase())) { securityNotes.add('css ' + prop); continue; }
+            el.style.setProperty(prop, value);
+            kept++;
+        }
+    }
+
+    const LINK_OR_SOURCE_ATTRIBUTE = /^(href|src|srcset|srcdoc|action|formaction|data|ping|background|xlink:href)$/;
+
+    function copyAttributes(src, el, tag) {
+        for (const a of Array.from(src.attributes)) {
+            const name = a.name.toLowerCase(), value = a.value;
+            if (name === 'style') copyStyle(src, el);
+            else if (tag === 'img' && name === 'src') {
+                const v = vetImage(value);
+                if (!v.url) securityNotes.add(v.host ? hostNote('image', v) : 'untrusted image');
+                else if (v.inline) { el.setAttribute('src', v.url); securityNotes.add('inline image'); }          // tiny inline picture: allowed, and unusual enough to log
+                else if (!isBadImage(v.url)) { el.setAttribute('src', v.url); pinImage(v.url); }              // (an emote that already failed or hung is left out)
+            }
+            else if (tag === 'img' && name === 'alt') el.setAttribute('alt', value.slice(0, 100));
+            else if (tag === 'img' && name === 'class') { const c = value.split(/\s+/).filter(x => x === 'emote' || x === 'bits'); if (c.length) el.className = c.join(' '); }
+            else if (tag === 'img' && (name === 'width' || name === 'height')) {
+                const n = parseInt(value, 10);
+                if (n > 0) { el.setAttribute(name, String(Math.min(n, MAX_VIEWER_IMAGE_PX))); if (n > MAX_VIEWER_IMAGE_PX) securityNotes.add('image size limited'); }
+            }
+            else if ((tag === 'td' || tag === 'th') && (name === 'colspan' || name === 'rowspan')) { const n = parseInt(value, 10); if (n > 0 && n <= 20) el.setAttribute(name, String(n)); }
+            else if (name.startsWith('on')) securityNotes.add('event handler');
+            else if (LINK_OR_SOURCE_ATTRIBUTE.test(name)) securityNotes.add('link or source');
+            // everything else (id, name, class, data-*, ...) is dropped silently
+        }
+    }
+
+    // A tag that is removed while its text stays: say so for links and form controls, and look at its attributes (handlers, links)
+    function noteUnwrapped(src, tag) {
+        if (NOTED_WHEN_UNWRAPPED.has(tag)) securityNotes.add(tag === 'a' ? 'link' : tag);
+        for (const a of Array.from(src.attributes)) {
+            const name = a.name.toLowerCase();
+            if (name.startsWith('on')) securityNotes.add('event handler');
+            else if (LINK_OR_SOURCE_ATTRIBUTE.test(name)) securityNotes.add('link or source');
+        }
+    }
+
+    function copyChildren(from, into, depth, budget) {
+        for (const n of Array.from(from.childNodes)) {
+            if (budget.nodes >= MAX_NODES) { securityNotes.add('too large'); return; }
+            if (n.nodeType === Node.TEXT_NODE) { into.appendChild(document.createTextNode(cleanText(n.data))); budget.nodes++; continue; }
+            if (n.nodeType !== Node.ELEMENT_NODE) continue;                       // comments etc.: dropped
+            if (n.namespaceURI !== 'http://www.w3.org/1999/xhtml') { securityNotes.add('svg/math'); continue; }
+            const tag = n.localName;
+            if (DROP_WITH_CONTENT.has(tag)) { securityNotes.add(tag); continue; }
+            if (!ALLOWED_TAGS.has(tag)) {                                         // unknown tag: keep its text only
+                noteUnwrapped(n, tag);
+                if (depth < MAX_DEPTH) copyChildren(n, into, depth + 1, budget);
+                continue;
+            }
+            const el = document.createElement(tag);
+            budget.nodes++;
+            copyAttributes(n, el, tag);
+            if (tag === 'img') { if (el.hasAttribute('src')) { clampImage(el); into.appendChild(el); } continue; }
+            if (tag !== 'br' && tag !== 'hr') {
+                if (depth < MAX_DEPTH) copyChildren(n, el, depth + 1, budget); else securityNotes.add('too deep');
+            }
+            into.appendChild(el);
+        }
+    }
+
+    function sanitizeRich(html) {
+        const frag = document.createDocumentFragment();
+        let src = String(html ?? '');
+        if (src.length > MAX_RICH_CHARS) { src = src.slice(0, MAX_RICH_CHARS); securityNotes.add('too large'); }
+        // DOMParser documents are inert: no script runs and no resource loads while this is parsed
+        const doc = PARSER.parseFromString('<!DOCTYPE html><body>' + src, 'text/html');
+        copyChildren(doc.body, frag, 0, { nodes: 0 });
+        return frag;
+    }
+
+    function formatCurrency(amount, currency) {
+        amount = Number(amount);
+        if (/^[A-Z]{3}$/.test(currency)) {
+            try { return new Intl.NumberFormat(undefined, { style: 'currency', currency, currencyDisplay: 'symbol' }).format(amount); }
+            catch { return `${amount.toFixed(2)} ${currency}`; }
+        }
+        if (['$', '€', '£', '¥', '₹'].includes(currency)) return `${currency}${amount.toFixed(2)}`;
+        return `${amount.toFixed(2)} ${displayName(currency, 8)}`;
+    }
+
+    // Options come from the dock's settings via the Streamer.bot action. 0 turns High Roller off.
+    // (25 is the fallback for an older action that doesn't send options.)
+    const DEFAULT_HIGH_ROLLER_BITS = 25;
+    function isHighRoller(bits, opts) {
+        const threshold = (opts && Number.isFinite(opts.highRollerBits)) ? opts.highRollerBits : DEFAULT_HIGH_ROLLER_BITS;
+        return threshold > 0 && Number(bits) >= threshold;
+    }
+
+    // Length limit for a High Roller message: "bits per inch" from the dock's Advanced section. A cheer may print
+    // (bits / bitsPerInch) inches of message. A shorter message prints in full. 0 or missing = no limit of its own
+    // (the content box's built-in ceiling still applies).
+    // The dock also has a maximum length in inches (0 to 40). It is the final override: the effective limit is the smaller of the
+    // two limits that are set. A set maximum length also replaces the box's built-in ceiling, so it can allow more than 16.7 inches.
+    // Returns { px, by, ignoreCeiling } with px in CSS px and by = 'cap' or 'bits' (the limit that applies), or null for no limit.
+    // The receipt is laid out at 96 CSS px per inch of paper (80 mm paper = 272 px = 72 mm printed).
+    const PX_PER_INCH = 96;
+    const MAX_CAP_INCHES = 40;              // 40 in = 3840 px, which leaves room for the rest of the receipt under MAX_RECEIPT_HEIGHT
+    function highRollerMaxHeight(bits, opts) {
+        const perInch = opts ? Number(opts.highRollerBitsPerInch) : 0;
+        let bitsPx = null;
+        if (perInch > 0) {
+            const px = Math.floor(Number(bits) / perInch * PX_PER_INCH);
+            if (Number.isFinite(px)) bitsPx = Math.max(1, px);
+        }
+        const capIn = opts ? Number(opts.highRollerMaxInches) : 0;
+        let capPx = null;
+        if (capIn > 0 && Number.isFinite(capIn)) capPx = Math.max(1, Math.floor(Math.min(capIn, MAX_CAP_INCHES) * PX_PER_INCH));    // NaN, negatives, 0 and infinity give no cap
+        if (capPx === null) return bitsPx === null ? null : { px: bitsPx, by: 'bits', ignoreCeiling: false };
+        if (bitsPx !== null && bitsPx < capPx) return { px: bitsPx, by: 'bits', ignoreCeiling: true };
+        return { px: capPx, by: 'cap', ignoreCeiling: true };
+    }
+
+    // e.g. "Jan 15, 2026 · 9:30 AM", in the computer's own language and 12/24-hour style.
+    // The two formatters are built once and reused. They are rebuilt when the UTC offset changes (daylight saving, a new time zone)
+    // and at least every 30 minutes, so a persistent Edge never prints a stale local time or language.
+    let dateFormats = null;
+    function dateFormatsFor(d) {
+        const offset = d.getTimezoneOffset(), now = d.getTime();
+        if (!dateFormats || dateFormats.offset !== offset || Math.abs(now - dateFormats.builtAt) > 30 * 60 * 1000)
+            dateFormats = {
+                offset, builtAt: now,
+                day: new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }),
+                time: new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }),
+            };
+        return dateFormats;
+    }
+    function formatDate(d) {
+        const f = dateFormatsFor(d);
+        return `${f.day.format(d)} · ${f.time.format(d)}`;
+    }
+    // e.g. "9:30 AM": the time of day alone, in the same style
+    function formatClock(d) { return dateFormatsFor(d).time.format(d); }
+
+
+    // ------------------------------------------------------------------
+    // Images: remembered failures and pinned copies
+    // ------------------------------------------------------------------
+
+    const badImages = new Map();       // url -> time until which it is not tried again (it failed to load, or didn't in time)
+    const pinnedImages = new Map();    // url -> Image, least recently used first
+
+    function isBadImage(url) {
+        const until = badImages.get(url);
+        if (until === undefined) return false;
+        if (until > Date.now()) return true;
+        badImages.delete(url);
+        return false;
+    }
+    function markBad(url) {
+        badImages.delete(url);
+        badImages.set(url, Date.now() + NEGATIVE_TTL_MS);
+        capMap(badImages, MAX_BAD_IMAGES);
+    }
+
+    // Keeps the most recently used avatar and emote images alive (an Image object holds the downloaded and decoded picture), so a returning viewer's
+    // picture is not fetched and decoded again: the renderer page has no HTTP cache of its own. Only URLs that already passed the host checks
+    // get here. Bounded: the least recently used one is let go when there are more than MAX_PINNED_IMAGES.
+    function pinImage(url) {
+        const have = pinnedImages.get(url);
+        if (have) { pinnedImages.delete(url); pinnedImages.set(url, have); return; }          // used again: now the most recent
+        const img = new Image();
+        img.addEventListener('load', () => badImages.delete(url));                              // it was only slow: usable again
+        img.addEventListener('error', () => { markBad(url); if (pinnedImages.get(url) === img) pinnedImages.delete(url); });
+        img.src = url;
+        pinnedImages.set(url, img);
+        while (pinnedImages.size > MAX_PINNED_IMAGES) {
+            const [oldUrl, old] = pinnedImages.entries().next().value;
+            pinnedImages.delete(oldUrl);
+            old.removeAttribute('src');                                                         // stops a download that is still running
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // Avatars: looked up once per viewer. This page has no localStorage (blank origin), so the
+    // Streamer.bot routine keeps the cache. It passes it in via loadAvatarCache() and
+    // collects new entries from each render() result.
+    //
+    //  * An entry past AVATAR_TTL_MS is used straight away and refreshed in the background. Only a MISSING entry makes a print wait.
+    //  * A lookup that fails, answers with nothing usable, or doesn't answer in time is remembered for NEGATIVE_TTL_MS (in page memory
+    //    only), so one hung service costs one wait per viewer per 10 minutes. A late answer still gets cached.
+    // ------------------------------------------------------------------
+
+    const avatarCache = new Map();     // key -> { url, ts }
+    const avatarFresh = {};            // entries added since the last render() result
+    const avatarPending = new Map();   // key -> in-flight lookup (a Promise that may finish after the print that started it)
+    const avatarNegative = new Map();  // key -> { until, url }: where a lookup failed (url is a stand-in to show instead, or '')
+
+    const KICK_DEFAULTS = [1, 2, 3, 4, 5, 6].map(n => `https://kick.com/img/default-profile-pictures/default-avatar-${n}.webp`);
+
+    function loadAvatarCache(obj) {
+        const now = Date.now();
+        for (const [k, v] of Object.entries(obj || {})) {
+            if (!v || typeof v.ts !== 'number') continue;
+            if (v.none === true) {                                     // a viewer the service did not know: kept while the two hours last
+                const ts = Math.min(v.ts, now);                        // (a time ahead of this clock counts as now)
+                if (now - ts < NOT_FOUND_TTL_MS) avatarNegative.set(k, { until: ts + NOT_FOUND_TTL_MS, url: negativeUrl(k) });
+                continue;
+            }
+            if (typeof v.url !== 'string' || !(now - v.ts < AVATAR_STALE_MS)) continue;
+            if (!vetUrl(v.url, AVATAR_HOSTS).url) continue;          // not (or no longer) an allowed avatar host: look the viewer up again
+            avatarCache.set(k, { url: v.url, ts: v.ts });
+        }
+        capMap(avatarCache, MAX_AVATAR_ENTRIES);
+        capMap(avatarNegative, MAX_NEGATIVE_ENTRIES);
+    }
+
+    function hashString(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+        return Math.abs(h);
+    }
+
+    function remember(key, url) {
+        const entry = { url, ts: Date.now() };
+        avatarCache.set(key, entry);
+        capMap(avatarCache, MAX_AVATAR_ENTRIES);
+        avatarFresh[key] = entry;
+        avatarNegative.delete(key);
+    }
+
+    function forget(key, url) {
+        avatarNegative.set(key, { until: Date.now() + NEGATIVE_TTL_MS, url: url || '' });
+        capMap(avatarNegative, MAX_NEGATIVE_ENTRIES);
+    }
+
+    // The service does not know this viewer: remembered for NOT_FOUND_TTL_MS, and handed to the routine so it survives a page reload. A picture
+    // remembered for the name earlier goes, since the name no longer exists there.
+    function forgetForLong(key, url) {
+        const ts = Date.now();
+        avatarNegative.set(key, { until: ts + NOT_FOUND_TTL_MS, url: url || '' });
+        capMap(avatarNegative, MAX_NEGATIVE_ENTRIES);
+        avatarCache.delete(key);
+        avatarFresh[key] = { none: true, ts };
+    }
+
+    // The stand-in a negative entry shows: Kick's default picture for a Kick name (the same one lookupKick would pick), nothing for the others
+    const negativeUrl = (key) => key.endsWith('-kick') ? KICK_DEFAULTS[hashString(key) % KICK_DEFAULTS.length] : '';
+
+    // The dock's "Clear picture cache": every remembered viewer, every remembered failure, every bad image and every pinned picture is dropped,
+    // so the next receipt of each viewer looks the picture up and downloads it afresh. A lookup that is under way finishes and is remembered as usual.
+    // Returns how many viewers were known (pictures and "not found" answers together).
+    function clearAvatarCache() {
+        const n = avatarCache.size + avatarNegative.size;
+        avatarCache.clear(); avatarNegative.clear(); badImages.clear();
+        for (const k of Object.keys(avatarFresh)) delete avatarFresh[k];
+        for (const img of pinnedImages.values()) img.removeAttribute('src');
+        pinnedImages.clear();
+        return n;
+    }
+
+    // The body is read under the same abort signal as the request, so an answer that stalls (or drips) after its headers is cut off too.
+    async function readText(res) {
+        if (!res.body) return res.text();
+        const reader = res.body.getReader(), decoder = new TextDecoder();
+        let text = '', bytes = 0;
+        for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            bytes += value.length;
+            if (bytes > MAX_LOOKUP_BYTES) { reader.cancel().catch(() => {}); throw new Error('answer too large'); }
+            text += decoder.decode(value, { stream: true });
+        }
+        return text + decoder.decode();
+    }
+
+    async function getText(url, signal) {
+        const res = await fetch(url, { signal });
+        if (!res.ok) { try { if (res.body) res.body.cancel().catch(() => {}); } catch { /* nothing to cancel */ } return { ok: false, status: res.status, text: '' }; }
+        return { ok: true, status: res.status, text: await readText(res) };
+    }
+
+    // Each lookup resolves to { url, note?, failed?, none? }. url '' = nothing found. failed = the service didn't answer properly (remembered
+    // NEGATIVE_TTL_MS, in this page only). none = the service answered that it does not know the viewer (remembered NOT_FOUND_TTL_MS, and saved)
+    async function lookupTwitch(name, signal) {
+        const r = await getText('https://decapi.me/twitch/avatar/' + encodeURIComponent(name), signal);
+        const text = r.text.trim();
+        if (!r.ok || !text) return { url: '', failed: true };
+        // decapi reports errors as plain text ("User not found"): only a real https URL on an avatar host counts
+        const v = vetUrl(text.slice(0, 2100), AVATAR_HOSTS);
+        if (v.url) return { url: v.url };
+        if (/^user not found\b/i.test(text)) return { url: '', none: true };          // a definite answer: Twitch has no such login
+        return { url: '', failed: true, note: /^https?:\/\//i.test(text) ? hostNote('avatar', v) : '' };
+    }
+
+    async function lookupKick(name, key, signal) {
+        const fallback = KICK_DEFAULTS[hashString(key) % KICK_DEFAULTS.length];
+        let r = await getText('https://kick.com/api/v2/channels/' + encodeURIComponent(name), signal);
+        if (!r.ok && name.includes('_')) r = await getText('https://kick.com/api/v2/channels/' + encodeURIComponent(name.replace(/_/g, '-')), signal);
+        if (!r.ok) return r.status === 404 ? { url: fallback, none: true } : { url: fallback, failed: true };      // 404: Kick has no such channel
+        let pic = '';
+        try { const data = JSON.parse(r.text); pic = data && data.user && typeof data.user.profile_pic === 'string' ? data.user.profile_pic : ''; }
+        catch { return { url: fallback, failed: true }; }
+        if (!pic) return { url: fallback };                                       // no custom picture: the default one
+        const v = vetUrl(pic, AVATAR_HOSTS);
+        return v.url ? { url: v.url } : { url: fallback, note: hostNote('avatar', v) };
+    }
+
+    // Starts a lookup (one shared deadline for all of its requests and bodies) and files the answer when it arrives, whenever that is.
+    function startLookup(key, name, platform) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), AVATAR_BACKGROUND_TIMEOUT_MS);
+        const p = (async () => {
+            let res;
+            try { res = platform === 'kick' ? await lookupKick(String(name), key, ctrl.signal) : await lookupTwitch(String(name), ctrl.signal); }
+            catch { res = { url: platform === 'kick' ? KICK_DEFAULTS[hashString(key) % KICK_DEFAULTS.length] : '', failed: true }; }
+            finally { clearTimeout(timer); }
+            if (res.none) forgetForLong(key, res.url);
+            else if (res.url && !res.failed) remember(key, res.url);
+            else forget(key, res.url);
+            return res;
+        })().finally(() => avatarPending.delete(key));
+        avatarPending.set(key, p);
+        return p;
+    }
+
+    // What a print waits for: the lookup, up to the budget. Missing the budget is remembered at once, so the same viewer's next
+    // print doesn't wait again. The lookup carries on, and if it succeeds later, remember() lifts that note.
+    function waitForLookup(p, key) {
+        return new Promise((resolve) => {
+            const timer = setTimeout(() => { forget(key, ''); resolve(''); }, AVATAR_LOOKUP_BUDGET_MS);
+            p.then((res) => { clearTimeout(timer); if (res.note) securityNotes.add(res.note); resolve(res.url); },
+                   () => { clearTimeout(timer); resolve(''); });
+        });
+    }
+
+    function refreshInBackground(key, name, platform) {
+        const neg = avatarNegative.get(key);
+        if (avatarPending.has(key) || (neg && neg.until > Date.now())) return;
+        startLookup(key, name, platform);
+    }
+
+    // Returns an image URL (already checked against the allow-list), or '' (the receipt prints without an avatar).
+    function getAvatar(name, platform) {
+        if (name === undefined || name === null || name === '') return Promise.resolve('');
+        const text = String(name);
+        const key = `${text.toLowerCase()}-${platform}`;
+        const now = Date.now();
+        const hit = avatarCache.get(key);
+        if (hit) {                                                     // known: use it now, and refresh it quietly when it is old or its image is dead
+            const alive = !isBadImage(hit.url);
+            if (!alive || now - hit.ts >= AVATAR_TTL_MS) refreshInBackground(key, text, platform);
+            return Promise.resolve(alive ? hit.url : '');
+        }
+        // Twitch logins are 1-25 letters, digits and underscores, and Kick names are short too. Anything else (a tip's free-text name) can't have an avatar there.
+        if (platform === 'kick' ? text.length > 64 : !/^\w{1,25}$/.test(text)) return Promise.resolve('');
+        const neg = avatarNegative.get(key);
+        if (neg && neg.until > now) return Promise.resolve(neg.url);
+        return waitForLookup(avatarPending.get(key) || startLookup(key, text, platform), key);
+    }
+
+
+    // ------------------------------------------------------------------
+    // Event handlers. Each returns a receipt model, or null to print nothing:
+    //   avatar        image URL ('' = no avatar)         avatarSquare   true = no round crop
+    //   title/titleHtml, subtitle/subtitleHtml           (text is escaped, *Html is used as-is)
+    //   titleBig      larger title (used for money amounts)
+    //   content       a part or a list of parts (below); nothing = no content area
+    //   icon          'twitch' | 'youtube' | 'kick'
+    //   bannerHtml    a drawing (the Hype Train pieces). bannerAt 'top' (the default) puts it above the header, with bannerClass 'art' (across the receipt) or
+    //                 'cap' (on the avatar). bannerAt 'bottom' puts it under the date line, as the last thing on the receipt (always 'art')
+    //
+    // Content parts have a role, so every receipt looks the same way:
+    //   text(html)     plain facts, with <b> on the key words (names, numbers)
+    //   lead(html)     the one bold line saying what happened ("First time subscriber!")
+    //   message(text)  what the viewer wrote, in quotes. Always shown as plain TEXT: any markup they typed prints literally
+    //   { kind: 'raw', rich }   High Roller message: HTML styling is kept after it passes through sanitizeRich() (see Safety above)
+    //
+    // text/lead parts take HTML templates: every viewer-controlled value in them MUST go through nm() (= esc(displayName())).
+    // Names that go into a title or subtitle as text go through displayName().
+    // ------------------------------------------------------------------
+
+    const text = (html) => ({ kind: 'text', html });
+    const lead = (html) => ({ kind: 'lead', html });
+    const message = (value) => value ? { kind: 'message', value } : null;          // cleaned (and, if asked, link-free) in show(), where the options are known
+    const cap = (s) => String(s ?? '').replace(/^./, c => c.toUpperCase());
+    const byNumber = (a, b) => Number(a) - Number(b);
+    // Finds an entry in one of the tables below only if the table holds it itself. A plain lookup such as HANDLERS['constructor'] also finds
+    // what every object inherits ('constructor', 'toString', '__proto__'), and the event would then be taken for a layout.
+    const own = (table, key) => typeof key === 'string' && Object.prototype.hasOwnProperty.call(table, key);
+
+    // ------------------------------------------------------------------
+    // Hype Train
+    //
+    // Streamer.bot's four Hype Train triggers carry the train's level, its type, its start time and the top cheerer (top.bits.*). They carry no
+    // total and no list of contributors. So this page keeps a tally of its own. While a train is on, every Cheer event adds its bits to the
+    // cheerer in the tally, and the top cheerer that Twitch reports lifts that cheerer's figure to Twitch's own. The tally starts at the Start
+    // event, so a cheer from before it is in the tally only through that top figure. The conductor is the top cheerer.
+    // The dock's test prints use a state of their own (hypeTest), so a test never disturbs the tally of a real train.
+    // ------------------------------------------------------------------
+
+    const HYPE_MAX_USERS = 2000;                       // cheerers in the tally of one train. Past this the smallest one is folded into "other"
+    const HYPE_STALE_MS = 30 * 60 * 1000;              // a train that has been silent this long is over, whether or not its End event came
+    const HYPE_MAX_NUMBER = 1e12;
+    const HYPE_TYPE_NAMES = { regular: 'Normal', treasure: 'Treasure', golden_kappa: 'Golden Kappa' };
+    const ANONYMOUS_LOGIN = /^(ananonymouscheerer|anonymous)$/;
+
+    // Plain black and white drawings with bold outlines (thermal paper has no grey), made once. They are fixed text. The only thing put into one is the
+    // level number of the rail car, which the caller has already cleaned and escaped.
+    // Where they go: the engine is the last thing on the Start receipt and the rail car the last thing on the Level up receipt (under the date line), so each is
+    // the last thing the printer prints. The caboose is the first thing on the End receipt, at its top. Receipts that drop into a tray pile up newest on top, so
+    // laid out that way the caboose is at the top, the rail car under it and the engine at the very bottom, a train running down the pile with its engine in front.
+    // The engine, the rail car and the caboose are drawn side on, nose to the right, and then turned a quarter turn clockwise: they print LONG WAYS, along the
+    // length of the paper, with the FRONT of the train facing the BOTTOM of the receipt and the wheels and rails down its LEFT edge. (Drawn across the paper a
+    // train would be about 6.5 cm long and 3.5 cm tall. Along the paper it is about 11.8 cm long and 6.5 cm wide, with every wheel and window 1.8 times the
+    // size.) The text on a drawing reads from the top of the receipt down. Turn the receipt a quarter turn counterclockwise, its top to the left, to see the
+    // train upright, facing right. The drawings are 260 by 142 units and sit in a frame of 142 by 260.
+    // Each of the three pieces comes in three kinds, so a receipt shows which train it is: 'regular' (plain outlines), 'treasure' (the Treasure Train hauls
+    // loot: a chest, coins for smoke and a gem on the engine, a gondola piled with coins) and 'golden_kappa' (the Golden Kappa Train is gold: a hatched body,
+    // a crown, sparkles and a K on the nose). Gold has no colour on paper, so it is a fine diagonal hatch.
+    const ART = (() => {
+        const g = 'fill="#fff" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
+        const GOLD = 'url(#pbgold)';
+        const defs = '<defs><pattern id="pbgold" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff" stroke="none"/><line x1="0" y1="0" x2="0" y2="4" stroke="#000" stroke-width="1.3"/></pattern></defs>';
+        const frame = (label, kind, inner) => `<svg viewBox="0 0 142 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${label}">${kind === 'golden_kappa' ? defs : ''}` +
+            `<g transform="translate(142 0) rotate(90)"><g ${g}><line x1="2" y1="138" x2="258" y2="138" stroke-width="4"/>${inner}</g></g></svg>`;
+        const wheel = (cx, cy, r, spokes) => {
+            let s = `<circle cx="${cx}" cy="${cy}" r="${r}" stroke-width="4"/>`;
+            if (spokes > 0) s += `<circle cx="${cx}" cy="${cy}" r="${(r * 0.62).toFixed(1)}" stroke-width="2.5" fill="none"/>`;
+            for (let i = 0; i < spokes; i++) {
+                const a = (Math.PI * 2 * i) / spokes + 0.3;
+                s += `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(a) * r * 0.62).toFixed(1)}" y2="${(cy + Math.sin(a) * r * 0.62).toFixed(1)}" stroke-width="2.5"/>`;
+            }
+            return s + `<circle cx="${cx}" cy="${cy}" r="${(r * (spokes > 0 ? 0.22 : 0.4)).toFixed(1)}" fill="#000" stroke="none"/>`;
+        };
+        const star = (cx, cy, R, r) => {
+            const pts = [];
+            for (let i = 0; i < 10; i++) {
+                const a = -Math.PI / 2 + (Math.PI * i) / 5, d = i % 2 === 0 ? R : r;
+                pts.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1));
+            }
+            return pts.join(' ');
+        };
+        // a four pointed sparkle of size s, a gold coin, a treasure chest and a crown
+        const sparkle = (x, y, s) => { const c = +(s * 0.18).toFixed(1); return `<path d="M${x},${y - s}Q${x + c},${y - c} ${x + s},${y}Q${x + c},${y + c} ${x},${y + s}Q${x - c},${y + c} ${x - s},${y}Q${x - c},${y - c} ${x},${y - s}Z" fill="#000" stroke="none"/>`; };
+        const coin = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="${(r * 0.68).toFixed(1)}" fill="none" stroke-width="1.2"/>` +
+            `<text x="${x}" y="${(y + r * 0.36).toFixed(1)}" text-anchor="middle" font-size="${r.toFixed(1)}" font-weight="800" fill="#000" stroke="none">$</text>`;
+        const chest = (x, y, w, h) => {
+            const lid = h * 0.45, mid = x + w / 2;
+            return `<path d="M${x},${y + lid}Q${x},${y} ${mid},${y}Q${x + w},${y} ${x + w},${y + lid}Z"/><rect x="${x}" y="${y + lid}" width="${w}" height="${h - lid}" rx="2"/>` +
+                `<path d="M${x + w * 0.2},${y + 2}V${y + h}M${x + w * 0.8},${y + 2}V${y + h}" stroke-width="2"/>` +
+                `<rect x="${mid - 3.5}" y="${y + lid - 4}" width="7" height="9" rx="1.5" fill="#000"/><circle cx="${mid}" cy="${y + lid + 0.5}" r="1.3" fill="#fff" stroke="none"/>`;
+        };
+        const crown = (x, y, w, h) =>
+            `<path d="M${x},${y + h}V${y + h * 0.25}L${x + w * 0.25},${y + h * 0.62}L${x + w * 0.5},${y}L${x + w * 0.75},${y + h * 0.62}L${x + w},${y + h * 0.25}V${y + h}Z"/>` +
+            `<rect x="${x}" y="${y + h * 0.7}" width="${w}" height="${h * 0.3}" fill="#000"/>` +
+            `<circle cx="${x + w * 0.5}" cy="${y + 3}" r="1.8" fill="#000" stroke="none"/><circle cx="${x + 1.5}" cy="${y + h * 0.25 - 2}" r="1.5" fill="#000" stroke="none"/><circle cx="${x + w - 1.5}" cy="${y + h * 0.25 - 2}" r="1.5" fill="#000" stroke="none"/>`;
+
+        const engine = (kind) => {
+            const loot = kind === 'treasure', gold = kind === 'golden_kappa', body = gold ? GOLD : '#fff';
+            const puffs = loot ? coin(188, 27, 8) + coin(170, 17, 10) + coin(146, 12, 11) : '<circle cx="188" cy="27" r="8"/><circle cx="170" cy="17" r="10"/><circle cx="146" cy="12" r="11"/>';
+            const emblem = loot ? '<path d="M212,77L217,70H223L228,77L220,95Z" fill="#fff" stroke="none"/><path d="M212,77H228M217,70L219,77L220,70L221,77L223,70M219,77L220,95L221,77" fill="none" stroke="#000" stroke-width="1.2"/>'
+                : gold ? '<circle cx="220" cy="83" r="11" fill="#fff" stroke="none"/><text x="220" y="89" text-anchor="middle" font-size="16" font-weight="800" fill="#000" stroke="none">K</text>'
+                : `<polygon points="${star(220, 83, 9.5, 4)}" fill="#fff" stroke="none"/>`;
+            const extra = loot ? chest(21, 11, 34, 22)
+                : gold ? crown(22, 17, 34, 16) + sparkle(86, 22, 8) + sparkle(106, 38, 5) + sparkle(238, 30, 7) + sparkle(216, 14, 5) : '';
+            return frame(gold ? 'Golden steam locomotive' : loot ? 'Steam locomotive hauling treasure' : 'Steam locomotive', kind, puffs +
+                '<rect x="2" y="98" width="13" height="9" fill="#000"/>' +
+                `<rect x="60" y="62" width="172" height="42" rx="15" fill="${body}"/>` +
+                '<path d="M84,62V104M120,62V104M166,62V104" stroke-width="2.5"/>' +
+                `<path d="M128,62V54Q128,41 141,41Q154,41 154,54V62Z" fill="${body}"/>` +
+                `<path d="M96,62V57Q96,49 105,49Q114,49 114,57V62Z" fill="${body}"/>` +
+                '<path d="M74,62Q74,50 81,50Q88,50 88,62Z" fill="#000" stroke-width="2"/>' +
+                `<rect x="206" y="60" width="28" height="46" rx="13" fill="#000"/>${emblem}` +
+                '<path d="M186,62L189,42H201L204,62Z" fill="#000"/><ellipse cx="195" cy="40" rx="14" ry="5.5" fill="#000"/>' +
+                '<rect x="215" y="46" width="18" height="14" rx="3" fill="#000"/><path d="M233,47L242,43V63L233,59Z"/>' +
+                `<rect x="198" y="92" width="30" height="14" rx="4" fill="${body}"/>` +
+                '<path d="M236,110L258,138H236Z" fill="#000"/><path d="M241,124L246,138M248,119L254,138" stroke="#fff" stroke-width="2.5"/>' +
+                '<rect x="52" y="104" width="182" height="8" fill="#000"/>' +
+                `<rect x="14" y="44" width="56" height="62" rx="3" fill="${body}"/><rect x="8" y="33" width="68" height="12" rx="3" fill="#000"/>` +
+                '<rect x="26" y="54" width="28" height="26" rx="5" fill="#000"/><path d="M32,72L40,61" stroke="#fff" stroke-width="3"/>' +
+                extra +
+                '<path d="M108,104L194,104M194,104L216,97" stroke-width="5"/>' +
+                wheel(96, 117, 21, 6) + wheel(138, 117, 21, 6) + wheel(180, 117, 21, 6) + wheel(224, 129, 9, 0) + wheel(42, 129, 9, 0));
+        };
+
+        const car = (level, kind) => {
+            const wheels = wheel(60, 126, 12, 4) + wheel(88, 126, 12, 4) + wheel(172, 126, 12, 4) + wheel(200, 126, 12, 4);
+            const couplers = '<rect x="2" y="98" width="13" height="9" fill="#000"/><rect x="245" y="98" width="13" height="9" fill="#000"/>';
+            const label = (y, size) => `<text x="130" y="${y}" text-anchor="middle" font-size="${size}" font-weight="800" fill="#000" stroke="none" letter-spacing="2">LEVEL ${level}</text>`;
+            if (kind === 'treasure') {
+                // an open gondola piled with treasure, the level painted on its side
+                return frame('Rail car with treasure', kind, couplers +
+                    '<path d="M22,60Q28,34 56,38Q72,14 104,26Q126,6 158,24Q190,12 210,36Q238,32 240,60Z"/>' +
+                    coin(42, 50, 9) + coin(68, 40, 9) + chest(108, 8, 38, 26) + coin(96, 48, 9) + coin(132, 48, 9) + coin(164, 38, 9) + coin(190, 50, 9) + coin(218, 46, 9) +
+                    '<rect x="14" y="58" width="232" height="50" rx="5"/><path d="M14,70H246" stroke-width="2.5"/>' +
+                    label(99, 25) + '<rect x="30" y="108" width="200" height="8" fill="#000"/>' + wheels);
+            }
+            const gold = kind === 'golden_kappa';
+            return frame(gold ? 'Golden rail car' : 'Rail car', kind, couplers +
+                `<rect x="14" y="36" width="232" height="72" rx="8" fill="${gold ? GOLD : '#fff'}"/>` +
+                '<path d="M8,42L16,26Q130,8 244,26L252,42Z" fill="#000"/>' +
+                '<rect x="28" y="48" width="26" height="22" rx="5" fill="#000"/><rect x="66" y="48" width="26" height="22" rx="5" fill="#000"/>' +
+                '<rect x="104" y="48" width="26" height="22" rx="5" fill="#000"/><rect x="142" y="48" width="26" height="22" rx="5" fill="#000"/>' +
+                '<rect x="180" y="48" width="26" height="22" rx="5" fill="#000"/><rect x="218" y="48" width="14" height="22" rx="5" fill="#000"/>' +
+                (gold ? '<rect x="40" y="76" width="180" height="29" rx="6" stroke-width="2"/>' + label(99, 25) + crown(113, 3, 34, 15) + sparkle(30, 12, 7) + sparkle(232, 10, 8) + sparkle(70, 8, 4) : label(100, 27)) +
+                '<rect x="30" y="108" width="200" height="8" fill="#000"/>' + wheels);
+        };
+
+        const caboose = (kind) => {
+            const loot = kind === 'treasure', gold = kind === 'golden_kappa', body = gold ? GOLD : '#fff';
+            const extra = loot ? chest(182, 24, 40, 28) + coin(232, 43, 9)
+                : gold ? crown(113, 5, 34, 15) + sparkle(40, 24, 7) + sparkle(212, 30, 7) + sparkle(236, 16, 6) : '';
+            return frame(gold ? 'Golden caboose' : loot ? 'Caboose with treasure' : 'Caboose', kind,
+                `<rect x="30" y="58" width="200" height="50" rx="4" fill="${body}"/>` +
+                '<rect x="20" y="52" width="220" height="10" rx="3" fill="#000"/>' +
+                `<rect x="88" y="28" width="84" height="26" fill="${body}"/><rect x="80" y="20" width="100" height="10" rx="3" fill="#000"/>` +
+                '<rect x="98" y="36" width="20" height="14" rx="3" fill="#000"/><rect x="142" y="36" width="20" height="14" rx="3" fill="#000"/>' +
+                '<rect x="46" y="70" width="28" height="22" rx="4" fill="#000"/><rect x="186" y="70" width="28" height="22" rx="4" fill="#000"/>' +
+                '<rect x="100" y="70" width="60" height="30" rx="3" fill="#fff"/><path d="M130,70V100" stroke-width="2.5"/>' +
+                '<rect x="30" y="98" width="200" height="10" fill="#000"/>' +
+                '<rect x="56" y="30" width="8" height="24" fill="#000"/><ellipse cx="60" cy="29" rx="7" ry="3" fill="#000"/>' +
+                '<rect x="2" y="106" width="30" height="6" fill="#000"/><rect x="228" y="106" width="30" height="6" fill="#000"/>' +
+                '<path d="M7,106V84M18,106V84M7,84H30M253,106V84M242,106V84M230,84H253" stroke-width="3"/>' +
+                '<circle cx="12" cy="76" r="5" fill="#000"/>' +
+                '<rect x="0" y="116" width="8" height="5" fill="#000" stroke="none"/><rect x="252" y="116" width="8" height="5" fill="#000" stroke="none"/>' +
+                extra + wheel(62, 126, 12, 4) + wheel(90, 126, 12, 4) + wheel(170, 126, 12, 4) + wheel(198, 126, 12, 4));
+        };
+
+        // the conductor's cap, front view. A white outline around the whole shape keeps it clear of the picture it sits on
+        const cap = '<svg viewBox="0 0 170 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Conductor\'s cap"><g fill="#fff" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">' +
+            '<path d="M26,26L34,58H136L144,26Q144,14 85,14Q26,14 26,26Z" stroke="#fff" stroke-width="12"/>' +
+            '<path d="M20,64Q85,88 150,64Q156,76 138,80Q85,94 32,80Q14,76 20,64Z" stroke="#fff" stroke-width="12"/>' +
+            '<path d="M26,26L34,58H136L144,26Z"/><ellipse cx="85" cy="26" rx="59" ry="12"/>' +
+            '<path d="M33,52H137L138,66Q85,78 32,66Z" fill="#000"/>' +
+            '<path d="M20,64Q85,88 150,64Q156,76 138,80Q85,94 32,80Q14,76 20,64Z" fill="#000"/>' +
+            `<circle cx="85" cy="60" r="11" fill="#fff"/><polygon points="${star(85, 60, 8.5, 3.6)}" fill="#000" stroke="none"/></g></svg>`;
+        return { engine, car, caboose, cap };
+    })();
+
+    // ---- the state of a train ----
+    // id: the train's id (Streamer.bot's `id`), '' when an event carries none. active: a train is on. users: login -> { name, bits } for the
+    // tally. otherBits: bits from anonymous cheerers and from cheerers pushed out of the tally. conductor: the login of the top cheerer
+    // that has been announced, with the name and bits as announced. stage: how far a test train has got (see HYPE_STEPS). ended: its
+    // End receipt has printed, so a second End event for the same train prints nothing.
+    function newHype() {
+        return { id: '', active: false, ended: false, seen: 0, startedAt: 0, level: 0, otherBits: 0, users: new Map(),
+                 conductor: '', conductorName: '', conductorBits: 0, stage: 0, sampleType: 'regular' };
+    }
+    const hypeLive = newHype(), hypeTest = newHype();
+    let hype = hypeLive;                                // the state the receipt in hand uses (render() points it at hypeTest for a test print)
+
+    const hypeNum = (v) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.min(Math.round(n), HYPE_MAX_NUMBER) : 0; };
+    const hypeLogin = (v) => cleanText(String(v ?? '')).trim().toLowerCase().slice(0, 40);
+    const hypeName = (v, login) => displayName(v, 32) || login;
+    function hypeTime(v) {                               // a start time as the milliseconds since 1970, or 0 when it is not one
+        const t = typeof v === 'number' ? v : Date.parse(String(v ?? ''));
+        return Number.isFinite(t) && t > 0 ? t : 0;
+    }
+    function fmtNum(n) {
+        const v = hypeNum(n);
+        try { return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(v); } catch { return String(v); }
+    }
+    function fmtElapsed(ms) {
+        const s = Math.max(0, Math.round((Number.isFinite(ms) ? ms : 0) / 1000));
+        if (s > 86400) return '24h+';
+        if (s < 60) return s + 's';
+        const m = Math.floor(s / 60);
+        return m >= 60 ? Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm' : m + 'm ' + String(s % 60).padStart(2, '0') + 's';
+    }
+
+    function hypeReset(h, id, startedAt, level) {
+        h.id = id; h.active = true; h.ended = false; h.seen = Date.now(); h.startedAt = startedAt; h.level = level;
+        h.otherBits = 0; h.users.clear(); h.conductor = ''; h.conductorName = ''; h.conductorBits = 0;
+    }
+
+    // Adds bits to a cheerer in the tally (exact = false), or lifts the cheerer to at least `bits` (exact = true: Twitch's own figure)
+    function hypeCredit(h, login, name, bits, exact) {
+        if (!login || !(bits > 0)) return;
+        const e = h.users.get(login) || { name: name || login, bits: 0 };
+        if (exact) { if (bits > e.bits) e.bits = bits; } else e.bits += bits;
+        if (name) e.name = name;
+        h.users.set(login, e);
+        if (h.users.size > HYPE_MAX_USERS) {            // keep the generous ones: the smallest cheerer is folded into "other"
+            let lowKey = null, low = Infinity;
+            for (const [k, v] of h.users) if (k !== login && v.bits < low) { low = v.bits; lowKey = k; }
+            if (lowKey !== null) { h.otherBits += low; h.users.delete(lowKey); }
+        }
+    }
+
+    function hypeTotal(h) {
+        let total = h.otherBits;
+        for (const e of h.users.values()) total += e.bits;
+        return total;
+    }
+
+    // the tally, most generous first (a tie keeps the order the cheerers came in)
+    const hypeRanked = (h) => Array.from(h.users, ([login, e]) => ({ login, name: e.name, bits: e.bits })).sort((a, b) => b.bits - a.bits);
+
+    // A cheer while a train is on. Only a real Cheer event counts: the dock's test cheers have no part in a train.
+    function hypeObserveCheer(d) {
+        const h = hypeLive;
+        if (!h.active) return;
+        if (Date.now() - h.seen > HYPE_STALE_MS) { h.active = false; return; }
+        const bits = hypeNum(d.bits);
+        if (!bits) return;
+        const login = hypeLogin(d.userName);
+        if (!login || ANONYMOUS_LOGIN.test(login)) h.otherBits += bits;
+        else hypeCredit(h, login, hypeName(d.user, login), bits, false);
+    }
+
+    // The top cheerer of an event, as Twitch reports it
+    function hypeTop(d) {
+        const login = hypeLogin(d['top.bits.userName']);
+        return { login, name: hypeName(d['top.bits.user'], login), bits: hypeNum(d['top.bits.total']) };
+    }
+
+    // Which train an event belongs to. A Start event always begins a new tally. Any other event begins one only when no train is on, when
+    // the last one has been silent for too long, or when its id is another train's (the Start event was missed, or a train ended unseen).
+    function hypeEnter(d, kind) {
+        const id = String(d.id ?? '').slice(0, 100), level = Math.floor(hypeNum(d.level)), now = Date.now();
+        const fresh = kind === 'start' || !hype.active || now - hype.seen > HYPE_STALE_MS || (id !== '' && hype.id !== '' && id !== hype.id);
+        if (fresh) hypeReset(hype, id, hypeTime(d.startedAt) || now, level);
+        else if (level > hype.level) hype.level = level;
+        hype.seen = now;
+    }
+
+    // Does this event change who the conductor is? Returns { kind: 'new' } for the first conductor, { kind: 'switch', was } for another one
+    // (was: the conductor before, with the bits that conductor had), and null for no change. The caller prints a receipt for a change.
+    function hypeConductor(h, top) {
+        if (!top.login || !(top.bits > 0)) return null;                      // nobody has cheered yet
+        hypeCredit(h, top.login, top.name, top.bits, true);
+        if (!h.conductor) { h.conductor = top.login; h.conductorName = top.name; h.conductorBits = top.bits; return { kind: 'new' }; }
+        if (top.login === h.conductor) { h.conductorBits = Math.max(h.conductorBits, top.bits); h.conductorName = top.name || h.conductorName; return null; }
+        const mine = h.users.get(h.conductor);
+        const was = { login: h.conductor, name: h.conductorName, bits: Math.max(h.conductorBits, mine ? mine.bits : 0) };
+        h.conductor = top.login; h.conductorName = top.name; h.conductorBits = top.bits;
+        return { kind: 'switch', was };
+    }
+
+    // Which kind of train an event is about: 'regular', 'treasure' or 'golden_kappa'. Streamer.bot says it as trainType and as two flags. The receipt's drawing
+    // (the engine, the rail car, the caboose) and the word on the Start receipt follow it.
+    function hypeKind(d) {
+        const t = String(d.trainType ?? '').toLowerCase();
+        if (own(HYPE_TYPE_NAMES, t)) return t;
+        const yes = (v) => v === true || String(v).toLowerCase() === 'true';
+        return yes(d.isGoldenKappaTrain) ? 'golden_kappa' : yes(d.isTreasureTrain) ? 'treasure' : 'regular';
+    }
+    const hypeTypeName = (d) => HYPE_TYPE_NAMES[hypeKind(d)];
+
+    // what a test can look at of a train's state
+    const hypeSummary = (h) => ({ id: h.id, active: h.active, ended: h.ended, level: h.level, conductor: h.conductor, conductorBits: h.conductorBits,
+                                  cheerers: h.users.size, total: hypeTotal(h), stage: h.stage });
+
+    const hypeRow = (label, value) => `<div class="hype-row"><span>${label}</span><b>${value}</b></div>`;
+    const hypeRows = (html) => ({ kind: 'rows', html, left: true });
+
+    // A conductor receipt: the cap on the avatar, the name and the bits. For a change of conductor it also says whose cap it was.
+    async function hypeConductorReceipt(top, change) {
+        const switched = change.kind === 'switch';
+        return {
+            bannerHtml: ART.cap, bannerClass: 'cap',
+            avatar: await getAvatar(top.login, 'twitch'),
+            title: switched ? 'New Conductor' : 'Conductor', subtitle: top.name,
+            content: [lead(`${esc(fmtNum(top.bits))} bits`),
+                      switched ? text(`took the cap from<br><b>${esc(change.was.name)}</b> (${esc(fmtNum(change.was.bits))} bits)`) : text('is the Conductor of the Hype Train!')],
+            icon: 'twitch',
+        };
+    }
+
+    // ---- the dock's Hype Train test prints ----
+    // Five steps, the five receipts of a train in order: it starts, a first conductor, a new conductor, a level up, it ends. Each step is a test
+    // print of its own. Run in a row (the dock's end-to-end test: the C# side runs these five names one after the other) they share one test
+    // train, so the tally and the conductor carry from step to step like those of a real train. A step run alone, or out of turn, first
+    // starts a test train and replays what the steps before it did (silently), so it prints the same receipt as in the full run.
+    // `cheers` are the cheers that happen before the step's event: [login, name, bits]. The cast has logins with a dot, which no Twitch
+    // login has, so no picture is looked up for them. Only SassyTP gets one. `top` is the top cheerer the step's event reports.
+    const HYPE_SAMPLE_ID = 'sample-train';
+    const HYPE_SOURCES = { start: 'TwitchHypeTrainStart', update: 'TwitchHypeTrainUpdate', levelup: 'TwitchHypeTrainLevelUp', end: 'TwitchHypeTrainEnd' };
+    const HYPE_STEPS = [
+        { name: 'TwitchHypeTrainStart', kind: 'start', age: 0, level: 1, cheers: [], top: null },
+        { name: 'TwitchHypeTrainConductor', kind: 'update', age: 70000, level: 1, top: ['sample.viewer01', 'Viewer01'],
+          cheers: [['sample.viewer01', 'Viewer01', 600], ['sample.viewer02', 'Viewer02', 450], ['sample.viewer03', 'Viewer03', 300]] },
+        { name: 'TwitchHypeTrainConductorSwitch', kind: 'update', age: 190000, level: 1, top: ['sassytp', 'SassyTP'],
+          cheers: [['sassytp', 'SassyTP', 800], ['sample.viewer04', 'Viewer04', 200]] },
+        { name: 'TwitchHypeTrainLevelUp', kind: 'levelup', age: 372000, level: 2, top: ['sassytp', 'SassyTP'],
+          cheers: [['sample.viewer02', 'Viewer02', 250]] },
+        { name: 'TwitchHypeTrainEnd', kind: 'end', age: 570000, level: 2, top: ['sassytp', 'SassyTP'],
+          cheers: [['sample.viewer05', 'Viewer05', 120]] },
+    ];
+    const HYPE_SAMPLE_TYPES = ['regular', 'treasure', 'golden_kappa'];
+    let hypeSampleTurn = 0;                            // the Start sample shows the three kinds of train in turn
+
+    function hypeTopOfStep(step) {
+        const e = step.top ? hypeTest.users.get(step.top[0]) : null;
+        return step.top ? { login: step.top[0], name: step.top[1], bits: e ? e.bits : 0 } : { login: '', name: '', bits: 0 };
+    }
+
+    function hypeSampleStep(i) {
+        const t = hypeTest, step = HYPE_STEPS[i];
+        if (i === 0 || t.id !== HYPE_SAMPLE_ID || !t.active || t.stage !== i) {
+            if (i === 0) t.sampleType = HYPE_SAMPLE_TYPES[hypeSampleTurn++ % HYPE_SAMPLE_TYPES.length];
+            hypeReset(t, HYPE_SAMPLE_ID, Date.now() - step.age, 1);
+            t.stage = 0;
+            for (let k = 1; k < i; k++) {              // replay the steps before this one
+                const before = HYPE_STEPS[k];
+                for (const c of before.cheers) hypeCredit(t, c[0], c[1], c[2], false);
+                if (before.kind === 'update') hypeConductor(t, hypeTopOfStep(before));
+                if (before.kind === 'levelup') t.level = before.level;
+                t.stage = k + 1;
+            }
+            t.stage = Math.max(t.stage, i);
+        }
+        for (const c of step.cheers) hypeCredit(t, c[0], c[1], c[2], false);
+        const ev = { __source: HYPE_SOURCES[step.kind], id: HYPE_SAMPLE_ID, level: step.level, startedAt: new Date(t.startedAt).toISOString(), trainType: t.sampleType };
+        if (step.kind === 'levelup') ev.prevLevel = step.level - 1;
+        if (step.top) {
+            const top = hypeTopOfStep(step);
+            ev['top.bits.userName'] = top.login; ev['top.bits.user'] = top.name; ev['top.bits.total'] = top.bits;
+        }
+        t.stage = i + 1;
+        return ev;
+    }
+
+    const HANDLERS = {
+
+        // ---- Twitch ----------------------------------------------------
+        async TwitchCheer(d, opts) {
+            // High Roller: at or above the dock's threshold the message is used as-is (styling, rotated text,
+            // cheermotes). Below it, the message is cleaned like any other viewer text.
+            const raw = !!d.message && isHighRoller(d.bits, opts);
+            const content = !d.message ? null : raw ? { kind: 'raw', rich: d.message } : message(d.message);
+            const limit = raw ? highRollerMaxHeight(d.bits, opts) : null;       // only High Roller messages are length-limited, by bits per inch and by the maximum length
+            return {
+                avatar: await getAvatar(d.userName, 'twitch'),
+                title: `${displayName(d.bits, 12)} BITS`, subtitle: displayName(d.user), content, icon: 'twitch',
+                contentMaxHeight: limit ? limit.px : null, contentLimitBy: limit ? limit.by : null, contentIgnoreCeiling: limit ? limit.ignoreCeiling : false,
+            };
+        },
+        async TwitchRewardRedemption(d) {
+            const cost = d.rewardCost ?? 1;
+            return {
+                avatar: await getAvatar(d.userName, 'twitch'),
+                title: `${displayName(cost, 12)} CHANNEL POINT${cost === 1 ? '' : 'S'}`,
+                subtitle: `${displayName(d.userName)} redeemed a ${displayName(d.rewardName)}!`,
+                content: d.rawInput ? message(d.rawInput) : null,
+                icon: 'twitch',
+            };
+        },
+        async TwitchSub(d) {
+            return {
+                avatar: await getAvatar(d.userName, 'twitch'),
+                title: `${displayName(d.tier, 24)} subscriber`, subtitle: displayName(d.user),
+                content: lead('First time subscriber!'), icon: 'twitch',
+            };
+        },
+        async TwitchReSub(d) {
+            return {
+                avatar: await getAvatar(d.userName, 'twitch'),
+                title: `${displayName(d.tier, 24)} subscriber`, subtitle: displayName(d.user), icon: 'twitch',
+                content: [lead(`${nm(d.cumulative, 12)} months${d.monthStreak > 1 ? ' (' + nm(d.monthStreak, 12) + ' in a row!)' : ''}`),
+                          message(d.messageStripped)],
+            };
+        },
+        async TwitchGiftSub(d) {
+            if (d.fromGiftBomb) return null;     // the gift bomb prints one receipt for all of them
+            const gifter = d.anonymous ? 'A mysterious admirer' : nm(d.user);
+            return {
+                avatar: await getAvatar(d.recipientUserName, 'twitch'),
+                title: 'Gifted Sub',
+                content: text(`<b>${gifter}</b><br>gifted a ${nm(d.tier, 24)} sub to<br><b>${nm(d.recipientUser)}</b>`),
+                icon: 'twitch',
+            };
+        },
+        async TwitchGiftBomb(d) {
+            // Streamer.bot sends one key per recipient, gift.recipientUser0, gift.recipientUser1 and so on. Its Test button sends none.
+            // Every name that arrives prints, however many there are. Gift subs are paid for, and a long list is a long receipt.
+            // The list follows the number in the key (recipientUser2 before recipientUser10). The order the keys arrive in is not promised,
+            // and the sort is stable, so keys with the same number keep the order they came in.
+            const keys = Object.keys(d).filter(k => /^gift\.recipientUser\d+$/.test(k)).sort((a, b) => Number(a.slice(18)) - Number(b.slice(18)));
+            const recipients = keys.map(k => nm(d[k]));
+            const gifts = Number(d.gifts);
+            // Names that were counted but never sent (the bomb says 50 gifts but only 30 names came with it)
+            const unlisted = keys.length && Number.isFinite(gifts) && gifts > keys.length ? gifts - keys.length : 0;
+            if (unlisted > 0) recipients.push(`…and ${nm(unlisted, 12)} more`);
+            return {
+                avatar: await getAvatar(d.userName, 'twitch'),
+                titleHtml: `${nm(d.gifts, 12)} × Gifted Subs`,
+                subtitle: d.anonymous ? 'A mysterious admirer' : displayName(d.user),
+                content: [lead(nm(cap(d.tier), 24)),
+                          d.totalGifts > 1 ? text(`They've gifted <b>${nm(d.totalGifts, 12)} subs</b> in total!`) : null,
+                          recipients.length ? { kind: 'text', html: recipients.join('<br>'), roomy: true } : null],
+                icon: 'twitch',
+            };
+        },
+        async TwitchRaid(d) {
+            return {
+                avatar: await getAvatar(d.userName, 'twitch'),
+                title: 'Incoming Raid', subtitle: displayName(d.user),
+                content: text(`is raiding with a party of<br><b>${nm(d.viewers, 12)} viewers!</b>`),
+                icon: 'twitch',
+            };
+        },
+        // ---- Twitch: Hype Train (the section above says how a train is followed) ----
+        async TwitchHypeTrainStart(d) {
+            hypeEnter(d, 'start');
+            const top = hypeTop(d);
+            hypeCredit(hype, top.login, top.name, top.bits, true);               // the cheers that started the train count. The first Update announces the conductor
+            return {
+                bannerHtml: ART.engine(hypeKind(d)), bannerAt: 'bottom',
+                title: 'Hype Train', subtitle: 'All aboard!',
+                content: hypeRows(hypeRow('Started', esc(formatClock(new Date(hype.startedAt)))) + hypeRow('Train', esc(hypeTypeName(d)))),
+                icon: 'twitch',
+            };
+        },
+        async TwitchHypeTrainUpdate(d) {
+            hypeEnter(d, 'update');
+            const top = hypeTop(d), change = hypeConductor(hype, top);
+            return change ? hypeConductorReceipt(top, change) : null;            // most updates change nothing, and print nothing
+        },
+        async TwitchHypeTrainLevelUp(d) {
+            hypeEnter(d, 'levelup');
+            const top = hypeTop(d);
+            hypeCredit(hype, top.login, top.name, top.bits, true);               // a change of conductor in this update is announced by the next Update
+            const level = hypeNum(d.level) || hype.level;
+            return {
+                bannerHtml: ART.car(esc(fmtNum(level)), hypeKind(d)), bannerAt: 'bottom',
+                title: 'Hype Train', subtitle: 'Level up!',
+                content: hypeRows(hypeRow('Level', esc(fmtNum(level))) + hypeRow('Bits so far', esc(fmtNum(hypeTotal(hype)))) +
+                                  hypeRow('Running for', esc(fmtElapsed(Date.now() - hype.startedAt)))),
+                icon: 'twitch',
+            };
+        },
+        async TwitchHypeTrainEnd(d) {
+            const id = String(d.id ?? '').slice(0, 100);
+            if (hype.ended && id !== '' && id === hype.id) return null;          // this train's receipt has printed already
+            hypeEnter(d, 'end');
+            const top = hypeTop(d);
+            hypeCredit(hype, top.login, top.name, top.bits, true);
+            const ranked = hypeRanked(hype);
+            const conductor = (top.login && ranked.find(r => r.login === top.login)) || ranked[0] || null;
+            const followers = ranked.filter(r => !conductor || r.login !== conductor.login).slice(0, 4);
+            const level = hypeNum(d.level) || hype.level;
+            const content = [];
+            if (conductor) content.push(hypeRows(`<div class="hype-head"><span class="hype-cap">${ART.cap}</span>Conductor</div>` + hypeRow(esc(conductor.name), `${esc(fmtNum(conductor.bits))} bits`)));
+            if (followers.length) content.push(hypeRows('<div class="hype-head">Also aboard</div>' + followers.map((f, i) => hypeRow(`${i + 2}. ${esc(f.name)}`, esc(fmtNum(f.bits)))).join('')));
+            content.push(hypeRows(hypeRow('Total bits', esc(fmtNum(hypeTotal(hype)))) + hypeRow('Final level', esc(fmtNum(level)))));
+            hype.active = false; hype.ended = true;
+            return { bannerHtml: ART.caboose(hypeKind(d)), bannerAt: 'top', title: 'Hype Train', subtitle: 'Ended', content, icon: 'twitch' };
+        },
+        async TwitchCustomPowerUpRedemption(d) {
+            return {
+                avatar: await getAvatar(d.userName, 'twitch'),
+                title: `${displayName(d['customPowerUp.bitsCost'], 12)} BITS`, subtitle: displayName(d.user),
+                content: message(d.rawInput), icon: 'twitch',
+            };
+        },
+
+        // ---- YouTube ---------------------------------------------------
+        async YouTubeNewSponsor(d) {
+            // levelName is the membership level's own name. Streamer.bot's Test button sends it empty, so the title has to work without it.
+            const level = displayName(d.levelName);
+            return {
+                avatar: d.userProfileUrl || '', title: level || (d.isUpgrade ? 'Upgraded Member' : 'New Member'), subtitle: displayName(d.user),
+                content: level ? lead(d.isUpgrade ? 'Upgraded membership!' : 'New member!') : null, icon: 'youtube',
+            };
+        },
+        async YouTubeMemberMileStone(d) {
+            const months = d.months ?? d.memberMonth;
+            return {
+                avatar: d.userProfileUrl || '', title: displayName(d.levelName) || 'Member', subtitle: displayName(d.user),
+                content: [months ? lead(`${nm(months, 12)} month${Number(months) === 1 ? '' : 's'}`) : null, d.message ? message(d.message) : null], icon: 'youtube',
+            };
+        },
+        async YouTubeMembershipGift(d) {
+            return {
+                avatar: d.userProfileUrl || '', titleHtml: `${nm(d.count ?? 1, 12)} × Gifted Memberships`, subtitle: displayName(d.user),
+                content: d.tier ? lead(nm(d.tier, 24)) : null, icon: 'youtube',
+            };
+        },
+        async YouTubeGiftMembershipReceived(d) {
+            return {
+                avatar: d.gifterProfileUrl || '', title: 'Gifted Membership',
+                content: text(`<b>${nm(d.gifterUser)}</b><br>gifted a membership to<br><b>${nm(d.user)}</b>!`), icon: 'youtube',
+            };
+        },
+        async YouTubeSuperChat(d) {
+            return {
+                avatar: d.userProfileUrl || '', title: displayName(d.amount, 24), titleBig: true, icon: 'youtube',
+                content: [text(`<b>${nm(d.user)}</b><br>sent a Super Chat!`), d.message ? message(d.message) : null],
+            };
+        },
+        async YouTubeSuperSticker(d) {
+            return {
+                avatar: d.stickerImageUrl || '', title: displayName(d.amount, 24), titleBig: true,
+                content: text(`<b>${nm(d.user)}</b><br>sent a Super Sticker!`), icon: 'youtube',
+            };
+        },
+
+        // ---- Kick ------------------------------------------------------
+        async KickSubscription(d) {
+            const months = d.monthsSubscribed ?? d.duration;          // Streamer.bot sends the months as monthsSubscribed, and also a duration
+            return {
+                avatar: await getAvatar(d.userLogin || d.user, 'kick'),     // Kick looks a viewer up by login name
+                title: 'Subscriber', subtitle: displayName(d.user),
+                content: lead(months > 1 ? `${nm(months, 12)} months` : 'First time subscriber!'),
+                icon: 'kick',
+            };
+        },
+        async KickGiftSubscription(d) {
+            return {
+                avatar: await getAvatar(d['recipient.userLogin'], 'kick'), title: 'Gifted Sub',
+                content: text(`<b>${nm(d.user)}</b><br>gifted a sub to<br><b>${nm(d['recipient.userName'])}</b>!`), icon: 'kick',
+            };
+        },
+        async KickMassGiftSubscription(d) {
+            if ('recipient.userName' in d) return HANDLERS.KickGiftSubscription(d);   // single recipient
+            // keys look like recipient.<n>.<field>. <n> is only a label, so collect into an object (never a sparse array).
+            // Every recipient that arrives prints, like the Twitch gift bomb above.
+            const recipients = Object.create(null);
+            let count = 0;
+            for (const key in d) {
+                const m = key.match(/^recipient\.(\d+)\.(.+)$/);
+                if (!m) continue;
+                let r = recipients[m[1]];
+                if (!r) { r = recipients[m[1]] = Object.create(null); count++; }
+                r[m[2]] = d[key];
+            }
+            const names = Object.keys(recipients).sort(byNumber).map(k => nm(recipients[k].userName));
+            // The event also carries a count. When it is larger than the names that came with it, the heading uses it and the list says how many are missing.
+            const declared = Number(d.count);
+            const total = Number.isFinite(declared) && declared > count ? declared : count;
+            const unlisted = count > 0 && total > count ? total - count : 0;
+            if (unlisted > 0) names.push(`…and ${nm(unlisted, 12)} more`);
+            return {
+                avatar: await getAvatar(d.user, 'kick'),
+                titleHtml: `${nm(total, 12)} × Gifted Subs`, subtitle: displayName(d.user),
+                content: { kind: 'text', html: names.join('<br>'), roomy: true }, icon: 'kick',
+            };
+        },
+
+        // ---- Tips and donations ------------------------------------------
+        async StreamElementsTip(d) {
+            return {
+                avatar: await getAvatar(d.tipUsername, 'twitch'), title: formatCurrency(d.tipAmount, d.tipCurrency), titleBig: true,
+                subtitle: displayName(d.tipUsername), content: d.tipMessage ? message(d.tipMessage) : null,
+            };
+        },
+        async StreamlabsDonation(d) {
+            return {
+                avatar: await getAvatar(d.donationFrom, 'twitch'), title: displayName(d.donationFormattedAmount, 24), titleBig: true,
+                subtitle: displayName(d.donationFrom), content: d.donationMessage ? message(d.donationMessage) : null,
+            };
+        },
+
+        // ---- Fourthwall ----------------------------------------------------
+        async FourthwallDonation(d) {
+            return {
+                avatar: await getAvatar(d['fw.username'], 'twitch'), title: formatCurrency(d['fw.amount'], d['fw.currency']), titleBig: true,
+                subtitle: displayName(d['fw.username'] || '') || 'Anonymous supporter',     // the buyer's e-mail address is never shown: a receipt can be on camera
+                content: d['fw.message'] ? message(d['fw.message']) : null,
+            };
+        },
+        async FourthwallOrderPlaced(d) {
+            if (d['fw.total'] <= 0) return null;
+            const avatar = await getAvatar(d['fw.username'], 'twitch');
+            // The order's line items arrive as keys like fw.variants[0].name. The number is only a label. They are collected into an
+            // object (a sparse array would cost time in proportion to the biggest number), at most MAX_VARIANTS of them.
+            const variants = Object.create(null);
+            let count = 0, more = false;
+            for (const key in d) {
+                const m = key.match(/^fw\.variants\[(\d+)\]\.(\w+)$/);
+                if (!m) continue;
+                let v = variants[m[1]];
+                if (!v && count < MAX_VARIANTS) { v = variants[m[1]] = Object.create(null); count++; }
+                if (v) v[m[2]] = d[key]; else more = true;
+            }
+            const lines = Object.keys(variants).sort(byNumber).map(k => `${nm(variants[k].quantity, 12)} × ${nm(variants[k].name, 80)}`);
+            if (more) lines.push('…');
+            let note = null;
+            if (d['fw.statmessageus']) note = message(decodeEntities(d['fw.statmessageus']));     // arrives HTML-entity encoded
+            return {
+                avatar, title: formatCurrency(d['fw.total'], d['fw.currency']), titleBig: true,
+                subtitle: displayName(d['fw.username'] || '') || 'Anonymous supporter',     // the buyer's e-mail address is never shown: a receipt can be on camera
+                content: [{ kind: 'text', left: true, html: lines.join('<br>') },
+                          note, lead('Thank you for your purchase!')],
+            };
+        },
+        async FourthwallSubscriptionPurchased(d) {
+            return {
+                avatar: await getAvatar(d['fw.nickname'], 'twitch'), title: 'New Member', subtitle: displayName(d['fw.nickname']),
+                content: text(`Thanks for joining at the <b>${esc(formatCurrency(d['fw.amount'], d['fw.currency']))}</b> tier!`),
+            };
+        },
+
+        // ---- Custom code events (Kick helpers defined in Streamer.bot) ----------
+        async CustomCodeEvent(d) {
+            switch (d.triggerCustomCodeEventName) {
+                case 'kickIncomingRaid':
+                    return {
+                        avatar: await getAvatar(d.user, 'kick'),
+                        title: 'Incoming Raid', subtitle: displayName(d.user),
+                        content: text(`is hosting with a party of<br><b>${nm(d.viewers, 12)} viewers!</b>`), icon: 'kick',
+                    };
+                case 'kickKicksGifted':
+                    if (d.giftType != 'LEVEL_UP') return null;
+                    return {
+                        avatar: `https://files.kick.com/kicks/gifts/${encodeURIComponent(String(d.gift).slice(0, 60).toLowerCase().replace(/ /g, '-'))}.webp`,
+                        avatarSquare: true, title: `${displayName(d.amount, 12)} KICKS`, subtitle: displayName(d.sender),
+                        content: d.message ? message(d.message) : null, icon: 'kick',
+                    };
+            }
+            return null;
+        },
+    };
+    HANDLERS.KickResubscription = HANDLERS.KickSubscription;
+
+    // Samples that need a list: names for a gift bomb (Streamer.bot's own Test button sends none), so a long list can be tried from the dock.
+    // The big one has 500 names (about 11,000 CSS px of paper, 24,000 dots): it prints in tiles, see EdgeRenderer in the C# code.
+    const BOMB_SAMPLE = { __source: 'TwitchGiftBomb', gifts: 50, totalGifts: 120, tier: 'tier 1', user: 'SassyTP', userName: 'sassytp' };
+    const BOMB_BIG_SAMPLE = { __source: 'TwitchGiftBomb', gifts: 500, totalGifts: 1500, tier: 'tier 1', user: 'SassyTP', userName: 'sassytp' };
+    const KICK_BOMB_SAMPLE = { __source: 'KickMassGiftSubscription', count: 5, user: 'SassyTP' };
+    for (let i = 0; i < 50; i++) BOMB_SAMPLE['gift.recipientUser' + i] = 'Viewer' + String(i + 1).padStart(2, '0');
+    for (let i = 0; i < 500; i++) BOMB_BIG_SAMPLE['gift.recipientUser' + i] = 'Viewer' + String(i + 1).padStart(3, '0');
+    for (let i = 0; i < 5; i++) KICK_BOMB_SAMPLE['recipient.' + i + '.userName'] = 'Viewer' + String(i + 1).padStart(2, '0');
+
+    // Sample events for "Test print" in the dock
+    const SAMPLES = {
+        TwitchSub: { __source: 'TwitchSub', tier: 'prime', user: 'SassyTP', userName: 'sassytp' },
+        TwitchCheer: { __source: 'TwitchCheer', bits: 100, user: 'SassyTP', userName: 'sassytp', message: 'Thanks for the stream!' },
+        // 60 short lines = ~13.5 inches of High Roller message on any paper width: for trying out "bits per inch" (prints a lot
+        // of paper). Its bits are 100, or the High Roller threshold if that is higher (see render()).
+        TwitchCheerLong: { __source: 'TwitchCheer', bits: 100, user: 'SassyTP', userName: 'sassytp',
+            message: Array.from({ length: 60 }, (_, i) => `<b>Line ${i + 1}</b> of 60`).join('<br>') },
+        TwitchRewardRedemption: { __source: 'TwitchRewardRedemption', rewardName: 'Receipt', rewardCost: 50, rawInput: 'Hello from channel points', user: 'SassyTP', userName: 'sassytp' },
+        TwitchRaid: { __source: 'TwitchRaid', viewers: 42, user: 'SassyTP', userName: 'sassytp' },
+        YouTubeSuperChat: { __source: 'YouTubeSuperChat', amount: '$5.00', user: 'SassyTP', message: 'Great stream!' },
+        KickSubscription: { __source: 'KickSubscription', user: 'SassyTP', duration: 3 },
+        TwitchGiftBomb: BOMB_SAMPLE,
+        TwitchGiftBombBig: BOMB_BIG_SAMPLE,
+        YouTubeNewSponsor: { __source: 'YouTubeNewSponsor', user: 'SassyTP', levelName: 'Super Fan', isUpgrade: false },
+        YouTubeMemberMileStone: { __source: 'YouTubeMemberMileStone', user: 'SassyTP', levelName: 'Super Fan', months: 6, message: 'Six months already!' },
+        YouTubeMembershipGift: { __source: 'YouTubeMembershipGift', user: 'SassyTP', count: 5, tier: 'Super Fan' },
+        YouTubeGiftMembershipReceived: { __source: 'YouTubeGiftMembershipReceived', gifterUser: 'SassyTP', user: 'Viewer01' },
+        KickGiftSubscription: { __source: 'KickGiftSubscription', user: 'SassyTP', 'recipient.userName': 'Viewer01', 'recipient.userLogin': '' },
+        KickMassGiftSubscription: KICK_BOMB_SAMPLE,
+    };
+
+
+    // ------------------------------------------------------------------
+    // Render
+    // ------------------------------------------------------------------
+
+    const $ = (id) => document.getElementById(id);
+
+    // Builds the receipt from the model. Returns the avatar URL that is on the page ('' = none).
+    function show(model, opts) {
+        const avatar = $('receipt-avatar'), title = $('receipt-title'), subtitle = $('receipt-subtitle');
+        const content = $('receipt-content'), icon = $('receipt-icon');
+
+        // reset everything a previous receipt may have left behind
+        avatar.removeAttribute('src'); avatar.style.display = ''; avatar.style.borderRadius = '';
+        $('receipt-container').classList.remove('no-avatar');
+        title.className = ''; title.textContent = ''; subtitle.textContent = ''; content.textContent = '';
+        const banner = $('receipt-banner'), tail = $('receipt-tail');
+        banner.className = ''; banner.textContent = ''; tail.className = ''; tail.textContent = '';
+        if (model.bannerHtml) {                                                   // our own drawings, never event data
+            const slot = model.bannerAt === 'bottom' ? tail : banner;
+            slot.innerHTML = model.bannerHtml;
+            slot.className = slot === banner && model.bannerClass === 'cap' ? 'cap' : 'art';
+        }
+        content.style.maxHeight = ''; content.classList.remove('cut', 'roomy');
+        content.style.setProperty('transition', 'none', 'important');       // a theme's max-height transition would make the limit lag a receipt behind
+
+        let avatarUrl = safeAvatarUrl(model.avatar);                         // (a refused URL is noted in the log, with its host)
+        if (avatarUrl && isBadImage(avatarUrl)) avatarUrl = '';              // this picture failed (or didn't load in time) a moment ago: don't wait for it again
+        if (avatarUrl) { pinImage(avatarUrl); avatar.src = avatarUrl; if (model.avatarSquare) avatar.style.borderRadius = '0px'; }
+        else { avatar.style.display = 'none'; $('receipt-container').classList.add('no-avatar'); }
+
+        if (model.titleBig) title.classList.add('big');
+        if (model.titleHtml != null) title.innerHTML = model.titleHtml; else title.textContent = model.title ?? '';
+        if (model.subtitleHtml != null) subtitle.innerHTML = model.subtitleHtml; else subtitle.textContent = model.subtitle ?? '';
+
+        // content: one part or a list of parts ({ kind: text | lead | message | raw, left } plus html | text | rich).
+        // Nothing = no content area
+        const parts = [].concat(model.content || []).filter(Boolean)
+            .map(p => typeof p === 'string' ? { html: p } : p)
+            .map(p => p.kind === 'message' && p.value != null ? { kind: 'message', text: plainText(p.value, opts) } : p)
+            .filter(p => p.html || p.text || p.rich);
+        $('receipt-rule-top').style.display = parts.length ? '' : 'none';
+        content.style.display = parts.length ? '' : 'none';
+        // Gift lists get a box with no height limit (a viewer's message keeps its 1600 px box), and render() returns their real page height.
+        // Our own code builds them from cleaned names. Only a handler can set roomy, so event data cannot ask for it.
+        if (parts.some(p => p.roomy === true)) content.classList.add('roomy');
+        if (model.contentMaxHeight != null) {
+            // The bits-per-inch limit can only tighten the box: the built-in ceiling (or a larger/smaller one set in theme.css) still applies.
+            // The dock's maximum length is the final word, so when it is set (contentIgnoreCeiling) it replaces that ceiling.
+            // Applied as !important so a theme's own "max-height: ... !important" can't quietly switch the limit off.
+            const ceiling = getComputedStyle(content).maxHeight;
+            const ceilingPx = (!model.contentIgnoreCeiling && /px$/.test(ceiling)) ? parseFloat(ceiling) : Infinity;
+            content.style.setProperty('max-height', Math.min(model.contentMaxHeight, ceilingPx) + 'px', 'important');
+        }
+        for (const p of parts) {
+            const div = document.createElement('div');
+            div.className = 'part ' + (p.kind || 'text') + (p.left ? ' left' : '');
+            if (p.rich != null) div.appendChild(sanitizeRich(p.rich));     // High Roller: the allow-listed copy goes in, the original markup stays out
+            else if (p.text != null) div.textContent = p.text;             // viewer text: text only
+            else div.innerHTML = p.html;                                   // our own templates (viewer values already cleaned and esc()'d)
+            content.appendChild(div);
+        }
+
+        if (model.icon && ICONS[model.icon]) icon.src = ICONS[model.icon]; else icon.removeAttribute('src');
+        $('receipt-date').textContent = formatDate(new Date());
+        return avatarUrl;
+    }
+
+    // true when the image has loaded and decoded, false when it failed or `ms` ran out first
+    function waitImage(img, ms) {
+        return withTimeout(img.decode().then(() => true, () => false), ms).then(ok => ok === true);
+    }
+
+    // Waits for what the screenshot needs. The avatar gets its own budget, and the other images (emotes in a High Roller message, the
+    // platform logo) and the fonts get another. They all run side by side, so a stalled emote can't use up the avatar's time or the other way round.
+    // An image that fails or runs out of time is remembered (badImages) so it never holds up a later print. An avatar that
+    // didn't make it is hidden, so there is no bordered empty circle. The pinned copy keeps loading, so a slow image is there next time.
+    async function settle(avatarUrl) {
+        const avatar = $('receipt-avatar');
+        const jobs = [];
+        if (avatarUrl) {
+            jobs.push(waitImage(avatar, AVATAR_IMAGE_WAIT_MS).then((ok) => {
+                if (ok) return;
+                markBad(avatarUrl);
+                avatar.removeAttribute('src');
+                avatar.style.display = 'none';
+                $('receipt-container').classList.add('no-avatar');
+            }));
+        }
+        for (const img of document.images) {
+            const src = img.getAttribute('src');
+            if (img === avatar || !src) continue;
+            jobs.push(waitImage(img, EMOTE_WAIT_MS).then((ok) => { if (!ok && /^https:/i.test(src)) markBad(src); }));
+        }
+        jobs.push(withTimeout(document.fonts.ready, EMOTE_WAIT_MS));
+        await Promise.all(jobs);
+    }
+
+    // Final check for viewer images: whatever the CSS did, an image that ended up bigger than MAX_VIEWER_IMAGE_PX (with room for a tilt)
+    // on the finished page is not shown. (A scaled-up parent element is the one thing the per-image limits can't see.)
+    function enforceImageLimit() {
+        const images = $('receipt-content').querySelectorAll('img');
+        if (!images.length) return;
+        const limit = MAX_VIEWER_IMAGE_PX * 1.6;
+        for (const img of images) {
+            const r = img.getBoundingClientRect();
+            if (r.width > limit || r.height > limit) { img.style.setProperty('display', 'none', 'important'); securityNotes.add('image too large'); }
+        }
+    }
+
+    async function render(data, options) {
+        let sample = false;
+        if (data && data.__source === 'TestSample') {
+            sample = true;
+            const name = data.sample;
+            const step = HYPE_STEPS.findIndex(x => x.name === name);
+            if (step >= 0) data = hypeSampleStep(step);                       // a Hype Train test print: the event of that step, with the test train brought up to it
+            else {
+                data = own(SAMPLES, name) ? SAMPLES[name] : SAMPLES.TwitchSub;
+                // the long-message sample has to be a High Roller cheer, whatever the threshold is set to
+                if (name === 'TwitchCheerLong' && options && options.highRollerBits > data.bits) data = Object.assign({}, data, { bits: options.highRollerBits });
+            }
+        }
+        const handler = data && own(HANDLERS, data.__source) ? HANDLERS[data.__source] : null;      // an inherited name such as 'constructor' finds no layout
+        if (!handler) return { ok: false, reason: 'no layout for event type "' + (data && data.__source) + '"' };
+
+        hype = sample ? hypeTest : hypeLive;                                  // a test print never touches the tally of a real train
+        if (!sample && data.__source === 'TwitchCheer') hypeObserveCheer(data);       // while a train is on, a cheer counts toward its tally
+        securityNotes.clear();
+        const opts = options || {};
+        const model = await handler(data, opts);
+        if (!model) return { ok: false, reason: 'skipped' };
+
+        const avatarUrl = show(model, opts);
+        await settle(avatarUrl);
+        enforceImageLimit();
+
+        // Check whether the message is longer than its bits-per-inch limit (after images have loaded, since they change the height).
+        // A cut message fades out at the bottom so it doesn't stop mid-line. The log says how much was left out.
+        // "Longer" means the height the message takes up in the flow of the page, measured with the limit lifted. Rotated,
+        // nudged or absolutely positioned bits that stick out of the box (but would fit once it's drawn) don't count as cut.
+        let trimmed = null;
+        if (model.contentMaxHeight != null) {
+            const box = $('receipt-content');
+            const shown = box.getBoundingClientRect().height;
+            const limit = box.style.getPropertyValue('max-height');
+            let full;
+            try {
+                box.style.setProperty('max-height', 'none', 'important');
+                box.style.setProperty('height', 'auto', 'important');       // a theme that fixes the box's height must not count as message length
+                full = box.getBoundingClientRect().height;
+            } finally {
+                box.style.setProperty('max-height', limit, 'important');
+                box.style.removeProperty('height');
+            }
+            if (full > shown + 1) {
+                box.classList.add('cut');
+                const inches = (px) => Math.round(px / PX_PER_INCH * 100) / 100;
+                trimmed = { limitIn: inches(shown), fullIn: inches(full), by: model.contentLimitBy === 'cap' ? 'cap' : 'bits' };
+            }
+        }
+
+        const fresh = {};
+        for (const k of Object.keys(avatarFresh)) { fresh[k] = avatarFresh[k]; delete avatarFresh[k]; }
+        // A gift list reports the real page height. The action photographs a page taller than its window in tiles.
+        // Every other receipt is cut at MAX_RECEIPT_HEIGHT.
+        const pageHeight = Math.ceil(document.documentElement.getBoundingClientRect().height);
+        const giftList = $('receipt-content').classList.contains('roomy');
+        return {
+            ok: true, avatars: fresh, trimmed,
+            height: giftList ? pageHeight : Math.min(MAX_RECEIPT_HEIGHT, pageHeight),
+            security: Array.from(securityNotes).slice(0, 10),      // what was removed from this receipt (the log reports it)
+        };
+    }
+
+    function setTheme(css) { $('theme').textContent = css || ''; }
+
+    // For tests only: pure functions and plain numbers. Nothing here reaches the DOM or the network.
+    const internals = {
+        hostMatches,
+        checkAvatarUrl: (value) => vetUrl(value, AVATAR_HOSTS).url,
+        checkImageUrl: trustedImageUrl,
+        avatarHosts: () => AVATAR_HOSTS.slice(),
+        emoteHosts: () => TRUSTED_IMAGE_HOSTS.slice(),
+        displayName, replaceLinks, formatDate,
+        allowedCss: () => Array.from(ALLOWED_CSS),
+        cached: (key) => { const e = avatarCache.get(key); return e ? { url: e.url, ts: e.ts } : null; },
+        pinned: () => Array.from(pinnedImages.keys()),
+        stats: () => ({ avatarCache: avatarCache.size, negative: avatarNegative.size, pending: avatarPending.size, badImages: badImages.size, pinned: pinnedImages.size }),
+        hype: () => ({ live: hypeSummary(hypeLive), test: hypeSummary(hypeTest) }),
+        hypeObserve: (d) => hypeObserveCheer(d),
+        hypeForget: () => { for (const h of [hypeLive, hypeTest]) { hypeReset(h, '', 0, 0); h.active = false; h.stage = 0; } },
+        fmtNum, fmtElapsed,
+        limits: () => ({ AVATAR_LOOKUP_BUDGET_MS, AVATAR_BACKGROUND_TIMEOUT_MS, AVATAR_TTL_MS, AVATAR_STALE_MS, NEGATIVE_TTL_MS, NOT_FOUND_TTL_MS, AVATAR_IMAGE_WAIT_MS, EMOTE_WAIT_MS,
+                         MAX_PINNED_IMAGES, MAX_NAME_CHARS, MAX_VARIANTS, MAX_VIEWER_IMAGE_PX, MAX_DATA_IMAGE_CHARS }),
+    };
+
+    return { version: VERSION, render, setTheme, loadAvatarCache, clearAvatarCache, ready: true, violations: () => violationCount, violationLog: () => violationLog.slice(),
+             eventTypes: Object.keys(HANDLERS), sampleNames: Object.keys(SAMPLES).concat(HYPE_STEPS.map(x => x.name)), internals };
+})();
+</script>
+</body>
+</html>
