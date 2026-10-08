@@ -1,19 +1,19 @@
 # Third-party material
 
-Printer Bot's own files are under the MIT licence (see [LICENSE](LICENSE)). The items below are **not** covered by it, or carry licences of their own.
+Printer Bot's own files are under the MIT licence (see [LICENSE](LICENSE)). The items below sit outside it or carry licences of their own.
 
 ## In this repository
 
 | What | Where | Licence / status |
 |---|---|---|
 | `@streamerbot/client` 2.0.x (browser build), Streamer.bot's own client library | `vendor/streamerbot-client.js` and the copy in each folder under `v/` | MIT, (c) 2023 Streamer.bot. Full text: `vendor/LICENSE-streamerbot-client.txt`. The file also contains a small helper function marked `@babel/helpers` (Babel, MIT) that was inlined when the library was bundled |
-| Twitch, YouTube and Kick logos | embedded inside `renderer.html` and inside `import.txt`; there are no separate image files for them in this repository | **Trademarks of their owners**, used only to say which platform an event came from, and printed in black on the receipt. Not covered by this project's licence |
-| `assets/logo.png` and the copy in each folder under `v/` | the dock's header picture and tab icon | The SassyTP brand image. **Not** covered by the MIT licence: all rights reserved by its owner |
+| Twitch, YouTube and Kick logos | embedded inside `renderer.html` and inside `import.txt`. This repository has no separate image files for them | **Trademarks of their owners**, used only to say which platform an event came from, and printed in black on the receipt. Outside this project's licence |
+| `assets/logo.png` and the copy in each folder under `v/` | the dock's header picture and tab icon | The SassyTP brand image. **Outside** the MIT licence: all rights reserved by its owner |
 | `assets/icons/*.svg` and the copies under `v/` | the dock's connection and status icons | Drawn for this project, MIT |
 
 The name **SassyTP** (the author's name in the import, the `SassyTP` data folder, the dock's tab title and header picture) is not licensed for use as the name of someone else's product.
 
-## Used, but not included
+## Used from elsewhere
 
 | What | How it is used | Licence |
 |---|---|---|
@@ -25,7 +25,7 @@ The name **SassyTP** (the author's name in the import, the `SassyTP` data folder
 
 ## Web services contacted at run time
 
-The receipt page may contact only the hosts below. Both the page's own policy and the hidden Edge are limited to this list. The hosts are not part of this project, and their own terms apply. What is sent to them is described in the README under *Privacy and third-party services*.
+The receipt page may contact only the hosts below. Both the page's own policy and the hidden Edge are limited to this list. The hosts are not part of this project, and their own terms apply. The guide [Privacy](PRIVACY.md#privacy-and-third-party-services) describes what is sent to them.
 
 | Host | What for |
 |---|---|
@@ -38,8 +38,8 @@ The receipt page may contact only the hosts below. Both the page's own policy an
 | `cdn.7tv.app` | 7TV emotes |
 | `cdn.frankerfacez.com` | FrankerFaceZ emotes |
 
-Besides these, the action contacts the web address the dock is served from (see *Which dock?* in the README) to look for signed receipt-layout updates, and the dock page itself is loaded from its host. For the hosted dock that is the author's Cloudflare site. The host is not part of this repository.
+The action also contacts the web address the dock is served from (see [Dock Selection](DOCK_SELECTION.md)) to look for signed receipt-layout and program updates, and the dock page itself is loaded from its host. For the hosted dock that is the author's Cloudflare site. The host is not part of this repository.
 
-## Not affiliated
+## Affiliation
 
 Printer Bot is an independent project. It is not affiliated with, endorsed by or sponsored by Streamer.bot, Twitch, YouTube, Kick, StreamElements, Streamlabs, Fourthwall, OBS Project, Microsoft, BetterTTV, 7TV, FrankerFaceZ, decapi.me, RONGTA, Epson, Star Micronics or Xprinter. All product names and logos are the property of their owners.
