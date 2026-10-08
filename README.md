@@ -13,10 +13,10 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## What is new in 2.5.2
+## What is new in 2.5.3
 
-1. **Months paid ahead.** A Twitch subscription or resubscription that was paid 3, 6 or 12 months in advance prints a line under the months, for example "Prepaid for 6 months". A one-month subscription prints as before.
-2. **A resubscription test print.** **Test print** has a new sample, **TwitchReSub**, with six months paid ahead.
+1. **A clearer subscription receipt.** A Twitch resubscription prints one line each for the total time subscribed, the current streak and the months paid in advance, for example "Total time subscribed: 8 months", "Current streak: 5 months" and "Prepaid in advance: 6 months!". A line shows only when it applies. A first-time subscriber who paid ahead gets the prepaid line too.
+2. **The test print shows all three.** The **TwitchReSub** sample in **Test print** has all three lines.
 3. Everything else prints as before and all settings stay the same. The update arrives in the dock's Updates card and needs no re-import.
 
 ## Requirements

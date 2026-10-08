@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "2.5.2",
-  "built": "202610082037",
+  "version": "2.5.3",
+  "built": "202610082152",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-2.5.2.bin",
-      "size": 365056,
-      "sha256": "7db5f468398388348ae18ec739fa2e09fec971be112ea5830bd94e1d996a7a5f"
+      "name": "core-2.5.3.bin",
+      "size": 367104,
+      "sha256": "ad8bb87c246b5261e6e453e255523558e416083f35d4569b69fb1335cde0eb9e"
     }
   ],
-  "notes": "Printer Bot 2.5.2 prints the months a Twitch subscriber paid ahead. A subscription or resubscription paid 3, 6 or 12 months in advance gets a line such as Prepaid for 6 months. Test print in the dock has a new TwitchReSub sample that shows it. Everything else prints as before, and no re-import is needed.",
+  "notes": "Printer Bot 2.5.3 changes how a Twitch resubscription reads. The receipt has one line each for the total time subscribed, the current streak and the months paid in advance, for example Total time subscribed: 8 months, Current streak: 5 months and Prepaid in advance: 6 months! A line shows only when it applies. The first-time subscriber receipt uses the same prepaid line. Test print in the dock shows all three with the TwitchReSub sample. Everything else prints as before, and no re-import is needed.",
   "successor": null,
   "revokeKeys": []
 }
