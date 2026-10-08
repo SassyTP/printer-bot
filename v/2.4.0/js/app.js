@@ -28,6 +28,12 @@ const FRONTEND_VERSION = '2.4.0';
 // The first Printer Bot version that can update itself. An older action has no updater, whatever it sends.
 const LOADER_SINCE = '2.4.0';
 
+// The updater (the loader inside the action) has a revision number, which it sends as loader.rev in every updater message. An import of 2.4.0 or 2.4.1
+// carries revision 1, and an import of 2.4.2 carries revision 2. This page works with both and tells them apart by that number. A message without it counts as revision 1.
+//   revision 1  a version that failed to start or was running when Streamer.bot ended is set aside for good (the list update.rejected names it)
+//   revision 2  such a version is paused and offered again (update.failedBefore) and can be installed again, also over a stored copy (updateCore with force, can.reinstall)
+const RETRY_SINCE_REV = 2;        // the first revision that can try a version again
+
 // The build stamp this script was loaded with (js/app.js?v=<12 hex digits>). The build tool puts the same stamp on every address in index.html.
 // Addresses made in this file get it too (see Stamped), so a browser that caches hard still fetches a changed icon.
 // If the stamp cannot be read, nothing is added and the page works as before.
@@ -733,6 +739,11 @@ const PAUSE_MS = 4000;                // a button that sent a command stays off 
 const UPDATED_BRIEF = 'Updated. Restart Streamer.bot, then reload the dock';
 function SetUpdatesHint(text) { $('updates-hint').textContent = text; }
 
+// Texts for an updater of revision 2: a version that failed before is paused and offered again, and Reinstall downloads the program again
+const FailedBeforeText = (version) => `Version ${version} was paused after a crash or a failed start on this PC. The button below downloads a fresh copy and tries it again.`;
+const REINSTALL_OFF_TEXT = 'Reinstall works when the downloaded program is the newest version, or when the newest version failed before.';
+const OfferKey = (version, again) => version + (again ? ' again' : '');        // what a first click on the Update button was about
+
 const UPDATE_ERRORS = {
     'no-source': 'Printer Bot does not know where to get updates yet. Open the dock from its web address and connect once.',
     'off': 'Updates are switched off. Turn on "Download updates" below.',
@@ -797,8 +808,9 @@ function NormalizeUpdater(d) {
             auto: u.auto === true,
             autoInstalled: ustr(u.autoInstalled, 40),
             refused: ustr(u.refused, 20),
+            failedBefore: u.failedBefore === true,       // revision 2: update.latest crashed or failed to start here before
         },
-        can: { check: k.check === true, update: k.update === true, rollback: k.rollback === true },
+        can: { check: k.check === true, update: k.update === true, rollback: k.rollback === true, reinstall: k.reinstall === true },
     };
 }
 
@@ -807,11 +819,24 @@ const ActionHasUpdater = (s) => pbUpdater !== null || !IsOlderVersion(s.version,
 const HostedUpdatesOff = (s) => s.settings.allowHostedUpdates === false;
 const RunningVersion = () => (pbUpdater && pbUpdater.core.version) || (pbStatus && pbStatus.version) || '';
 
+// An updater of revision 2 or later can try a version again. The two fields it adds (update.failedBefore and can.reinstall) count only from such an updater.
+const HasRetry = () => pbUpdater !== null && pbUpdater.loader.rev >= RETRY_SINCE_REV;
+
 // The version the Update button would install: the latest the updater verified, when it is newer than the running one. Otherwise ''.
 function OfferedVersion() {
     const u = pbUpdater && pbUpdater.update;
     if (!u || !VersionParts(u.latest)) return '';
     return IsOlderVersion(RunningVersion(), u.latest) ? u.latest : '';
+}
+
+// The offered version crashed or failed to start on this PC before. The button then reads "Try <version> again" and asks for a fresh download (force).
+const TryAgainOffered = () => HasRetry() && pbUpdater.update.failedBefore && OfferedVersion() !== '';
+
+// The version the Reinstall button would install: update.latest, when the updater says it can (can.reinstall) and nothing is under way. Otherwise ''.
+function ReinstallVersion() {
+    if (!HasRetry() || !pbUpdater.can.reinstall || !pbStatus || HostedUpdatesOff(pbStatus)) return '';
+    if (pbUpdater.update.state === 'checking' || WORKING_STATES.includes(pbUpdater.update.state)) return '';
+    return VersionParts(pbUpdater.update.latest) ? pbUpdater.update.latest : '';
 }
 
 // The updater sends times as ISO text (2026-10-12T18:20:00Z). A browser also reads a bare "5" as a date, so the shape is checked first.
@@ -852,6 +877,7 @@ function FailedTail(u, core, running) {
 }
 
 let updateArmed = false, updateArmedFor = '', updateArmTimer = null, updateSending = false;
+let reinstallArmed = false, reinstallArmedFor = '', reinstallArmTimer = null, reinstallSending = false;       // the same two clicks for Reinstall
 let checkingCore = false, rollbackPause = false;
 let idleVersion = '';                 // the version that ran in the last message of a calm state (no download, check or switch under way). '' until this page has seen one.
 let calmCore = null;                  // { version, source } of the core in the last message of a calm state, before the message that is drawn now
@@ -879,6 +905,12 @@ function ResetUpdateArm() {
     clearTimeout(updateArmTimer);
 }
 
+function ResetReinstallArm() {
+    reinstallArmed = false;
+    reinstallArmedFor = '';
+    clearTimeout(reinstallArmTimer);
+}
+
 function RenderUpdater(raw) {
     const before = lastUpdaterState;        // the state of the message before this one on this connection (null for the first one)
     pbUpdater = NormalizeUpdater(raw);
@@ -899,6 +931,7 @@ function RenderUpdater(raw) {
     checkingCore = false;                   // an answer ends the pause a button keeps after its click
     rollbackPause = false;
     updateSending = false;
+    reinstallSending = false;
     if (!pbStatus) return;                  // the status is drawn first, and it draws this as well
     RenderOutdated(pbStatus);
     RenderUpdates();
@@ -929,6 +962,7 @@ function RenderUpdates() {
     const state = up ? up.update.state : 'idle';
     const hostedOff = HostedUpdatesOff(s);
     const working = WORKING_STATES.includes(state);
+    const retry = HasRetry();                                       // an updater of revision 2 or later can try a version again
 
     // what runs now
     const rows = [['Printer Bot', h('span', null, running || 'unknown', h('span', { class: 'muted' }, up ? ` (${CoreSourceText(up.core)})` : hasUpdater ? '' : ' (cannot update itself)'))]];
@@ -956,7 +990,13 @@ function RenderUpdates() {
     const target = u && u.latest ? u.latest : 'the update';
     // A newer version that the updater does not offer for installing (can.update is false) and that is on its list of rejected versions was set aside
     // after it failed to start on this PC. A version the person went back from is on that list too, and the updater still lets them install it.
-    const setAside = !!u && offered !== '' && !up.can.update && u.rejected.includes(offered);
+    // An updater of revision 2 sets nothing aside for good (its list holds only versions the person went back from), so the sentence "will not be tried again" is for revision 1 only.
+    const setAside = !retry && !!u && offered !== '' && !up.can.update && u.rejected.includes(offered);
+    // The button is there only when the updater says it can install the offer (can.update). A version that an updater of revision 1 set aside gets no button.
+    const showUpdate = !hostedOff && (state === 'available' || state === 'failed') && offered !== '' && !!up && up.can.update;
+    // An updater of revision 2 marks a version that crashed or failed to start on this PC (update.failedBefore) and still offers it. The button then reads
+    // "Try <version> again" and asks for a fresh download.
+    const again = showUpdate && TryAgainOffered();
     // brief is the short form of the state for the summary line of the closed card
     let text = 'Waiting for the updater\u2026', brief = 'Waiting for the updater', level = '', message = '', notes = false, progress = -1;
     if (u) switch (state) {
@@ -967,7 +1007,7 @@ function RenderUpdates() {
             else { text = 'Up to date.'; brief = 'Up to date'; level = 'ok'; }
             break;
         case 'available':
-            if (offered) { text = `Update available: ${offered}`; brief = `Update ${offered} available`; level = 'info'; notes = true; }
+            if (offered) { text = `Update available: ${offered}`; brief = again ? `Try ${offered} again` : `Update ${offered} available`; level = again ? 'warn' : 'info'; notes = true; }
             else { text = 'Up to date.'; brief = 'Up to date'; level = 'ok'; }
             break;
         case 'downloading': text = `Downloading ${target}\u2026${u.progress > 0 ? ' ' + u.progress + '%' : ''}`; brief = 'Updating'; level = 'info'; notes = true; progress = u.progress; break;
@@ -976,7 +1016,7 @@ function RenderUpdates() {
         case 'installing': text = SwitchingText(u.latest); brief = 'Updating'; level = 'info'; notes = true; break;
         case 'installed': text = `Updated to ${up.core.version || target}.`; brief = UPDATED_BRIEF; level = 'ok'; notes = true; break;
         case 'failed':
-            if (droppedFrom) { text = 'Printer Bot went back to the built-in version.'; brief = 'went back to the built-in version'; level = 'warn'; message = `Version ${droppedFrom} stopped working, so Printer Bot set it aside.`; }
+            if (droppedFrom) { text = 'Printer Bot went back to the built-in version.'; brief = 'went back to the built-in version'; level = 'warn'; message = retry ? `Version ${droppedFrom} stopped working, so Printer Bot paused it.` : `Version ${droppedFrom} stopped working, so Printer Bot set it aside.`; }
             else { text = 'The update did not work.'; brief = 'did not work'; level = 'bad'; message = UpdateErrorText(u.error) + FailedTail(u, up.core, running) + (setAside ? ` Version ${offered} will not be tried again.` : ''); notes = !!offered; }
             break;
         case 'paused': text = 'The author has paused updates.'; brief = 'paused'; level = 'warn'; break;
@@ -991,6 +1031,8 @@ function RenderUpdates() {
     // that does not explain itself. The paused state and the re-import block say it already.
     // The error "off" is the one case that says nothing once Download updates is on again, and the card says "switched off" itself while it is off.
     if (u && u.error && u.error !== 'off' && !message && state !== 'paused' && state !== 'reimport') message = UpdateErrorText(u.error);
+    // An offer that crashed or failed to start before says why it is paused, and what the button does. A reason the updater gave stays in front.
+    if (!message && state === 'available' && again) message = FailedBeforeText(offered);
     if (hostedOff && !working) { text = 'Updates are switched off. Turn on "Download updates" below.'; brief = 'switched off'; level = 'warn'; message = ''; notes = false; }
     SetUpdatesHint(brief);
     $('update-dot').className = 'dot' + (level ? ' ' + level : '');
@@ -1011,14 +1053,12 @@ function RenderUpdates() {
     check.textContent = checkingCore || state === 'checking' ? 'Checking\u2026' : 'Check now';
     check.title = hostedOff ? HOSTED_OFF_TEXT : up && !up.can.check ? 'The updater cannot check right now.' : '';
 
-    // The button is there only when the updater says it can install the offer (can.update). A version that was set aside gets no button.
-    const showUpdate = !hostedOff && (state === 'available' || state === 'failed') && offered !== '' && !!up && up.can.update;
-    if (updateArmed && (!showUpdate || updateArmedFor !== offered)) ResetUpdateArm();            // what was on screen when the first click came is gone
+    if (updateArmed && (!showUpdate || updateArmedFor !== OfferKey(offered, again))) ResetUpdateArm();       // what was on screen when the first click came is gone
     const button = $('core-update-button');
     button.hidden = !showUpdate;
-    button.disabled = updateSending;
+    button.disabled = updateSending || reinstallSending;
     button.title = '';
-    button.textContent = !showUpdate ? 'Update' : updateSending ? 'Starting\u2026' : updateArmed ? 'Update now? Click again' : `Update to ${offered}`;
+    button.textContent = !showUpdate ? 'Update' : updateSending ? 'Starting\u2026' : updateArmed ? (again ? 'Try again now? Click again' : 'Update now? Click again') : again ? `Try ${offered} again` : `Update to ${offered}`;
     button.classList.toggle('confirming', updateArmed);
     $('update-hint').hidden = !showUpdate;
     // The updater turned a click down because it tried an update a moment ago. This is a note under the button and leaves the reason of the failure alone.
@@ -1039,6 +1079,17 @@ function RenderUpdates() {
     $('core-rollback-button').title = up && !up.can.rollback ? 'There is no previous version to go back to.' : '';
     $('core-builtin-button').disabled = !rollbackOk || up.core.source !== 'downloaded';
     $('core-builtin-button').title = up && up.core.source !== 'downloaded' ? 'Printer Bot already runs the built-in version.' : '';
+
+    // Reinstall downloads the program again over the stored copy. Only an updater of revision 2 or later can, so the row is there only for such an updater,
+    // and the button is on when the updater says it can (can.reinstall).
+    const reinstallFor = ReinstallVersion();
+    $('update-reinstall-row').hidden = !retry;
+    if (reinstallArmed && (reinstallFor === '' || reinstallArmedFor !== reinstallFor)) ResetReinstallArm();
+    const reinstall = $('core-reinstall-button');
+    reinstall.disabled = reinstallFor === '' || updateSending || reinstallSending;
+    reinstall.textContent = reinstallSending ? 'Starting\u2026' : reinstallArmed ? 'Reinstall now? Click again' : reinstallFor ? `Reinstall ${reinstallFor}` : 'Reinstall';
+    reinstall.classList.toggle('confirming', reinstallArmed);
+    reinstall.title = reinstallFor ? '' : hostedOff ? HOSTED_OFF_TEXT : working || state === 'checking' ? 'An update is under way.' : REINSTALL_OFF_TEXT;
 }
 
 function CheckCore() {
@@ -1051,14 +1102,17 @@ function CheckCore() {
 
 // Installing takes two clicks: the first arms the button, and a second click within 5 s sends the command with the version that was on screen.
 // If the offer changes between the clicks, the button disarms and nothing is sent.
+// A version that crashed or failed to start here before (update.failedBefore, from an updater of revision 2) is tried again with a fresh download: force.
 function UpdateCore() {
     const offered = OfferedVersion();
-    if (!pbUpdater || !pbUpdater.can.update || !offered || updateSending || HostedUpdatesOff(pbStatus)) return;
+    if (!pbUpdater || !pbUpdater.can.update || !offered || updateSending || reinstallSending || HostedUpdatesOff(pbStatus)) return;
     if (!['available', 'failed'].includes(pbUpdater.update.state)) return;
-    if (!updateArmed || updateArmedFor !== offered) {
+    const again = TryAgainOffered();
+    if (!updateArmed || updateArmedFor !== OfferKey(offered, again)) {
         ResetUpdateArm();
+        ResetReinstallArm();                // one thing at a time is armed
         updateArmed = true;
-        updateArmedFor = offered;
+        updateArmedFor = OfferKey(offered, again);
         updateArmTimer = setTimeout(() => { ResetUpdateArm(); RenderUpdates(); }, ARM_MS);
         RenderUpdates();
         return;
@@ -1067,7 +1121,29 @@ function UpdateCore() {
     updateSending = true;
     rollbackAskedAt = 0;                    // an update the person starts is not the rollback they asked for earlier
     setTimeout(() => { updateSending = false; RenderUpdates(); }, PAUSE_MS * 2);
-    Send('updateCore', { expect: offered });
+    Send('updateCore', again ? { expect: offered, force: true } : { expect: offered });
+    RenderUpdates();
+}
+
+// Reinstalling takes two clicks as well. It sends updateCore for update.latest with force: the updater removes the stored copy, downloads the program
+// again, checks it and starts it. The updater says when that is possible (can.reinstall).
+function ReinstallCore() {
+    const version = ReinstallVersion();
+    if (!version || updateSending || reinstallSending) return;
+    if (!reinstallArmed || reinstallArmedFor !== version) {
+        ResetReinstallArm();
+        ResetUpdateArm();                   // one thing at a time is armed
+        reinstallArmed = true;
+        reinstallArmedFor = version;
+        reinstallArmTimer = setTimeout(() => { ResetReinstallArm(); RenderUpdates(); }, ARM_MS);
+        RenderUpdates();
+        return;
+    }
+    ResetReinstallArm();
+    reinstallSending = true;
+    rollbackAskedAt = 0;
+    setTimeout(() => { reinstallSending = false; RenderUpdates(); }, PAUSE_MS * 2);
+    Send('updateCore', { expect: version, force: true });
     RenderUpdates();
 }
 
@@ -1442,6 +1518,7 @@ $('update-badge').addEventListener('click', ShowUpdatesCard);
 $('show-updates-button').addEventListener('click', ShowUpdatesCard);
 $('core-check-button').addEventListener('click', CheckCore);
 $('core-update-button').addEventListener('click', UpdateCore);
+$('core-reinstall-button').addEventListener('click', ReinstallCore);
 $('core-reload-button').addEventListener('click', ReloadDock);
 $('reload-dock-button').addEventListener('click', ReloadDock);
 $('core-rollback-button').addEventListener('click', () => RollBack('previous'));

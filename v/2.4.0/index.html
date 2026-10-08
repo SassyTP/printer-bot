@@ -9,9 +9,9 @@
     <title>Printer Bot</title>
     <!-- Every address below ends in ?v=<build>. The build tool rewrites the stamp when a file of this folder changes,
          so a changed file gets a new address and a browser that caches hard still fetches it. -->
-    <link rel="icon" href="assets/logo.png?v=393a955956e9" type="image/png">
+    <link rel="icon" href="assets/logo.png?v=526eb7b9ead3" type="image/png">
 
-    <link rel="stylesheet" href="css/dock.css?v=393a955956e9" />
+    <link rel="stylesheet" href="css/dock.css?v=526eb7b9ead3" />
 </head>
 
 <body>
@@ -19,7 +19,7 @@
 
         <!-- Header -->
         <div id="header">
-            <img class="brand-logo" src="assets/logo.png?v=393a955956e9" alt="" />
+            <img class="brand-logo" src="assets/logo.png?v=526eb7b9ead3" alt="" />
             <label id="title" class="title"></label>
             <div id="header-end">
                 <!-- A small dot while an update is available. It scrolls to the Updates card. -->
@@ -323,6 +323,15 @@
                                             <button type="button" id="core-builtin-button">Use the built-in version</button>
                                         </div>
                                     </div>
+                                    <div class="setting stack-narrow" id="update-reinstall-row" hidden>
+                                        <div>
+                                            <div class="setting-label">Reinstall</div>
+                                            <div class="setting-description">Downloads the program again and replaces the stored copy. Your settings stay.</div>
+                                        </div>
+                                        <div class="setting-actions">
+                                            <button type="button" id="core-reinstall-button" disabled>Reinstall</button>
+                                        </div>
+                                    </div>
                                 </details>
                             </div>
 
@@ -392,7 +401,7 @@
         <div id="sb-connect-dialog" class="dialog" role="dialog" aria-label="Connect to Streamer.bot">
             <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">&#xD7;</button>
             <div class="dialog-brand">
-                <img class="brand-logo" src="assets/icons/plug.svg?v=393a955956e9" loading="lazy" decoding="async" alt="" />
+                <img class="brand-logo" src="assets/icons/plug.svg?v=526eb7b9ead3" loading="lazy" decoding="async" alt="" />
                 <label class="title">Streamer.bot</label>
             </div>
             <div class="field-row">
@@ -431,8 +440,8 @@
         </div>
     </div>
 
-    <script src="vendor/streamerbot-client.js?v=393a955956e9"></script>
-    <script src="js/app.js?v=393a955956e9"></script>
+    <script src="vendor/streamerbot-client.js?v=526eb7b9ead3"></script>
+    <script src="js/app.js?v=526eb7b9ead3"></script>
 </body>
 
 </html>
