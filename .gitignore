@@ -25,4 +25,5 @@ edge-cdp-profile*/
 .vscode/
 .idea/
 *.user
+node_modules/
 CHANGELOG.txt

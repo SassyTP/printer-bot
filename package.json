@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/renderer.test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0"
+  }
+}

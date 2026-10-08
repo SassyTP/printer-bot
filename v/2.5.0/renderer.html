@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <!-- Second layer behind the sanitizer. If a message gets something through, the page still can't run it or send anything out.
      Only the renderer's own script (matched by hash) runs. Connections go only to the two avatar lookups. No frames, forms or objects. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-j1NvLqDK/OgTdm/g8tEtsYKg1IAGNQg/j89YeEq/TVI='; style-src 'unsafe-inline'; img-src data: https://static-cdn.jtvnw.net https://files.kick.com https://cdn.betterttv.net https://cdn.7tv.app https://cdn.frankerfacez.com https://kick.com https://*.ggpht.com https://*.googleusercontent.com https://*.ytimg.com; connect-src https://decapi.me https://kick.com; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-UjgM/uDJjmo7tQ2dAtqzYjQHaBYA8B0tkcvf6C+sORM='; style-src 'unsafe-inline'; img-src data: https://static-cdn.jtvnw.net https://files.kick.com https://cdn.betterttv.net https://cdn.7tv.app https://cdn.frankerfacez.com https://kick.com https://*.ggpht.com https://*.googleusercontent.com https://*.ytimg.com; connect-src https://decapi.me https://kick.com; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'">
 <meta name="printer-bot-renderer" content="202610082152">
 <style>
 /*
@@ -141,6 +141,12 @@ html, body {
 	display: none;
 }
 
+/* A long name must keep its identifying suffix on the paper. */
+#receipt-title,
+#receipt-subtitle {
+	overflow-wrap: anywhere;
+}
+
 
 /* ---- dividers -------------------------------------------------------------- */
 
@@ -161,11 +167,17 @@ html, body {
 	max-height: 1600px;
 }
 
-/* A gift list (every recipient on its own line) has no height limit at all: every name that arrives has to print, and 500 names is
-   about 11,000 px. Only a handler sets this class, so event data cannot ask for it. The action photographs a page this tall in tiles.
+/* Paid item and gift lists have no height limit: every entry that arrives has to print. Only a handler sets this class,
+   so event data cannot ask for it. The action photographs a page this tall in tiles.
    theme.css cannot bring the limit back with a plain "max-height" on #receipt-content, since the rule below is more specific. */
 #receipt-content.roomy {
 	max-height: none;
+}
+
+/* An order's paid items may extend the receipt, but its buyer-written note keeps the ordinary message limit. */
+#receipt-content.roomy .part.message {
+	max-height: 1600px;
+	overflow: hidden;
 }
 
 /* a High Roller message cut off at its bits-per-inch limit fades out, so it doesn't stop mid-line.
@@ -177,6 +189,11 @@ html, body {
 
 .part {
 	margin: 0;
+}
+
+/* Rich Cheer markup may intentionally use nowrap; ordinary names and facts may not run off the paper. */
+.part:not(.raw) {
+	overflow-wrap: anywhere;
 }
 
 .part + .part {
@@ -323,8 +340,8 @@ img.bits {
 // the receipt on the page, then the routine screenshots and prints it.
 //
 //   PrinterBot.render(eventData, options)  -> { ok, height, avatars, trimmed, security } | { ok:false, reason }
-//                                  height  = the page height in CSS px. A receipt is cut at MAX_RECEIPT_HEIGHT (5000), except a gift list (Twitch gift
-//                                            bomb, Kick mass gift), which reports its real height however many names it has
+//                                  height  = the page height in CSS px. A receipt is cut at MAX_RECEIPT_HEIGHT (5000), except a paid item
+//                                            or gift list, which reports its real height however many entries it has
 //                                  avatars = the lookups that finished since the last render, for the routine to keep: key -> { url, ts } for a
 //                                            picture, key -> { none: true, ts } for a viewer the lookup service does not know (kept NOT_FOUND_TTL_MS)
 //                                  trimmed = { limitIn, fullIn, by } when a High Roller message was cut. by is 'bits' when the bits-per-inch
@@ -519,6 +536,8 @@ window.PrinterBot = (function () {
             if (/[\uD800-\uDBFF]$/.test(s)) s = s.slice(0, -1);      // (don't cut a surrogate pair in half)
         }
         s = cleanText(s).replace(INVISIBLE_IN_NAMES, '').replace(/\s+/g, ' ').trim().replace(/(\p{M}{3})\p{M}+/gu, '$1');
+        // Keep joiners inside visible names, but a name made only of joiners or combining marks is empty.
+        if (!/[\p{L}\p{N}\p{P}\p{S}]/u.test(s)) return '';
         const g = graphemes(s);
         return g.length > limit ? g.slice(0, limit).join('').trimEnd() + '…' : s;
     }
@@ -1624,7 +1643,7 @@ window.PrinterBot = (function () {
             return {
                 avatar, title: formatCurrency(d['fw.total'], d['fw.currency']), titleBig: true,
                 subtitle: displayName(d['fw.username'] || '') || 'Anonymous supporter',     // the buyer's e-mail address is never shown: a receipt can be on camera
-                content: [{ kind: 'text', left: true, html: lines.join('<br>') },
+                content: [{ kind: 'text', left: true, html: lines.join('<br>'), roomy: true },
                           note, lead('Thank you for your purchase!')],
             };
         },
@@ -1733,8 +1752,8 @@ window.PrinterBot = (function () {
             .filter(p => p.html || p.text || p.rich);
         $('receipt-rule-top').style.display = parts.length ? '' : 'none';
         content.style.display = parts.length ? '' : 'none';
-        // Gift lists get a box with no height limit (a viewer's message keeps its 1600 px box), and render() returns their real page height.
-        // Our own code builds them from cleaned names. Only a handler can set roomy, so event data cannot ask for it.
+        // Paid item and gift lists get a box with no height limit; render() returns their real page height.
+        // Our own code builds them from cleaned names and product labels. Only a handler can set roomy, so event data cannot ask for it.
         if (parts.some(p => p.roomy === true)) content.classList.add('roomy');
         if (model.contentMaxHeight != null) {
             // The bits-per-inch limit can only tighten the box: the built-in ceiling (or a larger/smaller one set in theme.css) still applies.
@@ -1854,13 +1873,13 @@ window.PrinterBot = (function () {
 
         const fresh = {};
         for (const k of Object.keys(avatarFresh)) { fresh[k] = avatarFresh[k]; delete avatarFresh[k]; }
-        // A gift list reports the real page height. The action photographs a page taller than its window in tiles.
+        // A paid item or gift list reports the real page height. The action photographs a page taller than its window in tiles.
         // Every other receipt is cut at MAX_RECEIPT_HEIGHT.
         const pageHeight = Math.ceil(document.documentElement.getBoundingClientRect().height);
-        const giftList = $('receipt-content').classList.contains('roomy');
+        const longList = $('receipt-content').classList.contains('roomy');
         return {
             ok: true, avatars: fresh, trimmed,
-            height: giftList ? pageHeight : Math.min(MAX_RECEIPT_HEIGHT, pageHeight),
+            height: longList ? pageHeight : Math.min(MAX_RECEIPT_HEIGHT, pageHeight),
             security: Array.from(securityNotes).slice(0, 10),      // what was removed from this receipt (the log reports it)
         };
     }
