@@ -4,7 +4,7 @@
   "actionId": "bdc70b66-6b06-d5ee-54a4-7030d080b8b5",
   "latest": "2.4.0",
   "core": {
-    "latest": "2.4.3",
+    "latest": "2.4.4",
     "selfUpdateSince": "2.4.0",
     "api": 1
   },

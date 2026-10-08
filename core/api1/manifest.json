@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "2.4.3",
-  "built": "202610081122",
+  "version": "2.4.4",
+  "built": "202610081344",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-2.4.3.bin",
-      "size": 289792,
-      "sha256": "c7615b286721fc983ba4755a0d397f0517b87f477cb549551d6084979d1a43ec"
+      "name": "core-2.4.4.bin",
+      "size": 298496,
+      "sha256": "18f218f98f475bc3cb08a6ef8ec46426dc6dba4cfb6dcdba16fe8a4ced7d7f30"
     }
   ],
-  "notes": "Printer Bot 2.4.3 comes with a new updater (revision 2). A crash of your PC no longer sets an update aside for good: the program starts again by itself, and the dock offers Try again and Reinstall buttons. Your settings stay.",
+  "notes": "Printer Bot 2.4.4 makes receipts cheaper to produce and shortens the slow first receipt after Streamer.bot loads the code again. Receipts print exactly as before. All settings remain the same.",
   "successor": null,
   "revokeKeys": []
 }
