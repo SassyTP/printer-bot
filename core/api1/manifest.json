@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "2.5.0",
-  "built": "202610081727",
+  "version": "2.5.1",
+  "built": "202610081757",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-2.5.0.bin",
-      "size": 361984,
-      "sha256": "10afb62b6199a627c0c87d0bf4f494b168a3eb17686e925dc79d2e980abdce24"
+      "name": "core-2.5.1.bin",
+      "size": 363008,
+      "sha256": "d5281307d0ee0282f89167fccc86bb9d50f6a5148b17d487f0593e26f1893da3"
     }
   ],
-  "notes": "Printer Bot 2.5.0 adds Hype Train receipts. A locomotive prints when a train starts. A conductor's cap marks the top cheerer, and every change of conductor prints. A rail car prints at each level up, and a caboose with the final standings prints when the train ends. The train pieces print long ways down the paper. A new switch under Advanced, Print Hype Trains, turns them on or off, and Test print has a step for each receipt plus an end-to-end test. IMPORTANT: this needs four new triggers in Streamer.bot (Twitch, Hype Train). They come with the 2.5.0 import, so import Printer Bot once more after updating, or add the four triggers by hand. The printer list in the dock also shows which printer Auto-detect chose right after you pick it.",
+  "notes": "Printer Bot 2.5.1 turns the Hype Train locomotive around. On the Start receipt it now prints first, at the top, with its front facing the top of the receipt and its wheels along the left edge. Everything else prints as before. Hype Train printing still needs the four triggers in Streamer.bot (Twitch, Hype Train). If you updated to 2.5.0 without importing Printer Bot again, add them by hand or import once more.",
   "successor": null,
   "revokeKeys": []
 }

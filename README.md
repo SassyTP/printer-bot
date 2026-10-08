@@ -13,6 +13,11 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
+## What is new in 2.5.1
+
+1. **The locomotive is turned around.** On the Hype Train Start receipt the locomotive now prints first, at the top of the receipt, with its front facing the top edge and its wheels along the left edge. Before, it faced the bottom and printed last. The rail car is still the last thing on the Level up receipt, and the caboose is still the first thing on the End receipt.
+2. Everything else prints exactly as before, and all settings remain the same. No re-import is needed if your action already has the four Hype Train triggers from 2.5.0: this one arrives as a program update in the dock's Updates card.
+
 ## What is new in 2.5.0
 
 1. **Hype Trains print.** When a Hype Train starts, a **steam locomotive** prints. It shows when the train started and what kind it is: Normal, Treasure or Golden Kappa. Each kind has its own drawing. A **conductor's cap** sits on top of the avatar of the Conductor, the top cheerer of the train, and prints again, with a new name, every time someone cheers more than the Conductor and takes the cap. A **rail car** with the new level painted on its side prints at every level up, with the bits so far and how long the train has run. When the train ends a **caboose** prints, with the Conductor, the next four cheerers, the total bits and the final level. The locomotive, the rail car and the caboose print long ways down the paper, with the wheels down the left edge and the front of the train facing the bottom of the receipt. The locomotive and the rail car are the last thing on their receipts and the caboose is the first.
