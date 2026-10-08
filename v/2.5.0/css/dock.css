@@ -1,0 +1,933 @@
+/*
+ * Printer Bot dock (control panel)
+ *
+ * Styles the OBS dock only. Receipts are styled by the receipt page (renderer.html) and the streamer's theme.css.
+ *
+ * Fonts: "Inter" if it is installed locally, otherwise the system font.
+ */
+
+
+/* ------------------------------------------------------------------ */
+/* Variables                                                          */
+/* ------------------------------------------------------------------ */
+
+:root {
+    /* Read by js/app.js to build the page title (the domain, a bullet character and the title) */
+    --domain: SassyTP;
+
+    /* Surfaces */
+    --background-color: #181818;
+    --dialog-background: #1d1d1d;
+    --card-background: #1d1d1d;
+    --callout-background: #181818;
+    --input-background: #171717;
+    --button-color: #2e2e2e;
+
+    /* Lines */
+    --border-color: #404040;
+    --border-soft: #40404080;
+
+    /* Status */
+    --accent-color: #2196f3;
+    --success-color: #3be477;
+    --warn-color: #e0a73a;
+    --error-color: #c65e5e;
+    --error-background: #a82d2e33;
+    --mandatory-field-color: #c93f3f;
+
+    --blur-intensity: 20px;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Base                                                               */
+/* ------------------------------------------------------------------ */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Inter, system-ui, sans-serif;
+    color: white;
+    background-color: var(--background-color);
+}
+
+/* .setting and similar classes set their own display, which would beat the hidden attribute */
+[hidden] {
+    display: none !important;
+}
+
+.required {
+    color: var(--mandatory-field-color);
+}
+
+.muted {
+    opacity: 0.6;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Text                                                               */
+/* ------------------------------------------------------------------ */
+
+.title {
+    font-weight: 900;
+    font-size: 1.2em;
+    text-transform: uppercase;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.9;
+}
+
+.setting-label {
+    display: block;
+    font-weight: 500;
+}
+
+.setting-description,
+.hint {
+    font-size: 0.9em;
+    font-weight: 100;
+}
+
+.hint {
+    margin: 0;
+}
+
+.note {
+    margin: 0;
+    padding: 0.7em 0.9em;
+    font-size: 0.9em;
+    background: #e0a73a22;
+    border: 1px solid #e0a73a55;
+    border-radius: 0.5em;
+}
+
+.note.error {
+    color: var(--error-color);
+    background: var(--error-background);
+    border-color: var(--error-color);
+}
+
+/* messages about the page itself (a bad ?config=, a config.json that did not load) */
+#page-notices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+}
+
+#page-notices:empty {
+    display: none;
+}
+
+.steps {
+    margin: 0;
+    padding-left: 1.4em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    font-size: 0.95em;
+}
+
+.saved {
+    white-space: nowrap;
+    margin-left: 0.6em;
+    font-size: 0.85em;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--success-color);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Controls: buttons, inputs, selects, switches, scrollbars           */
+/* ------------------------------------------------------------------ */
+
+button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.5em 1em;
+    font-size: 1em;
+    font-weight: 600;
+    color: white;
+    background-color: var(--button-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5em;
+    opacity: 0.8;
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.icon-button {
+    width: 1em;
+    height: 1em;
+    padding: 1em;
+    font-size: 1.1em;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+}
+
+.icon-button:hover {
+    background: var(--button-color);
+}
+
+.icon-button img {
+    height: 1em;
+}
+
+.inline-button {
+    display: inline-flex;
+    width: auto;
+    margin-left: 0.5em;
+    padding: 0.2em 0.7em;
+    font-size: 0.9em;
+}
+
+/* the Copy import code button inside the "action is older" note sits on its own line under the text */
+#action-outdated .inline-button {
+    display: flex;
+    width: fit-content;
+    margin: 0.6em 0 0;
+}
+
+/* the Reload dock button in the "dock page is older" note does the same */
+#dock-outdated .inline-button {
+    display: flex;
+    width: fit-content;
+    margin: 0.6em 0 0;
+}
+
+.button-row {
+    display: flex;
+    gap: 0.6em;
+}
+
+.button-row > * {
+    flex: 1;
+}
+
+/*
+ * Every text/number input and every dropdown gets the same box model and the same height. A <select> is border-box by default
+ * and an <input> is content-box. With a shared width (see .setting below), the input came out as wide as the select plus its
+ * padding (about 14 px wider) and, with its own line height, 2 px shorter. Fixing both makes them identical at any width.
+ */
+input:not([type="checkbox"]),
+select {
+    box-sizing: border-box;
+    height: 2.5em;
+    padding: 0.5em;
+    font-family: inherit;
+    font-size: 0.9em;
+    line-height: normal;
+    color: white;
+    background-color: var(--input-background);
+    border: none;
+    border-radius: 0.5em;
+    outline: 1px solid var(--border-color);
+    transition: 0.2s;
+}
+
+/* Chrome adds 4 px of its own space before the text in a dropdown. Taking it off the padding lines the text up with the number boxes. */
+select {
+    min-width: 0;
+    padding-left: calc(0.5em - 4px);
+    cursor: pointer;
+}
+
+/* a dropdown next to a button (Test card) stretches to the button's height */
+.button-row > select {
+    height: auto;
+}
+
+input:not([type="checkbox"]):disabled {
+    opacity: 0.5;
+}
+
+input:not([type="checkbox"]):focus,
+select:focus {
+    outline: 1px solid var(--accent-color);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+/* "Remember on this computer" */
+.check {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    cursor: pointer;
+}
+
+.check input {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.field-row {
+    display: flex;
+    gap: 1em;
+}
+
+.field-row .field {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Toggle switch: <label class="switch"><input type="checkbox"><span class="slider"></span></label> */
+.switch {
+    position: relative;
+    display: inline-block;
+    flex: none;
+    width: 3em;
+    height: 1.5em;
+    overflow: hidden;
+}
+
+.switch input {
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+.slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 1.5em;
+    transition: 0.4s;
+}
+
+.slider::before {
+    content: "";
+    position: absolute;
+    left: 0.2em;
+    top: 50%;
+    width: 1.1em;
+    height: 1.1em;
+    background-color: white;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    transition: 0.4s;
+}
+
+input:checked + .slider {
+    background-color: var(--accent-color);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--accent-color);
+}
+
+input:checked + .slider::before {
+    transform: translate(1.5em, -50%);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2c2c2c;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #9f9f9f;
+    border: none;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #d1d1d1;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Layout: header + scrolling content area                            */
+/* ------------------------------------------------------------------ */
+
+#dock-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+    padding: 0 1em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+    z-index: 1;
+}
+
+#header-end {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: auto;
+}
+
+.brand-logo {
+    height: 40px;
+}
+
+#content,
+#main {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+#content {
+    flex: 1;
+    overflow: auto;
+    padding: 1em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Cards                                                              */
+/* ------------------------------------------------------------------ */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    padding: 1em;
+    background: var(--card-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.6em;
+}
+
+.status-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    font-weight: 600;
+}
+
+.dot {
+    flex: none;
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    background: #777;
+}
+
+.dot.ok { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+.dot.warn { background: var(--warn-color); }
+.dot.bad { background: var(--error-color); }
+.dot.info { background: var(--accent-color); }
+
+/* label / value pairs */
+.kv {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35em 1em;
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.kv dt {
+    font-weight: 100;
+    opacity: 0.75;
+}
+
+.kv dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.signed {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.queue-error,
+.queue-stale {
+    color: var(--warn-color);
+}
+
+.queue-unknown {
+    opacity: 0.7;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Settings rows                                                      */
+/* ------------------------------------------------------------------ */
+
+.setting {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.8em;
+}
+
+.setting > div:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Every control on the right of a row (dropdown, number/text input, or the button group) has the same width */
+.setting > select,
+.setting > input,
+.setting > .setting-actions {
+    flex: none;
+    width: 14em;
+    max-width: 50%;
+    margin-left: auto;
+}
+
+.setting .switch {
+    margin-left: auto;
+}
+
+/* one or two buttons where a row would have an input (update source, reset renderer) */
+.setting-actions {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    font-size: 0.9em;               /* the same em as the inputs and dropdowns, so 14em is the same width */
+}
+
+.setting-actions button {
+    box-sizing: border-box;
+    min-height: 2.5em;
+    padding: 0.3em 0.8em;
+    line-height: 1.2;
+}
+
+button.confirming {
+    color: #1d1d1d;
+    background-color: var(--warn-color);
+    border-color: var(--warn-color);
+    opacity: 1;
+}
+
+.skipped {
+    margin-top: 0.3em;
+    color: var(--warn-color);
+}
+
+.example-line {
+    margin-top: 0.3em;
+    opacity: 0.8;
+}
+
+/* "Advanced": a collapsible group at the bottom of the settings card */
+.advanced {
+    border-top: 1px solid var(--border-soft);
+    padding-top: 0.8em;
+}
+
+.advanced > summary {
+    cursor: pointer;
+    font-weight: 500;
+    opacity: 0.85;
+    list-style: none;
+    user-select: none;
+}
+
+.advanced > summary::-webkit-details-marker {
+    display: none;
+}
+
+.advanced > summary::before {
+    content: "\25B8";
+    display: inline-block;
+    width: 1.1em;
+    transition: transform 0.12s;
+}
+
+.advanced[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.advanced > .setting {
+    margin-top: 0.9em;
+}
+
+.example {
+    margin-top: 0.4em;
+    min-height: 2.7em;          /* two lines: the rows below don't jump while the example changes as you type */
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.advanced .note {
+    margin-top: 0.5em;
+}
+
+/* narrow docks (OBS panels): the input or buttons go under their text, so the text doesn't get squeezed into a thin column
+   (rows with a toggle switch keep the switch on the right) */
+@media (max-width: 640px) {
+    .advanced > .setting.stack-narrow,
+    .update-layouts > .setting.stack-narrow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .example {
+        min-height: 4.2em;      /* three lines */
+    }
+
+    .advanced > .setting.stack-narrow > input,
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions {
+        width: 100%;                /* 100% wide including padding and border (everything is border-box), so it lines up with the text above */
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions {
+        flex-direction: row;
+    }
+
+    .advanced > .setting.stack-narrow > .setting-actions button,
+    .update-layouts > .setting.stack-narrow > .setting-actions button {
+        flex: 1;
+    }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Updates card                                                       */
+/* ------------------------------------------------------------------ */
+
+/* The whole card is one collapsible group that stays closed until it is opened. It reuses the look of "Advanced" (the same marker and summary),
+   without the line above it, because the card has its own border. The heading is inside the summary and sits inline next to the marker. */
+.advanced.updates-box {
+    border-top: none;
+    padding-top: 0;
+}
+
+.updates-box > summary {
+    opacity: 1;
+}
+
+.updates-box > summary > h2 {
+    display: inline;
+}
+
+/* what needs attention while the card is closed. An open card says it in full, so the hint goes then. */
+#updates-hint:not(:empty)::before {
+    content: "\A0\B7\A0";
+}
+
+.updates-box[open] > summary > #updates-hint {
+    display: none;
+}
+
+/* the body keeps the layout the card had before it became a group: a column of blocks with a gap */
+.updates-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.updates-body .note {
+    margin-top: 0;
+}
+
+.update-layouts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    padding-top: 0.9em;
+    border-top: 1px solid var(--border-soft);
+}
+#update-source-state {
+    overflow-wrap: anywhere;
+}
+.update-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+/* the small dot next to the connection icon while an update is available.
+   The content box of the button around it is 0 wide (its size comes from the padding), so the dot needs flex: none or it shrinks to nothing. */
+.update-dot {
+    display: block;
+    flex: none;
+    width: 0.6em;
+    height: 0.6em;
+    background: var(--accent-color);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--accent-color);
+}
+
+#update-badge {
+    margin-right: -0.4em;
+}
+
+progress {
+    box-sizing: border-box;
+    width: 100%;
+    height: 0.5em;
+    appearance: none;
+    border: none;
+    border-radius: 0.25em;
+    background: var(--input-background);
+}
+
+progress::-webkit-progress-bar {
+    background: var(--input-background);
+    border-radius: 0.25em;
+}
+
+progress::-webkit-progress-value {
+    background: var(--accent-color);
+    border-radius: 0.25em;
+}
+
+/* The Update button is the one thing the card asks for, so it carries the accent color. Armed, it keeps the warning color of button.confirming. */
+#core-update-button:not(.confirming):not(:disabled) {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    opacity: 1;
+}
+
+#core-update-button:not(.confirming):not(:disabled):hover {
+    filter: brightness(1.1);
+}
+
+#update-message {
+    overflow-wrap: anywhere;
+}
+
+/* the release notes: plain text, line breaks kept */
+.update-notes {
+    margin: 0.3em 0 0;
+    padding: 0.6em 0.8em;
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    background: var(--callout-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.5em;
+}
+
+/* the one-time import: a short text, the steps and the copy button */
+#update-reimport {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+}
+
+#update-reimport p {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* a newer updater exists: a calm hint, no warning color */
+#update-reimport:not(.note) {
+    padding-top: 0.2em;
+    font-size: 0.9em;
+    font-weight: 100;
+}
+
+#update-more > .setting .setting-description {
+    margin-top: 0.2em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Import code result (hash + manual-copy box)                        */
+/* ------------------------------------------------------------------ */
+
+.import-result {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    margin-top: 0.6em;
+}
+
+.import-result p {
+    overflow-wrap: anywhere;
+}
+
+.import-hash {
+    font-family: monospace;
+}
+
+textarea.import-code {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.5em;
+    resize: vertical;
+    font-family: monospace;
+    font-size: 0.8em;
+    color: white;
+    background-color: var(--input-background);
+    border: none;
+    border-radius: 0.5em;
+    outline: 1px solid var(--border-color);
+}
+
+/* a temporary box used only to put text on the clipboard */
+.offscreen {
+    position: fixed;
+    top: 0;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Preview + callout                                                  */
+/* ------------------------------------------------------------------ */
+
+#preview-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.8em;
+    background: #fff;
+    border-radius: 0.5em;
+    color: #000;
+}
+
+#preview-img {
+    max-width: 100%;
+    image-rendering: pixelated;
+}
+
+#preview-img:not([src]) {
+    display: none;
+}
+
+#preview-caption {
+    text-align: center;
+}
+
+.setting-description + .callout {
+    margin-top: 0.5em;
+}
+.callout + .setting-description {
+    margin-top: 0.4em;
+}
+.callout {
+    padding: 0.7em 0.9em;
+    font-family: monospace;
+    font-size: 0.85em;
+    overflow-wrap: anywhere;
+    background-color: var(--callout-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.5em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Overlay: blur layer + connect dialog                               */
+/* ------------------------------------------------------------------ */
+
+.blur {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+}
+
+/* Hidden until js/app.js sets style.display = "flex" */
+.dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    gap: 1em;
+    box-sizing: border-box;
+    width: 90%;
+    max-width: 30em;
+    max-height: 90vh;
+    padding: 1em;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 1em;
+    background-color: var(--dialog-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.5em;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+    backdrop-filter: blur(var(--blur-intensity));
+}
+
+.dialog-nav-button {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    width: 1em;
+    height: 1em;
+    padding: 0;
+    font-size: 1.5em;
+    font-weight: 100;
+    background: transparent;
+    border: none;
+}
+
+.dialog-nav-button:hover {
+    background: var(--button-color);
+}
+
+.dialog-brand {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+}
+
+#sb-connect-button:enabled:hover {
+    background-color: var(--success-color);
+}
+
+#sb-error-label {
+    display: none;
+    padding: 1em;
+    color: var(--error-color);
+    background: var(--error-background);
+    border-radius: 0.5em;
+}
