@@ -13,10 +13,11 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## What is new in 2.5.1
+## What is new in 2.5.2
 
-1. **The locomotive faces the top.** On the Hype Train Start receipt the locomotive prints first, at the top of the receipt. Its front points at the top edge and its wheels run along the left edge. The rail car is still the last thing on the Level up receipt, and the caboose is still the first thing on the End receipt.
-2. Everything else prints as before and all settings stay the same. The update arrives in the dock's Updates card. If your action already has the four Hype Train triggers from 2.5.0, you do not need to import again.
+1. **Months paid ahead.** A Twitch subscription or resubscription that was paid 3, 6 or 12 months in advance prints a line under the months, for example "Prepaid for 6 months". A one-month subscription prints as before.
+2. **A resubscription test print.** **Test print** has a new sample, **TwitchReSub**, with six months paid ahead.
+3. Everything else prints as before and all settings stay the same. The update arrives in the dock's Updates card and needs no re-import.
 
 ## Requirements
 

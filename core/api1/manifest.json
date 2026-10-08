@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "2.5.1",
-  "built": "202610081757",
+  "version": "2.5.2",
+  "built": "202610082037",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-2.5.1.bin",
-      "size": 363008,
-      "sha256": "d5281307d0ee0282f89167fccc86bb9d50f6a5148b17d487f0593e26f1893da3"
+      "name": "core-2.5.2.bin",
+      "size": 365056,
+      "sha256": "7db5f468398388348ae18ec739fa2e09fec971be112ea5830bd94e1d996a7a5f"
     }
   ],
-  "notes": "Printer Bot 2.5.1 turns the Hype Train locomotive around. On the Start receipt it now prints first, at the top, with its front facing the top of the receipt and its wheels along the left edge. Everything else prints as before. Hype Train printing still needs the four triggers in Streamer.bot (Twitch, Hype Train). If you updated to 2.5.0 without importing Printer Bot again, add them by hand or import once more.",
+  "notes": "Printer Bot 2.5.2 prints the months a Twitch subscriber paid ahead. A subscription or resubscription paid 3, 6 or 12 months in advance gets a line such as Prepaid for 6 months. Test print in the dock has a new TwitchReSub sample that shows it. Everything else prints as before, and no re-import is needed.",
   "successor": null,
   "revokeKeys": []
 }
