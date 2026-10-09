@@ -13,11 +13,12 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## What is new in 2.5.3
+## What is new in 2.5.4
 
-1. **A clearer subscription receipt.** A Twitch resubscription prints one line each for the total time subscribed, the current streak and the months paid in advance, for example "Total time subscribed: 8 months", "Current streak: 5 months" and "Prepaid in advance: 6 months!". A line shows only when it applies. A first-time subscriber who paid ahead gets the prepaid line too.
-2. **The test print shows all three.** The **TwitchReSub** sample in **Test print** has all three lines.
-3. Everything else prints as before and all settings stay the same. The update arrives in the dock's Updates card and needs no re-import.
+1. **Both Conductors of a Hype Train.** Twitch crowns two: the Bits Conductor (the top cheerer) and the Gift Sub Conductor (the top sub gifter). Each gets a receipt with the cap when they first appear and another when somebody takes the cap. The Level up receipt lists both, and the receipt at the end of the train names both with their figures. A Conductor nobody took reads "Nobody".
+2. **A new test print.** **Test print** has a new step, **TwitchHypeTrainSubConductor**, and the end-to-end test now prints six receipts.
+3. **Fixes.** A Fourthwall order prints every item (50 at most) and its closing line. A long name is broken at the end of the line, so its ending stays on the paper. A name that shows as nothing reads "Anonymous supporter". The dock keeps Extra feed before cut and the High Roller threshold in their range (reload the dock for that one).
+4. Everything else prints as before and all settings stay the same. The update arrives in the dock's Updates card and needs no re-import.
 
 ## Requirements
 
