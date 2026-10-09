@@ -1,6 +1,6 @@
 # Printer Bot
 
-Printer Bot, by SassyTP, is a Streamer.bot action that prints a receipt on a thermal printer when something happens on your stream. It supports Twitch, YouTube, Kick, StreamElements, Streamlabs and Fourthwall.
+Printer Bot, by SassyTP, is a Streamer.bot action that prints a receipt on a thermal printer, or on up to five of them, when something happens on your stream. It supports Twitch, YouTube, Kick, StreamElements, Streamlabs and Fourthwall.
 
 For each event it draws the receipt in a hidden Microsoft Edge window, turns it into a black-and-white picture and sends it to your printer. A control panel, the **dock**, sits in OBS. Printing works with OBS closed.
 
@@ -13,12 +13,19 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## What is new in 2.5.4
+## Prerelease 3.0.0-beta.1
 
-1. **Both Conductors of a Hype Train.** Twitch crowns two: the Bits Conductor (the top cheerer) and the Gift Sub Conductor (the top sub gifter). Each gets a receipt with the cap when they first appear and another when somebody takes the cap. The Level up receipt lists both, and the receipt at the end of the train names both with their figures. A Conductor nobody took reads "Nobody".
-2. **A new test print.** **Test print** has a new step, **TwitchHypeTrainSubConductor**, and the end-to-end test now prints six receipts.
-3. **Fixes.** A Fourthwall order prints every item (50 at most) and its closing line. A long name is broken at the end of the line, so its ending stays on the paper. A name that shows as nothing reads "Anonymous supporter". The dock keeps Extra feed before cut and the High Roller threshold in their range (reload the dock for that one).
-4. Everything else prints as before and all settings stay the same. The update arrives in the dock's Updates card and needs no re-import.
+The newest release is 2.5.4. Version 3.0.0-beta.1 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it and the steps to go back to 2.5.4.
+
+What is new in it:
+
+1. **Up to five printers at once.** In the dock, **Add another printer** (under the rows of the first printer) gives the dock a card for each printer. Every printer has its own paper width, output, picture style, paper cut and extra feed, so an 80 mm printer and a 58 mm printer can work side by side. With one printer the dock looks and works as it did before 3.0.0.
+2. **Rules choose the printer.** A rule names a trigger, such as Twitch: Cheer, and can test the parameters Streamer.bot sends with it: the bits of a cheer, the tier of a subscription, the viewers of a raid, the amount of a tip, a name, a message and more, for every kind of event Printer Bot prints. For example, cheers of more than 500 bits print on printer 1, and cheers of 500 bits or less print on printer 3. A rule holds up to four tests and all of them have to pass. An event prints on every printer that has a rule it passes.
+3. **Everything else.** One printer takes each event that no rule names. Turn on the switch **Use this printer for everything else** on its card, or choose the printer in the list **Everything else prints on** under the cards. Both show the same pick, and the switch that was on goes off. It is printer 1 until you pick another.
+4. **Checking.** **Test print** goes to one printer or to all of them. **Check where an event prints** says which printers an event with the values you type would print on, and prints nothing.
+5. Settings from 2.5 load as one printer with no rules, so nothing changes until you add a printer.
+6. **Save settings.** The dock has a new **Backup** card. **Save settings** writes your printers, rules and print options to a file with one click, and **Restore settings** puts them back. If Streamer.bot ever loses its data, the file saves you the setup work. See [Backing up your settings](PRINTER_OPERATION.md#backing-up-your-settings).
+7. **Prerelease versions are your choice.** The Updates card has a new switch, **Try prerelease versions**. It is off until you switch it on. **Install updates automatically** is off until you switch it on, and a prerelease is never installed by itself.
 
 ## Requirements
 
@@ -39,14 +46,16 @@ Installing takes two steps.
 
 Printer Bot now prints a receipt for every event listed under [What prints](PRINTER_OPERATION.md#what-prints). Channel point rewards stay off until you switch them on (see [Channel point rewards](TROUBLESHOOTING.md#channel-point-rewards)).
 
+To try the prerelease, import [import.prerelease.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/beta/import.prerelease.txt) in step 1 instead. [Prerelease versions](UPDATING.md#prerelease-versions) says what to expect.
+
 Download this repository as a ZIP only if you [host your own dock](DOCK_SELECTION.md#host-it-yourself).
 
 ## Guides
 
-- [Printer Operation](PRINTER_OPERATION.md): what prints, the output modes, the dock's settings, editing `settings.json` without the dock, what viewers can put on a receipt, the printer queue, styling receipts with `theme.css` and where Printer Bot keeps its files.
+- [Printer Operation](PRINTER_OPERATION.md): what prints, the output modes, the dock's settings, printers and rules, backing up your settings, editing `settings.json` without the dock, what viewers can put on a receipt, the printer queue, styling receipts with `theme.css` and where Printer Bot keeps its files.
 - [Privacy](PRIVACY.md): what stays on your PC, the services Printer Bot contacts and how Printer Bot is protected.
 - [Troubleshooting](TROUBLESHOOTING.md): the dock does not connect, nothing prints, channel point rewards, locking the WebSocket server and checking your import.
-- [Updating](UPDATING.md): how new versions reach you, installing them from the dock, going back, and what the Updates card says.
+- [Updating](UPDATING.md): how new versions reach you, installing them from the dock, prerelease versions, going back, and what the Updates card says.
 - [Dock Selection](DOCK_SELECTION.md): the hosted dock or your own, and how to host one.
 
 ## What is in this folder
@@ -56,14 +65,13 @@ Download this repository as a ZIP only if you [host your own dock](DOCK_SELECTIO
 | `README.md`, `PRINTER_OPERATION.md`, `PRIVACY.md`, `TROUBLESHOOTING.md`, `UPDATING.md`, `DOCK_SELECTION.md`, `LICENSE`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md` | this guide and the five guides it links to, the licence, security reporting and third-party notices |
 | `import.txt` | **the Streamer.bot import code**, the one file you need to install Printer Bot |
 | `import.sha256.txt` | the SHA-256 fingerprint of `import.txt`, for the optional check in [Troubleshooting](TROUBLESHOOTING.md#check-your-import-optional) |
-| `index.html`, `js/router.js`, `css/router.css`, `versions.json` | the launcher that asks the action for its version and opens the matching dock page, and the list of dock pages (with a hint about the newest program update, which the launcher uses for the bar described in [Updating](UPDATING.md#from-221-230-or-231-import-once)) |
-| `v/` | the dock pages for Printer Bot 2.3.0 and later (`v/2.3.0/`, `v/2.4.0/`, `v/2.4.5/` and `v/2.5.0/`), one folder for each version, with its own receipt layout, signature and `version.json` |
+| `import.prerelease.txt`, `import.prerelease.sha256.txt` | the same two files for the prerelease (see [Prerelease versions](UPDATING.md#prerelease-versions)) |
+| `index.html`, `js/router.js`, `css/router.css`, `versions.json` | the launcher that asks the action for its version and opens the matching dock page, and the list of dock pages (with a hint about the newest program update, which the launcher uses for the bar described in [Updating](UPDATING.md#from-230-or-231-import-once)) |
+| `v/` | the dock pages for Printer Bot 2.3.0 and later (`v/2.3.0/`, `v/2.4.0/`, `v/2.4.5/`, `v/2.5.0/` and `v/3.0.0-beta.1/`), one folder for each version, with its own receipt layout, signature and `version.json` |
 | `core/api1/manifest.json`, `core/api1/manifest.json.sig`, `core/api1/core-<version>.bin` | program updates for the dock's **Update** button: a signed list that names the newest program, its signature and the program itself (served by the dock's host) |
-| `dock-2.2.1.html`, `css/dock.css`, `js/app.js` | the dock page for Printer Bot 2.2.1 and older, kept as it was |
-| `config.json` | tells the 2.2.1 dock which Printer Bot action to look for and the oldest action version it accepts (each folder under `v/` has its own) |
+| `core/api1/prerelease/` | the same three files for the prerelease, which Printer Bot reads only when you switch **Try prerelease versions** on |
 | `vendor/streamerbot-client.js`, `vendor/LICENSE-streamerbot-client.txt` | Streamer.bot's own client library for the dock (MIT licence, notice included) |
-| `assets/logo.png`, `assets/icons/*.svg` | the dock's header picture and connection icons |
-| `renderer.html`, `renderer.html.sig`, `version.json` | the receipt layout of version 2.2.1, the author's signature over it, and a small file naming the layout version (served by the dock's host for signed updates). Newer versions keep theirs under `v/` |
+| `assets/logo.png` | the dock's header picture |
 | `.gitignore`, `.gitattributes` | repository settings |
 
 ## Licence

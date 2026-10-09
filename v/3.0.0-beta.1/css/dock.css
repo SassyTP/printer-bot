@@ -12,7 +12,7 @@
 /* ------------------------------------------------------------------ */
 
 :root {
-    /* Read by js/app.js to build the page title ("SassyTP • Printer Bot") */
+    /* Read by js/app.js to build the page title (the domain, a bullet character and the title) */
     --domain: SassyTP;
 
     /* Surfaces */
@@ -207,6 +207,13 @@ button:disabled {
 
 /* the Copy import code button inside the "action is older" note sits on its own line under the text */
 #action-outdated .inline-button {
+    display: flex;
+    width: fit-content;
+    margin: 0.6em 0 0;
+}
+
+/* the Reload dock button in the "dock page is older" note does the same */
+#dock-outdated .inline-button {
     display: flex;
     width: fit-content;
     margin: 0.6em 0 0;
@@ -444,6 +451,7 @@ input:checked + .slider::before {
 .dot.ok { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
 .dot.warn { background: var(--warn-color); }
 .dot.bad { background: var(--error-color); }
+.dot.info { background: var(--accent-color); }
 
 /* label / value pairs */
 .kv {
@@ -562,7 +570,7 @@ button.confirming {
 }
 
 .advanced > summary::before {
-    content: "▸";
+    content: "\25B8";
     display: inline-block;
     width: 1.1em;
     transition: transform 0.12s;
@@ -590,7 +598,9 @@ button.confirming {
 /* narrow docks (OBS panels): the input or buttons go under their text, so the text doesn't get squeezed into a thin column
    (rows with a toggle switch keep the switch on the right) */
 @media (max-width: 640px) {
-    .advanced > .setting.stack-narrow {
+    .advanced > .setting.stack-narrow,
+    .update-layouts > .setting.stack-narrow,
+    .backup-body > .setting.stack-narrow {
         flex-direction: column;
         align-items: stretch;
     }
@@ -600,19 +610,210 @@ button.confirming {
     }
 
     .advanced > .setting.stack-narrow > input,
-    .advanced > .setting.stack-narrow > .setting-actions {
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions,
+    .backup-body > .setting.stack-narrow > .setting-actions {
         width: 100%;                /* 100% wide including padding and border (everything is border-box), so it lines up with the text above */
         max-width: 100%;
         margin-left: 0;
     }
 
-    .advanced > .setting.stack-narrow > .setting-actions {
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions,
+    .backup-body > .setting.stack-narrow > .setting-actions {
         flex-direction: row;
     }
 
-    .advanced > .setting.stack-narrow > .setting-actions button {
+    .advanced > .setting.stack-narrow > .setting-actions button,
+    .update-layouts > .setting.stack-narrow > .setting-actions button,
+    .backup-body > .setting.stack-narrow > .setting-actions button {
         flex: 1;
     }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Backup card                                                        */
+/* ------------------------------------------------------------------ */
+
+.backup-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.backup-body .note {
+    margin-top: 0;
+}
+
+#settings-restore-summary p {
+    margin: 0 0 0.4em;
+}
+
+#settings-restore-preview > .button-row {
+    margin-top: 0.7em;
+}
+
+#backup-message.error {
+    color: var(--error-color);
+}
+
+#backup-text-box > .hint,
+#backup-text-box > .button-row,
+#backup-text-box > textarea {
+    margin-top: 0.6em;
+}
+
+#backup-text-box > textarea {
+    display: block;
+}
+
+#backup-text-box > textarea[hidden] {
+    display: none;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Updates card                                                       */
+/* ------------------------------------------------------------------ */
+
+/* The whole card is one collapsible group that stays closed until it is opened. It reuses the look of "Advanced" (the same marker and summary),
+   without the line above it, because the card has its own border. The heading is inside the summary and sits inline next to the marker. */
+.advanced.updates-box {
+    border-top: none;
+    padding-top: 0;
+}
+
+.updates-box > summary {
+    opacity: 1;
+}
+
+.updates-box > summary > h2 {
+    display: inline;
+}
+
+/* what needs attention while the card is closed. An open card says it in full, so the hint goes then. */
+#updates-hint:not(:empty)::before {
+    content: "\A0\B7\A0";
+}
+
+.updates-box[open] > summary > #updates-hint {
+    display: none;
+}
+
+/* the body keeps the layout the card had before it became a group: a column of blocks with a gap */
+.updates-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.updates-body .note {
+    margin-top: 0;
+}
+
+.update-layouts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    padding-top: 0.9em;
+    border-top: 1px solid var(--border-soft);
+}
+#update-source-state {
+    overflow-wrap: anywhere;
+}
+.update-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+/* the small dot next to the connection icon while an update is available.
+   The content box of the button around it is 0 wide (its size comes from the padding), so the dot needs flex: none or it shrinks to nothing. */
+.update-dot {
+    display: block;
+    flex: none;
+    width: 0.6em;
+    height: 0.6em;
+    background: var(--accent-color);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--accent-color);
+}
+
+#update-badge {
+    margin-right: -0.4em;
+}
+
+progress {
+    box-sizing: border-box;
+    width: 100%;
+    height: 0.5em;
+    appearance: none;
+    border: none;
+    border-radius: 0.25em;
+    background: var(--input-background);
+}
+
+progress::-webkit-progress-bar {
+    background: var(--input-background);
+    border-radius: 0.25em;
+}
+
+progress::-webkit-progress-value {
+    background: var(--accent-color);
+    border-radius: 0.25em;
+}
+
+/* The Update button is the one thing the card asks for, so it carries the accent color. Armed, it keeps the warning color of button.confirming. */
+#core-update-button:not(.confirming):not(:disabled) {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    opacity: 1;
+}
+
+#core-update-button:not(.confirming):not(:disabled):hover {
+    filter: brightness(1.1);
+}
+
+#update-message {
+    overflow-wrap: anywhere;
+}
+
+/* the release notes: plain text, line breaks kept */
+.update-notes {
+    margin: 0.3em 0 0;
+    padding: 0.6em 0.8em;
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    background: var(--callout-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.5em;
+}
+
+/* the one-time import: a short text, the steps and the copy button */
+#update-reimport {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+}
+
+#update-reimport p {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* a newer updater exists: a calm hint, no warning color */
+#update-reimport:not(.note) {
+    padding-top: 0.2em;
+    font-size: 0.9em;
+    font-weight: 100;
+}
+
+#update-more > .setting .setting-description {
+    margin-top: 0.2em;
 }
 
 
@@ -688,6 +889,12 @@ textarea.import-code {
     text-align: center;
 }
 
+.setting-description + .callout {
+    margin-top: 0.5em;
+}
+.callout + .setting-description {
+    margin-top: 0.4em;
+}
 .callout {
     padding: 0.7em 0.9em;
     font-family: monospace;
@@ -769,4 +976,330 @@ textarea.import-code {
     color: var(--error-color);
     background: var(--error-background);
     border-radius: 0.5em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* More than one printer (3.0)                                        */
+/* ------------------------------------------------------------------ */
+
+/* With one printer the wrappers around the rows of printer 1 add nothing: the rows lay out as if they were children of the card, as they did before 3.0 */
+#printers-single,
+#printer-one-main,
+#printer-one-more {
+    display: contents;
+}
+
+/* in the card of printer 1 they are blocks again, with the gap the card gives its rows */
+.printer-body > #printer-one-main,
+.printer-body > #printer-one-more,
+.printer-more-body > #printer-one-more {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+#printers-multi {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+.printer-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+.printer-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+    padding: 0.8em;
+    background: var(--callout-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.6em;
+}
+
+.printer-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em 0.6em;
+}
+
+.printer-card-title {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.printer-card-name {
+    flex: 1 1 5em;
+    min-width: 0;
+    font-size: 0.9em;
+    overflow-wrap: break-word;
+}
+
+.printer-card-tools {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.6em;
+}
+
+.printer-card-else {
+    font-size: 0.8em;
+    color: var(--accent-color);
+}
+
+.small-button {
+    width: auto;
+    padding: 0.25em 0.7em;
+    font-size: 0.85em;
+}
+
+.printer-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+.printer-more {
+    border-top: none;
+    padding-top: 0;
+}
+
+.printer-more > summary .printer-more-hint {
+    margin-left: 0.5em;
+    font-size: 0.85em;
+    font-weight: 100;
+}
+
+.printer-more-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.routing-title {
+    font-size: 0.85em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+}
+
+.routing {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    padding-top: 0.8em;
+    border-top: 1px solid var(--border-soft);
+}
+
+.rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+}
+
+.rule {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 0.6em;
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5em;
+}
+
+.rule.unfinished {
+    border-color: var(--warn-color);
+}
+
+.rule-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.rule-head select {
+    flex: 1 1 11em;
+    min-width: 0;
+}
+
+.rule-number {
+    flex: none;
+    font-size: 0.8em;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.cond {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.cond > select {
+    flex: 1 1 10em;
+    min-width: 0;
+}
+
+.cond > input {
+    flex: 1 1 6em;
+    min-width: 0;
+}
+
+.cond > .cond-field {
+    flex: 1 1 100%;
+}
+
+.cond > .cond-remove {
+    flex: none;
+}
+
+.icon-small {
+    box-sizing: border-box;
+    width: 2.5em;
+    height: 2.5em;
+    padding: 0;
+    font-size: 0.9em;
+}
+
+.rule-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+}
+
+.rule-summary {
+    margin: 0;
+    font-size: 0.85em;
+    opacity: 0.85;
+    overflow-wrap: anywhere;
+}
+
+.rule-summary.warn {
+    color: var(--warn-color);
+    opacity: 1;
+}
+
+.routing-empty {
+    margin: 0;
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.routing-empty.warn {
+    color: var(--warn-color);
+    opacity: 1;
+}
+
+/* The switch that picks a printer for everything else, at the foot of its card (a row like the other switches of the dock). The one that is on is locked, and a printer that is not set up is dimmed */
+.route-pick.on .slider,
+.route-pick .switch input:disabled + .slider {
+    cursor: default;
+}
+
+.route-pick.off .switch input:disabled + .slider {
+    opacity: 0.5;
+}
+
+.route-check .check-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+}
+
+.route-check > .hint,
+.route-check > .setting,
+.route-check > .check-fields,
+.route-check > .button-row,
+.route-check > #check-result {
+    margin-top: 0.9em;
+}
+
+#check-result {
+    font-family: inherit;
+    font-size: 0.9em;
+}
+
+.setting > select.wide {
+    width: 100%;
+    max-width: 100%;
+}
+
+@media (max-width: 399px) {
+    /* A test in a narrow dock keeps its x beside the parameter. The parameter takes the line less the x (it can never share the line with the next part). The test keeps the width
+       of its longest name, so that no name is cut, and the value takes what is left of that line, or the line below when it has less than a short box needs. A variable name and
+       its kind share a line between them. Only the order on the screen changes, the order of the parts for the keyboard stays. */
+    .cond > .cond-field {
+        flex: 1 1 calc(100% - 3em);
+        order: 1;
+    }
+
+    .cond > .cond-remove {
+        order: 2;
+    }
+
+    .cond > .cond-name {
+        flex: 1 1 7em;
+        order: 3;
+    }
+
+    .cond > .cond-kind {
+        flex: 1 1 6em;
+        order: 4;
+    }
+
+    .cond > .cond-op {
+        flex: 1 1 auto;
+        order: 5;
+    }
+
+    .cond > .cond-value {
+        flex: 1 1 5em;
+        order: 6;
+    }
+
+    .cond > select.cond-value {
+        flex-basis: 8em;
+    }
+}
+
+@media (max-width: 369px) {
+    /* The head of a rule in a narrower dock: the number and the x on the first line, the trigger on the line below with all the room there is */
+    .rule-head > select {
+        flex: 1 1 100%;
+        order: 3;
+    }
+
+    .rule-head > .icon-small {
+        margin-left: auto;
+        order: 2;
+    }
+}
+
+@media (max-width: 640px) {
+    #add-printer-row-multi.stack-narrow,
+    #route-else-row.stack-narrow,
+    #add-printer-row.stack-narrow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #route-else-row.stack-narrow > select,
+    #add-printer-row.stack-narrow > .setting-actions,
+    #add-printer-row-multi.stack-narrow > .setting-actions {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
 }

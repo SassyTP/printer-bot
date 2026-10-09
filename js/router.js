@@ -16,9 +16,14 @@
 //     to the newest dock page, which explains the one-time re-import. Hide keeps the banner away until versions.json names a later version.
 //   - The dock reports the backend version again when it changes (after a program update). That can swap the frame to the matching dock page.
 //
+// Since router 3 a version may end in a prerelease part (3.0.0-beta.1). The order is the one of semantic versioning, so a prerelease sits above
+// every older release and below its own release. The rule "newest dock page that is not newer than the action" then needs nothing else:
+// an action that is not a prerelease never gets the page of a prerelease, and a prerelease action gets the page made for it.
+// versions.json names the newest dock page of a release as "latest", which is what an action that does not exist yet gets.
+//
 // Rules this file follows:
-//   - Everything from Streamer.bot and from versions.json is untrusted. Versions are cut to 40 characters and must be 1 to 4 numbers
-//     separated by dots. Page names must match a strict pattern, and anything else in the list is ignored.
+//   - Everything from Streamer.bot and from versions.json is untrusted. A version must follow the rule in the VERSIONS section (at most 40 characters).
+//     Page names must match a strict pattern, and anything else in the list is ignored.
 //   - The only thing sent to Streamer.bot is the one status command the dock sends on every connect anyway.
 //   - index.html has no inline script, style or handler, so the page can carry a strict CSP. Every element is made here or in index.html.
 //     The one size this file sets is a CSS variable (the banner height), which the CSP allows because it goes through the style object.
@@ -29,7 +34,7 @@
 
 // The number of this router. A larger "router" number in versions.json makes this page reload itself once at ./?r=<number>,
 // which is a new address, so an old cached index.html and router.js are replaced. The build tool keeps the two numbers in step.
-const ROUTER_BUILD = 2;
+const ROUTER_BUILD = 3;
 
 const MANIFEST_TIMEOUT_MS = 8000;      // fetching versions.json
 const CONNECT_TIMEOUT_MS = 3000;       // connecting to Streamer.bot, up to and including its greeting
@@ -105,8 +110,8 @@ function MakeStore(area) {
 const local = MakeStore(() => window.localStorage);
 const session = MakeStore(() => window.sessionStorage);
 
-// The backend version the router saw last, with the time it saw it. The time matters because the 2.2.1 dock page cannot report a newer action.
-// A remembered 2.2.1 would otherwise stay in force for as long as the probe keeps failing (a password that is not stored, Streamer.bot started after OBS).
+// The backend version the router saw last, with the time it saw it. The time matters because the action can change while Streamer.bot cannot be reached.
+// A remembered version would otherwise stay in force for as long as the probe keeps failing (a password that is not stored, Streamer.bot started after OBS).
 function RememberVersion(version) {
     local.set(REMEMBER_KEY, version);
     local.set(REMEMBER_AT_KEY, String(Date.now()));
@@ -136,20 +141,62 @@ function ReadRemembered() {
 // VERSIONS //
 //////////////
 
-// "2.3.0" gives [2, 3, 0]. Anything that is not 1 to 4 numbers separated by dots gives null.
-const VERSION_RX = /^\d{1,9}(?:\.\d{1,9}){0,3}$/;
+// The syntax and the order of a version. The rule is written at the top of tools/build/Versions.cs, and the cases in tools/build/version-cases.json
+// are run against this file, the build tool, the loader, the dock page and the hosting kit.
+//   syntax   1 to 4 numbers separated by dots (a number is 0 or 1 to 6 digits without a leading zero), then optionally a dash and 1 to 4 identifiers
+//            separated by dots (an identifier is 1 to 16 of 0-9 A-Z a-z, and one of digits only has no leading zero). At most 40 characters in all.
+//   order    the numbers first (a missing one is 0). With equal numbers a release is above its prereleases. Prereleases compare identifier by identifier:
+//            digits compare as numbers and are below text, text compares character by character, and the longer list wins when the shorter is its start.
+// ParseVersion("3.0.0-beta.1") gives { numbers: [3, 0, 0, 0], pre: ['beta', '1'] }. A text that breaks the rule gives null.
+const MAX_VERSION_LENGTH = 40;
+const NUMBERS_RX = /^(0|[1-9][0-9]{0,5})(\.(0|[1-9][0-9]{0,5})){0,3}$/;
+const IDENTIFIER_RX = /^[0-9A-Za-z]{1,16}$/;
+const DIGITS_RX = /^[0-9]+$/;
 function ParseVersion(v) {
-    if (typeof v !== 'string') return null;
-    const s = str(v, 40).trim();
-    return VERSION_RX.test(s) ? s.split('.').map(Number) : null;
+    if (typeof v !== 'string' || v.length === 0 || v.length > MAX_VERSION_LENGTH) return null;
+    const dash = v.indexOf('-');
+    const head = dash < 0 ? v : v.slice(0, dash);
+    if (!NUMBERS_RX.test(head)) return null;
+    const pre = dash < 0 ? [] : v.slice(dash + 1).split('.');
+    if (pre.length > 4) return null;
+    for (const id of pre) {
+        if (!IDENTIFIER_RX.test(id)) return null;
+        if (id.length > 1 && id[0] === '0' && DIGITS_RX.test(id)) return null;
+    }
+    const numbers = head.split('.').map(Number);
+    while (numbers.length < 4) numbers.push(0);
+    return { numbers, pre };
 }
 
-function CompareParts(a, b) {                // -1, 0 or 1
-    for (let i = 0; i < 4; i++) {
-        const x = a[i] || 0, y = b[i] || 0;
-        if (x !== y) return x < y ? -1 : 1;
+function IsPrerelease(v) {
+    const p = ParseVersion(v);
+    return !!p && p.pre.length > 0;
+}
+
+function CompareIdentifier(x, y) {
+    const nx = DIGITS_RX.test(x), ny = DIGITS_RX.test(y);
+    if (nx && ny) return x.length !== y.length ? (x.length < y.length ? -1 : 1) : (x < y ? -1 : x > y ? 1 : 0);      // no leading zeros, so the longer one is larger
+    if (nx) return -1;
+    if (ny) return 1;
+    return x < y ? -1 : x > y ? 1 : 0;                      // the identifiers are ASCII, so the order of the code units is the ordinal order
+}
+
+// -1, 0 or 1. Both arguments come from ParseVersion.
+function CompareVersions(a, b) {
+    for (let i = 0; i < 4; i++) if (a.numbers[i] !== b.numbers[i]) return a.numbers[i] < b.numbers[i] ? -1 : 1;
+    if (a.pre.length === 0 || b.pre.length === 0) return a.pre.length === b.pre.length ? 0 : (a.pre.length === 0 ? 1 : -1);
+    const n = Math.min(a.pre.length, b.pre.length);
+    for (let i = 0; i < n; i++) {
+        const c = CompareIdentifier(a.pre[i], b.pre[i]);
+        if (c !== 0) return c;
     }
-    return 0;
+    return a.pre.length === b.pre.length ? 0 : (a.pre.length < b.pre.length ? -1 : 1);
+}
+
+// The same for two version texts. Null when one of them is no version.
+function CompareVersionTexts(x, y) {
+    const a = ParseVersion(x), b = ParseVersion(y);
+    return a && b ? CompareVersions(a, b) : null;
 }
 
 
@@ -172,8 +219,8 @@ function ValidPage(page) {
 function NormalizeCore(raw) {
     if (!isObj(raw) || typeof raw.selfUpdateSince !== 'string' || !ParseVersion(raw.selfUpdateSince)) return null;
     return {
-        selfUpdateSince: str(raw.selfUpdateSince, 40).trim(),
-        latest: typeof raw.latest === 'string' && ParseVersion(raw.latest) ? str(raw.latest, 40).trim() : '',
+        selfUpdateSince: raw.selfUpdateSince,
+        latest: typeof raw.latest === 'string' && ParseVersion(raw.latest) ? raw.latest : '',
     };
 }
 
@@ -184,16 +231,16 @@ function NormalizeManifest(raw) {
     const frontends = [];
     for (const e of raw.frontends.slice(0, MAX_FRONTENDS)) {
         if (!isObj(e)) continue;
-        const parts = ParseVersion(e.version);
-        if (!parts || !ValidPage(e.page) || typeof e.build !== 'string' || !BUILD_RX.test(e.build)) continue;
-        if (frontends.some(f => CompareParts(ParseVersion(f.version), parts) === 0)) continue;       // the first entry for a version wins
-        frontends.push({ version: str(e.version, 40).trim(), page: e.page, build: e.build });
+        const parsed = ParseVersion(e.version);
+        if (!parsed || !ValidPage(e.page) || typeof e.build !== 'string' || !BUILD_RX.test(e.build)) continue;
+        if (frontends.some(f => CompareVersions(ParseVersion(f.version), parsed) === 0)) continue;       // the first entry for a version wins
+        frontends.push({ version: e.version, page: e.page, build: e.build });
     }
-    frontends.sort((a, b) => CompareParts(ParseVersion(a.version), ParseVersion(b.version)));
+    frontends.sort((a, b) => CompareVersions(ParseVersion(a.version), ParseVersion(b.version)));
     return {
         router: Number.isInteger(raw.router) && raw.router >= 0 ? raw.router : 0,
         actionId: typeof raw.actionId === 'string' && ACTION_RX.test(raw.actionId) ? raw.actionId : '',
-        latest: typeof raw.latest === 'string' && ParseVersion(raw.latest) ? raw.latest.trim() : '',
+        latest: typeof raw.latest === 'string' && ParseVersion(raw.latest) ? raw.latest : '',
         core: NormalizeCore(raw.core),
         frontends,
     };
@@ -206,14 +253,15 @@ function NeedsBanner(manifest, backendVersion, hasLoader) {
     const m = NormalizeManifest(manifest);
     if (!m || !m.core || hasLoader === true) return null;
     const have = ParseVersion(backendVersion), since = ParseVersion(m.core.selfUpdateSince);
-    if (!have || !since || CompareParts(have, since) >= 0) return null;
+    if (!have || !since || CompareVersions(have, since) >= 0) return null;
     return { since: m.core.selfUpdateSince, latest: m.core.latest };
 }
 
 // Which dock page serves which action:
 //   - The newest dock page whose version is not above the backend version.
 //   - A backend version that is missing, unreadable or below every dock page gets the oldest dock page (the floor).
-//   - null or undefined means nothing is known about the action (not imported yet, no Streamer.bot yet). That gets "latest".
+//   - null or undefined means nothing is known about the action (not imported yet, no Streamer.bot yet). That gets "latest", the newest page of a release.
+//     A manifest without a usable "latest" falls back to the newest page of a release, and when it lists prerelease pages only, to its last page.
 // Returns one of the manifest's frontends ({ version, page, build }), or null when the manifest has none that is usable.
 function PickFrontend(manifest, backendVersion) {
     const m = NormalizeManifest(manifest);
@@ -221,12 +269,15 @@ function PickFrontend(manifest, backendVersion) {
     const list = m.frontends;
     if (backendVersion === null || backendVersion === undefined) {
         const latest = ParseVersion(m.latest);
-        return (latest && list.find(f => CompareParts(ParseVersion(f.version), latest) === 0)) || list[list.length - 1];
+        const named = latest && list.find(f => CompareVersions(ParseVersion(f.version), latest) === 0);
+        if (named) return named;
+        for (let i = list.length - 1; i >= 0; i--) if (!IsPrerelease(list[i].version)) return list[i];
+        return list[list.length - 1];
     }
     const want = ParseVersion(backendVersion);
     if (!want) return list[0];
     let best = list[0];
-    for (const f of list) if (CompareParts(ParseVersion(f.version), want) <= 0) best = f;
+    for (const f of list) if (CompareVersions(ParseVersion(f.version), want) <= 0) best = f;
     return best;
 }
 
@@ -359,7 +410,7 @@ function ProbeBackend(actionId) {
 let current = null;              // { entry, frame, startedAt, reported } while a dock page is shown or loading. reported is the version its last message named.
 let currentManifest = null;
 let runId = 0, retryTimer = null, revealTimer = null, titleObserver = null;
-let switches = 0, updateSwitches = 0, fellBack = false;
+let switches = 0, updateSwitches = 0, fellBack = false, failedPage = '';
 let backendVersion = null;       // the version of the action when the router knows it from a live answer (the probe or a dock message), else null
 let backendHasLoader = false;    // did that action send pb:'updater' while the probe listened?
 let pinned = false;              // the person asked how to re-import: the dock page stays as it is and dock messages about the backend are ignored
@@ -389,7 +440,7 @@ function ApplyBannerOffset() {
 function BannerDismissed(since) {
     const kept = ParseVersion(local.get(BANNER_KEY));
     const wanted = ParseVersion(since);
-    return !!kept && !!wanted && CompareParts(kept, wanted) >= 0;
+    return !!kept && !!wanted && CompareVersions(kept, wanted) >= 0;
 }
 
 // Shows or hides the banner for what the router knows now. It is called after the probe, after a dock message and after each of its buttons.
@@ -490,7 +541,8 @@ function CheckSlowFrame(frame) {
 }
 
 // A page that loaded but has no element with the id dock-wrapper is not a dock (a 404 page, a broken folder).
-// The oldest dock page is tried instead, once.
+// The oldest dock page is tried instead, once. Every dock page reports the backend version after its first status, and the report would send the frame
+// straight back to the page that failed, so that page is not chosen again in this run (failedPage).
 function OnFrameLoad(frame, entry) {
     if (!current || current.frame !== frame) return;
     let doc = null;
@@ -500,6 +552,7 @@ function OnFrameLoad(frame, entry) {
         const oldest = currentManifest && currentManifest.frontends[0];
         if (!fellBack && oldest && oldest.page !== entry.page) {
             fellBack = true;
+            failedPage = entry.page;
             console.warn(`[Printer Bot router] ${entry.page} is not a dock page. Trying ${oldest.page} instead. A web host that forbids framing (X-Frame-Options or frame-ancestors) causes this too.`);
             ShowFrame(oldest, 'the first page was not a dock');
         }
@@ -536,6 +589,7 @@ window.addEventListener('message', (event) => {
     RefreshBanner();
     const next = currentManifest && PickFrontend(currentManifest, version);
     if (!next || next.page === current.entry.page) return;
+    if (failedPage && next.page === failedPage) return;      // this page did not load in this run: do not go back to it
     if (later ? updateSwitches >= MAX_UPDATE_SWITCHES : switches >= MAX_SWITCHES) {
         console.warn(`[Printer Bot router] The dock reported backend ${version}. The frame was already swapped ${later ? updateSwitches : switches} times, so it stays.`);
         return;
@@ -552,6 +606,7 @@ async function Start(quiet) {
     switches = 0;
     updateSwitches = 0;
     fellBack = false;
+    failedPage = '';
     backendVersion = null;
     backendHasLoader = false;
     pinned = false;
@@ -611,7 +666,7 @@ if (typeof ResizeObserver === 'function' && $('router-banner')) new ResizeObserv
 else window.addEventListener('resize', ApplyBannerOffset);
 
 // The pure parts are public so that tests can call them
-window.PrinterBotRouter = Object.freeze({ ROUTER_BUILD, ParseVersion, NormalizeManifest, PickFrontend, NeedsBanner });
+window.PrinterBotRouter = Object.freeze({ ROUTER_BUILD, ParseVersion, CompareVersionTexts, IsPrerelease, NormalizeManifest, PickFrontend, NeedsBanner });
 
 if (window.name === FRAME_NAME) SetView('error', 'This page is the router. It cannot open inside the dock frame.', false);
 else Start(false);

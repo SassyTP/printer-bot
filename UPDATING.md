@@ -2,9 +2,9 @@
 
 This repository's [Releases](https://github.com/SassyTP/printer-bot/releases) page lists what changed in each version. How a new version reaches you depends on the version you run now.
 
-## From 2.2.1, 2.3.0 or 2.3.1: import once
+## From 2.3.0 or 2.3.1: import once
 
-Printer Bot 2.2.1, 2.3.0 and 2.3.1 cannot replace their own program, so you import the new code one time. Everything keeps working if you wait, and your current version keeps printing as it does today.
+Printer Bot 2.3.0 and 2.3.1 cannot replace their own program, so you import the new code one time. Everything keeps working if you wait, and your current version keeps printing as it does today.
 
 1. Copy the new import code as in step 1 of [Install](README.md#install). The **Show how** button in the bar described below leads to the same code, with a **Copy import code** button.
 2. In Streamer.bot, delete the old **Printer Bot** action.
@@ -17,7 +17,7 @@ Until you import, the dock shows a bar above it that says: "Printer Bot 2.4.0 ca
 
 ## From 2.4.0 on: update from the dock
 
-The dock shows its cards in this order: the status, **Settings**, **Test** and **Updates**. The **Updates** card is the last one and starts closed. Click its title to open it. While it is closed, the line after the title says what needs attention, and the dock remembers whether you left it open. The card shows the version that runs ("2.4.0 (built in)", or "(downloaded)" after an update), the updater's number and when Printer Bot last checked. **Check now** next to *Last checked* looks for a program update. **Check layouts** under *Renderer updates*, lower in the card, looks for a new receipt layout.
+The dock shows its cards in this order: the status, **Settings**, **Test**, **Backup** and **Updates**. The **Updates** card is the last one and starts closed. Click its title to open it. While it is closed, the line after the title says what needs attention, and the dock remembers whether you left it open. The card shows the version that runs ("2.4.0 (built in)", or "(downloaded)" after an update), the updater's number and when Printer Bot last checked. **Check now** next to *Last checked* looks for a program update. **Check layouts** under *Renderer updates*, lower in the card, looks for a new receipt layout.
 
 - **How it checks.** Printer Bot asks the dock's web host whether a newer program exists. It asks:
   - when a dock connects (at most once every 15 minutes, and sooner when the update source changed),
@@ -36,16 +36,40 @@ The dock shows its cards in this order: the status, **Settings**, **Test** and *
 
 ## Install updates automatically
 
-The switch **Install updates automatically** in the Updates card is off by default. With it on, Printer Bot installs an update automatically only when all of these hold:
+The switch **Install updates automatically** in the Updates card is off by default. Printer Bot never switches it on by itself. A new version, a new import and **Restore settings** leave it as you set it. With it on, Printer Bot installs an update automatically only when all of these hold:
 
 - **Download updates (layouts and program updates)** in the Updates card is on.
 - It found a newer update that the author signed. The author can mark an update so that it always needs your click, and then it is never installed automatically.
+- The update is a release. A prerelease is never installed automatically (see [Prerelease versions](#prerelease-versions)).
 - No event and no dock command reached Printer Bot for at least two minutes (the buttons of the Updates card do not count).
 - Nothing was installed or tried in the last 24 hours.
 - You did not go back from that version or pick the built-in version.
 - Printer Bot did not pause that version after a failed start or two crashes in a row.
 
 Right before it installs, Printer Bot checks once more that both switches are still on and that you have not gone back from that version or picked the built-in one. It writes one line in the Streamer.bot log, `[Printer Bot] Installing update 2.4.1 automatically (you switched this on in the dock).`, and the card shows "Installing automatically." and afterwards "Installed automatically at" the time. Without a dock, set `autoUpdateCore` to `true` in `settings.json` (see **Without the dock** in [The dock's settings](PRINTER_OPERATION.md#the-docks-settings)).
+
+## Prerelease versions
+
+A prerelease is a test version of the next release, with a number like 3.0.0-beta.1. The author publishes prereleases next to the releases, so that anyone who wants to can try a version early. A prerelease can have mistakes. Choosing one is up to you. Printer Bot offers no prerelease until you ask for it, and it never installs one by itself.
+
+**Trying a prerelease.**
+
+1. Copy the import code of the prerelease, [import.prerelease.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/beta/import.prerelease.txt), as in step 1 of [Install](README.md#install).
+2. In Streamer.bot, delete the old **Printer Bot** action.
+3. Import the code as in step 1. An import creates the triggers again, so switch **Channel Reward** on again if you use it.
+4. Reload the dock. A note at the top of the dock says "Prerelease 3.0.0-beta.1. This is a test version of Printer Bot and it can have mistakes."
+
+Your settings stay in their own folder.
+
+**The switch Try prerelease versions.** The Updates card has the switch **Try prerelease versions**. It is off. While it is off, Printer Bot offers releases only. Switch it on and Printer Bot also looks at the prereleases the author publishes. It offers the highest version of the two lists, and a release is higher than its own prereleases. So 3.0.0 is higher than 3.0.0-beta.2, 3.0.0-beta.2 is higher than 3.0.0-beta.1, and 3.0.0-beta.1 is higher than 2.5.4. You install the offer with the two clicks of the **Update** button, as for any update. The card and the button say "prerelease" next to its number. Printer Bot checks again by itself a moment after you flip the switch, so the card shows what the change brings.
+
+The switch needs revision 3 of the updater. The **Updater** row of the Updates card says "1 (revision 3)" when you have it. The import of a prerelease has it, and the imports of 2.5.4 and older do not. With an older updater the switch is greyed out and the card says that the updater is older than the setting needs. Import Printer Bot once more to get the newer updater (see [A later change to the import](#a-later-change-to-the-import)). The switch is greyed out while **Download updates** is off as well, because nothing is fetched then.
+
+**What switching it off does.** A prerelease that you installed stays installed. Printer Bot goes on running it, and it offers you the next release that is higher than it. It offers no further prerelease. To leave the prerelease at once, press **Go back to the previous version** or **Use the built-in version** (see [Going back](#going-back)).
+
+**Going back to the release.** Delete the Printer Bot action in Streamer.bot, import [import.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/master/import.txt) and reload the dock. Your settings stay. The release does not know the prerelease, so it skips what the prerelease stored for itself. Printers 2 to 5 and their rules stay in `settings.json`, and a version before 3.0.0 uses printer 1 only (see [Going back](#going-back)).
+
+**How prereleases are kept apart.** The author signs prereleases with the same keys as releases, and Printer Bot checks them in the same way: the signature, the size, the SHA-256 and the version floor. Prereleases sit in their own folder on the dock's host, `core/api1/prerelease/`, which Printer Bot does not read while the switch is off. A prerelease that turns up in the folder of the releases is no update for anyone who has not switched the option on.
 
 ## Going back
 
@@ -56,18 +80,23 @@ Under **More** in the Updates card:
 
 Both buttons work while a downloaded version runs. The card says "Switching versions…" while one of them works. Automatic installs skip a version you went back from, and **Update** installs it if you want it. Going back waits at most 15 seconds for a receipt that is printing, so a receipt that is still printing then may be lost. A press within 30 seconds of the last go-back, or while an update installs, is turned away. The card then says "Printer Bot is busy with a receipt. Try again in a moment."
 
+**Going back to a version before 3.0.0.** Version 3.0.0 keeps printers 2 to 5 and their rules in `settings.json`. An older version uses printer 1 only and takes no notice of the rest, and it may leave them out of the file the next time it saves it. Printer 1 keeps all its settings.
+
 ## Settings in the Updates card
 
 | Setting | What it does |
 |---|---|
-| **Install updates automatically** | Off by default. On lets Printer Bot install a program update automatically when it is idle (see [Install updates automatically](#install-updates-automatically)). The switch is greyed out while **Download updates** is off. |
+| **Install updates automatically** | Off by default. On lets Printer Bot install a release automatically when it is idle (see [Install updates automatically](#install-updates-automatically)). A prerelease is never installed this way. The switch is greyed out while **Download updates** is off. |
+| **Try prerelease versions** | Off by default. On lets Printer Bot also offer the prereleases the author publishes (see [Prerelease versions](#prerelease-versions)). The switch is greyed out while **Download updates** is off and while the updater is older than revision 3. |
 | **Renderer updates** | Where Printer Bot looks for layout updates, normally this dock. Program updates look in the same place. Its **Check layouts** button looks for a new layout at once. The **Check now** next to *Last checked*, higher in the Updates card, looks for a new program. **Use this dock** switches to this dock's address. |
 | **Download updates (layouts and program updates)** | On by default, so Printer Bot fetches newer receipt layouts and program updates from the update source and uses them only if the author signed them. Off downloads nothing and uses the built-in layout, and the Updates card says "Updates are switched off. Turn on "Download updates" below." A program update you installed earlier keeps running until you press **Use the built-in version**. Until a dock has connected once, no update source is stored and nothing is downloaded. |
 | **Renderer** | Shows the layout version. **Reset to built-in renderer** drops a downloaded layout. |
 
 ## A later change to the import
 
-Most future updates arrive through the dock. A change to the loader (the small part of the import that checks and installs updates) needs a new import. The dock tells you: the card says "This Printer Bot needs a one-time re-import to update." or, when your updates still work, "A newer updater needs a one-time re-import. Your settings stay." The steps are the same as in [From 2.2.1, 2.3.0 or 2.3.1](#from-221-230-or-231-import-once).
+Most future updates arrive through the dock. A change to the loader (the small part of the import that checks and installs updates) needs a new import. The dock tells you: the card says "This Printer Bot needs a one-time re-import to update." or, when your updates still work, "A newer updater needs a one-time re-import. Your settings stay." The steps are the same as in [From 2.3.0 or 2.3.1](#from-230-or-231-import-once).
+
+Version 3.0.0-beta.1 is another change of this kind. It brings revision 3 of the updater, which **Try prerelease versions** needs. The imports of 2.4.3 to 2.5.4 hold revision 2. They go on taking releases as before and know nothing of prereleases.
 
 Version 2.5.0 is another change of this kind. It adds four triggers (Hype Train Start, Update, Level Up and End), and the triggers are part of the import. The dock cannot see that they are missing, so the notes of the update say it. After you update, import once more, or add the four triggers to your Printer Bot action by hand (Twitch → Hype Train). Your settings stay.
 
@@ -99,7 +128,11 @@ This happens on a dock you host yourself. Printer Bot keeps its current layout. 
 
 ### The bar "Printer Bot 2.4.0 can update itself from this dock" shows above the dock
 
-Your Printer Bot is 2.2.1, 2.3.0 or 2.3.1. Import 2.4.0 once as described in [From 2.2.1, 2.3.0 or 2.3.1](#from-221-230-or-231-import-once), or press **Hide**. Your current version keeps working either way.
+Your Printer Bot is 2.3.0 or 2.3.1. Import 2.4.0 once as described in [From 2.3.0 or 2.3.1](#from-230-or-231-import-once), or press **Hide**. Your current version keeps working either way.
+
+### The switch "Try prerelease versions" is greyed out
+
+Hover over it. The reason is in its tooltip and in the line under it. Three reasons exist. The updater inside your Printer Bot is older than revision 3, so import Printer Bot once more (the import of a prerelease has the newer updater). **Download updates** is off, so switch it on. Or the Printer Bot action is older than the dock, so import it again.
 
 ### The Updates card says "Updates are switched off. Turn on "Download updates" below."
 
@@ -144,7 +177,7 @@ The author stopped the roll-out of an update, usually to fix a problem. Your Pri
 
 ### "This Printer Bot needs a one-time re-import to update." or "This update needs a newer updater. Import Printer Bot once. Your settings stay."
 
-The update needs a newer loader than your import has. Follow the steps on the card, which are the ones in [From 2.2.1, 2.3.0 or 2.3.1](#from-221-230-or-231-import-once).
+The update needs a newer loader than your import has. Follow the steps on the card, which are the ones in [From 2.3.0 or 2.3.1](#from-230-or-231-import-once).
 
 ### Something is wrong after an update
 

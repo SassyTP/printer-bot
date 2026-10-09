@@ -27,9 +27,15 @@ In Streamer.bot open **Servers/Clients → WebSocket Server**, switch on **Authe
 - **From the dock.** After you click **Copy import code**, the dock shows "SHA-256 of the text copied". The value must equal the first value in [import.sha256.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/master/import.sha256.txt) on GitHub (case does not matter). The dock works that value out itself, so it can vouch only for a dock you trust.
 - **From a file.** Save [import.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/master/import.txt) from GitHub (in your browser, **Save page as**). In PowerShell type `Get-FileHash -Algorithm SHA256 ` (with a trailing space), drag the saved file into the window and press Enter. The printed **Hash** must equal the first value in `import.sha256.txt`.
 
+The prerelease has its own pair of files, [import.prerelease.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/beta/import.prerelease.txt) and [import.prerelease.sha256.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/beta/import.prerelease.sha256.txt). The dock page of a prerelease copies `import.prerelease.txt` and names `import.prerelease.sha256.txt` in the line under the fingerprint. Compare in the same two ways.
+
 If the values differ, do not import. Get the file again and, if it still differs, report it as described in [SECURITY.md](SECURITY.md). The fingerprint covers the import only. A program update that the dock installs later has its own check, the author's signature (see [How it is protected](PRIVACY.md#how-it-is-protected)).
 
 ## Common problems
+
+### My printers and rules are gone
+
+Printer Bot reads them from `settings.json` in its data folder. If Streamer.bot lost that folder, or you imported Printer Bot on a new PC, the settings start from the defaults. Open the **Backup** card of the dock and press **Restore settings**, then choose the file that **Save settings** made earlier. If you never saved one, the setup has to be made again. See [Backing up your settings](PRINTER_OPERATION.md#backing-up-your-settings).
 
 ### Nothing prints
 
@@ -49,6 +55,18 @@ The log says "...or choose one in the dock.". Install the printer in Windows, th
 ### It prints on the wrong printer, or pages of strange characters come out
 
 Choose the printer yourself. If it does not speak ESC/POS, set **Output** to *Windows printer driver*.
+
+### One of my printers prints nothing, or an event prints on the wrong printer
+
+With more than one printer, check these:
+
+- The card of the printer says **Not set up yet**. Choose a printer for it. A printer that is not set up takes no receipts.
+- The status line says the printer is not installed. A printer 2 to 5 that was removed from Windows is not replaced by another one. Choose an installed printer.
+- The card has no rules and is not the printer for everything else. Then nothing prints there. Add a rule, or turn on **Use this printer for everything else** on its card.
+- Everything else prints on printer 1, although you picked another printer for it. The printer you picked is not set up. Its card and the line under **Everything else prints on** say so. Choose a printer for it, or pick another printer.
+- **Check where an event prints** (in Settings, under the cards) says where an event goes. Pick the trigger, type the values your rules test and press **Check**. The Streamer.bot log has the same answer for each real event (`TwitchCheer goes to printer 1 (rule 2).`).
+- A rule that is not complete keeps its last saved version. The line under the rule says what is missing.
+- A rule with a test that needs a value matches nothing until the value is there. A parameter that an event does not carry fails number tests and reads as empty text in text tests.
 
 ### The last line is clipped by the cutter
 
