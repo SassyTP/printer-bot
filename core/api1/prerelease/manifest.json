@@ -1,0 +1,22 @@
+{
+  "format": 1,
+  "kind": "printer-bot-core",
+  "keyId": "865e387993085274",
+  "loaderApi": 1,
+  "minLoaderRev": 2,
+  "version": "3.0.0-beta.1",
+  "built": "202610092045",
+  "minDock": "2.4.0",
+  "install": true,
+  "auto": false,
+  "files": [
+    {
+      "name": "core-3.0.0-beta.1.bin",
+      "size": 395776,
+      "sha256": "6f09522a948864f2d6ec3f609bd4fdc4cc1ace1a22196fda8f34c4c3289234e5"
+    }
+  ],
+  "notes": "Prerelease 3.0.0-beta.1 is a test version of Printer Bot 3.0 and it can have mistakes. It prints on up to five printers at once. Add printers in the dock and give each one rules that say which events it prints, for example cheers of more than 500 bits on printer 1 and cheers of 500 bits or less on printer 3. An event that no rule names prints on the printer you choose for everything else. The new Backup card saves your printers, rules and print options to a file with one click, and Restore settings puts them back. The Updates card has a new switch, Try prerelease versions, and it is off until you switch it on. Install updates automatically is off until you switch it on, and a prerelease is never installed by itself. Reload the dock after the update.",
+  "successor": null,
+  "revokeKeys": []
+}
