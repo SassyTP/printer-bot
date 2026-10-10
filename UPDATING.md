@@ -57,9 +57,11 @@ A prerelease is a test version of the next release, with a number like 3.0.0-bet
 1. Copy the import code of the prerelease, [import.prerelease.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/beta/import.prerelease.txt), as in step 1 of [Install](README.md#install).
 2. In Streamer.bot, delete the old **Printer Bot** action.
 3. Import the code as in step 1. An import creates the triggers again, so switch **Channel Reward** on again if you use it.
-4. Reload the dock. A note at the top of the dock says "Prerelease 3.0.0-beta.1. This is a test version of Printer Bot and it can have mistakes."
+4. Reload the dock. A note at the top of the dock says "Prerelease 3.0.0-beta.2. This is a test version of Printer Bot and it can have mistakes."
 
-Your settings stay in their own folder.
+Your settings stay in their own folder. From this version on, Printer Bot also keeps a backup copy of them on this PC and puts it back when the settings file is missing (see [Backing up your settings](PRINTER_OPERATION.md#backing-up-your-settings)).
+
+**From 3.0.0-beta.1 to 3.0.0-beta.2.** No import is needed. The import of 3.0.0-beta.1 has the same triggers, the same keys and the same updater (revision 3), and a program update replaces the rest. Open the Updates card, switch on **Try prerelease versions**, and a moment later the card says "Update available: 3.0.0-beta.2 (prerelease)". Press **Update to 3.0.0-beta.2 (prerelease)** twice, restart Streamer.bot and press **Reload dock**. Your settings stay. If you host your own dock, upload its files again first (see [Dock Selection](DOCK_SELECTION.md#host-it-yourself)).
 
 **The switch Try prerelease versions.** The Updates card has the switch **Try prerelease versions**. It is off. While it is off, Printer Bot offers releases only. Switch it on and Printer Bot also looks at the prereleases the author publishes. It offers the highest version of the two lists, and a release is higher than its own prereleases. So 3.0.0 is higher than 3.0.0-beta.2, 3.0.0-beta.2 is higher than 3.0.0-beta.1, and 3.0.0-beta.1 is higher than 2.5.4. You install the offer with the two clicks of the **Update** button, as for any update. The card and the button say "prerelease" next to its number. Printer Bot checks again by itself a moment after you flip the switch, so the card shows what the change brings.
 
@@ -67,7 +69,7 @@ The switch needs revision 3 of the updater. The **Updater** row of the Updates c
 
 **What switching it off does.** A prerelease that you installed stays installed. Printer Bot goes on running it, and it offers you the next release that is higher than it. It offers no further prerelease. To leave the prerelease at once, press **Go back to the previous version** or **Use the built-in version** (see [Going back](#going-back)).
 
-**Going back to the release.** Delete the Printer Bot action in Streamer.bot, import [import.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/master/import.txt) and reload the dock. Your settings stay. The release does not know the prerelease, so it skips what the prerelease stored for itself. Printers 2 to 5 and their rules stay in `settings.json`, and a version before 3.0.0 uses printer 1 only (see [Going back](#going-back)).
+**Going back to the release.** Delete the Printer Bot action in Streamer.bot, import [import.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/master/import.txt) and reload the dock. Your settings stay. The release does not know the prerelease, so it skips what the prerelease stored for itself. Printers 2 to 100 and their rules stay in `settings.json`, and a version before 3.0.0 uses printer 1 only (see [Going back](#going-back)).
 
 **How prereleases are kept apart.** The author signs prereleases with the same keys as releases, and Printer Bot checks them in the same way: the signature, the size, the SHA-256 and the version floor. Prereleases sit in their own folder on the dock's host, `core/api1/prerelease/`, which Printer Bot does not read while the switch is off. A prerelease that turns up in the folder of the releases is no update for anyone who has not switched the option on.
 
@@ -80,7 +82,7 @@ Under **More** in the Updates card:
 
 Both buttons work while a downloaded version runs. The card says "Switching versions…" while one of them works. Automatic installs skip a version you went back from, and **Update** installs it if you want it. Going back waits at most 15 seconds for a receipt that is printing, so a receipt that is still printing then may be lost. A press within 30 seconds of the last go-back, or while an update installs, is turned away. The card then says "Printer Bot is busy with a receipt. Try again in a moment."
 
-**Going back to a version before 3.0.0.** Version 3.0.0 keeps printers 2 to 5 and their rules in `settings.json`. An older version uses printer 1 only and takes no notice of the rest, and it may leave them out of the file the next time it saves it. Printer 1 keeps all its settings.
+**Going back to a version before 3.0.0.** Version 3.0.0 keeps printers 2 to 100 and their rules in `settings.json`. Older versions read the file as they always did. Only the layout differs: each printer and each rule is one line. An older version uses printer 1 only and takes no notice of the rest, and it may leave them out of the file the next time it saves it. Printer 1 keeps all its settings. Version 3.0.0-beta.1 keeps printers 2 to 5 and 30 rules, so it can leave the rest out in the same way.
 
 ## Settings in the Updates card
 
@@ -94,11 +96,28 @@ Both buttons work while a downloaded version runs. The card says "Switching vers
 
 ## A later change to the import
 
-Most future updates arrive through the dock. A change to the loader (the small part of the import that checks and installs updates) needs a new import. The dock tells you: the card says "This Printer Bot needs a one-time re-import to update." or, when your updates still work, "A newer updater needs a one-time re-import. Your settings stay." The steps are the same as in [From 2.3.0 or 2.3.1](#from-230-or-231-import-once).
+Most future updates arrive through the dock. Some versions change something that only an import carries, and the Update button cannot bring that: the events Printer Bot listens to (its triggers), the action itself, the keys that protect updates, or the oldest loader that the new program works with (the loader is the small part of the import that checks and installs updates). A Printer Bot that has an updater (2.4.0 and later) needs one new import for such a version.
 
-Version 3.0.0-beta.1 is another change of this kind. It brings revision 3 of the updater, which **Try prerelease versions** needs. The imports of 2.4.3 to 2.5.4 hold revision 2. They go on taking releases as before and know nothing of prereleases.
+**How to import.** The steps are the same for every such version.
 
-Version 2.5.0 is another change of this kind. It adds four triggers (Hype Train Start, Update, Level Up and End), and the triggers are part of the import. The dock cannot see that they are missing, so the notes of the update say it. After you update, import once more, or add the four triggers to your Printer Bot action by hand (Twitch → Hype Train). Your settings stay.
+1. Open the import code of the current version, press Ctrl+A, then Ctrl+C. For a release it is [import.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/master/import.txt). For a prerelease it is [import.prerelease.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/beta/import.prerelease.txt).
+2. In Streamer.bot, delete the old **Printer Bot** action.
+3. Click **Import**, paste and click **Import**. An import creates the triggers again, so switch **Channel Reward** on again if you use it.
+4. Reload the dock.
+
+Your settings stay in their own folder. If you host your own dock, upload its files again too (see [Dock Selection](DOCK_SELECTION.md)).
+
+**The bar in the dock.** From 3.0.0-beta.2 on, the dock tells you when a version needs a new import. It shows a bar above the page: "Printer Bot 3.0.0 needs a new import in Streamer.bot. The Update button in the dock cannot install it, and your settings stay. Your Printer Bot is 2.5.4." The first version in it is the newest one that is out, and the last is your own. The bar appears when your Printer Bot is older than the newest version that changed the import. A prerelease shows the same bar, with "(prerelease)" after the version, only when you switched on **Try prerelease versions**. The link **How to import** in the bar opens this section in a new tab, and **Hide** puts the bar away for that version. A later version brings it back. If OBS does not keep the dock's browser data, the bar comes back the next time the dock loads. The bar needs Streamer.bot to be running, because the dock reads your Printer Bot version from it.
+
+The Update button does not replace the import. It cannot install some versions, and the Updates card then says that a re-import is needed (see below). It installs others, and then the bar goes away, because the dock reads the version of the program that runs and the import is still the old one until you import. The features that need the import work after you import.
+
+**The Updates card.** A loader that is too old for the new program also shows in the Updates card. It says "This Printer Bot needs a one-time re-import to update." or, when your updates still work, "A newer updater needs a one-time re-import. Your settings stay."
+
+**Versions that needed an import.**
+
+Version 3.0.0-beta.1 brought revision 3 of the updater, which **Try prerelease versions** needs. The imports of 2.4.3 to 2.5.4 hold revision 2. They go on taking releases as before and know nothing of prereleases. Version 3.0.0-beta.2 needs no new import, so a Printer Bot on 3.0.0-beta.1 updates from the Updates card (see [Prerelease versions](#prerelease-versions)).
+
+Version 2.5.0 added four triggers (Hype Train Start, Update, Level Up and End), and the triggers are part of the import. The dock could not see that they were missing, so the notes of the update said it. If your import is older than 2.5.0, import once more, or add the four triggers to your Printer Bot action by hand (Twitch → Hype Train). Your settings stay.
 
 Version 2.4.3 was one too. The imports of 2.4.0, 2.4.1 and 2.4.2 hold revision 1 of the updater, and the **Updater** row of the Updates card says "1 (revision 1)". Updates from 2.4.3 on need revision 2, so the card of a revision 1 updater says "This update needs a newer updater. Import Printer Bot once. Your settings stay." and offers no update until you import. After the import the row says "1 (revision 2)". Revision 2 never sets a version aside for good.
 
@@ -129,6 +148,10 @@ This happens on a dock you host yourself. Printer Bot keeps its current layout. 
 ### The bar "Printer Bot 2.4.0 can update itself from this dock" shows above the dock
 
 Your Printer Bot is 2.3.0 or 2.3.1. Import 2.4.0 once as described in [From 2.3.0 or 2.3.1](#from-230-or-231-import-once), or press **Hide**. Your current version keeps working either way.
+
+### The bar "Printer Bot 3.0.0 needs a new import in Streamer.bot" shows above the dock
+
+Your Printer Bot is older than the newest version that changed the import, and a program update cannot bring what that version needs. Follow the steps in [A later change to the import](#a-later-change-to-the-import), which the link **How to import** in the bar opens: delete the old Printer Bot action in Streamer.bot, import the current code, switch Channel Reward on again if you use it and reload the dock. Your settings stay. **Hide** keeps the bar away for that version, and your current version keeps working either way.
 
 ### The switch "Try prerelease versions" is greyed out
 

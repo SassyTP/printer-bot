@@ -21,6 +21,14 @@
 // an action that is not a prerelease never gets the page of a prerelease, and a prerelease action gets the page made for it.
 // versions.json names the newest dock page of a release as "latest", which is what an action that does not exist yet gets.
 //
+// Since router 4 the bar above the frame has a second text, a notice that a release needs a NEW import in Streamer.bot. versions.json names the newest release
+// and the newest prerelease that need one in "core.import". An action older than that version cannot take the release as a program update, so the notice says
+// that the Update button in the dock cannot install it and that the settings stay. A prerelease counts only for a person who switched on Try prerelease versions
+// (the probe reads that setting from the same status). The banner for an action without a loader keeps its priority, and while it applies the notice is not
+// considered at all. Hide for the notice keeps it away for that version only, and a later version shows it again. The notice has a link, How to import, in place of
+// Show how. It opens the guide in a new tab and changes nothing in this page: it does not pin the dock page and does not swap the frame. Show how belongs to the
+// banner for an action without a loader only. Like every hint of "core", the block is unsigned and enables nothing.
+//
 // Rules this file follows:
 //   - Everything from Streamer.bot and from versions.json is untrusted. A version must follow the rule in the VERSIONS section (at most 40 characters).
 //     Page names must match a strict pattern, and anything else in the list is ignored.
@@ -34,7 +42,7 @@
 
 // The number of this router. A larger "router" number in versions.json makes this page reload itself once at ./?r=<number>,
 // which is a new address, so an old cached index.html and router.js are replaced. The build tool keeps the two numbers in step.
-const ROUTER_BUILD = 3;
+const ROUTER_BUILD = 4;
 
 const MANIFEST_TIMEOUT_MS = 8000;      // fetching versions.json
 const CONNECT_TIMEOUT_MS = 3000;       // connecting to Streamer.bot, up to and including its greeting
@@ -66,6 +74,7 @@ const REMEMBER_KEY = 'pbBackendVersion';       // the last backend version seen 
 const REMEMBER_AT_KEY = 'pbBackendVersionAt';  // when it was seen, in milliseconds (localStorage)
 const UPDATE_KEY = 'pbRouterUpdate';           // the router number a self-update was tried for (sessionStorage)
 const BANNER_KEY = 'pbUpdateBanner';           // the selfUpdateSince version the person hid the banner for (localStorage)
+const NOTICE_KEY = 'pbImportNotice';           // the version the person hid the notice about a new import for (localStorage)
 
 // Shown when no dock page can be put in the frame. A browser gives the router no way to tell a host that forbids framing
 // from any other failed load, because it replaces the page with its own error page that this page may not read. So one text covers all causes.
@@ -213,14 +222,21 @@ function ValidPage(page) {
         && !page.includes('..') && !page.includes('//') && !page.startsWith('/');
 }
 
-// The "core" block of versions.json: a hint about program updates. selfUpdateSince is the first Printer Bot version that can update itself
-// and latest is the newest published one. The block needs a selfUpdateSince that reads as a version, otherwise it is left out. A latest that
-// does not read as a version becomes ''. The hint is unsigned, so the router uses it for the banner only and it never enables anything.
+// The "core" block of versions.json: a hint about program updates. selfUpdateSince is the first Printer Bot version that can update itself,
+// latest is the newest published release and prerelease is the newest published prerelease. import names the newest release and the newest
+// prerelease that need a NEW import in Streamer.bot ({ release, prerelease }). The block needs a selfUpdateSince that reads as a version,
+// otherwise it is left out. Every other version text that does not read as a version becomes '', and an import that is no plain object
+// (a text, a number, a list, null) gives two of them. Nothing is trimmed or repaired and unknown members are ignored. The hint is unsigned,
+// so the router uses it for the banner and the notice only and it never enables anything.
 function NormalizeCore(raw) {
     if (!isObj(raw) || typeof raw.selfUpdateSince !== 'string' || !ParseVersion(raw.selfUpdateSince)) return null;
+    const version = (v) => ParseVersion(v) ? v : '';
+    const need = isObj(raw.import) ? raw.import : {};
     return {
         selfUpdateSince: raw.selfUpdateSince,
-        latest: typeof raw.latest === 'string' && ParseVersion(raw.latest) ? raw.latest : '',
+        latest: version(raw.latest),
+        prerelease: version(raw.prerelease),
+        import: { release: version(need.release), prerelease: version(need.prerelease) },
     };
 }
 
@@ -255,6 +271,26 @@ function NeedsBanner(manifest, backendVersion, hasLoader) {
     const have = ParseVersion(backendVersion), since = ParseVersion(m.core.selfUpdateSince);
     if (!have || !since || CompareVersions(have, since) >= 0) return null;
     return { since: m.core.selfUpdateSince, latest: m.core.latest };
+}
+
+// Does an action of this version need a NEW import before it can run the newest release (or prerelease) that versions.json names?
+// core.import holds the newest release R and the newest prerelease P that need one: an action below R needs an import before it can run any release at or above R.
+//   release notice     R and core.latest exist, the action is below R and core.latest is at or above R. It names core.latest.
+//   prerelease notice  prereleaseOptIn is exactly true, P and core.prerelease exist, the action is below P, core.prerelease is at or above P and
+//                      above core.latest (or there is no core.latest). It names core.prerelease and wins over the release notice.
+// A manifest without a valid core block, an action version that does not read as one and every version text that does not read give null.
+// Returns { target, prerelease } (the version text the notice names, and whether it comes from the prerelease train) or null.
+function NeedsImportNotice(manifest, backendVersion, prereleaseOptIn) {
+    const m = NormalizeManifest(manifest);
+    const have = ParseVersion(backendVersion);
+    if (!m || !m.core || !have) return null;
+    const latest = ParseVersion(m.core.latest), pre = ParseVersion(m.core.prerelease);
+    const needRelease = ParseVersion(m.core.import.release), needPre = ParseVersion(m.core.import.prerelease);
+    if (prereleaseOptIn === true && needPre && pre && CompareVersions(have, needPre) < 0 && CompareVersions(pre, needPre) >= 0 && (!latest || CompareVersions(pre, latest) > 0))
+        return { target: m.core.prerelease, prerelease: true };
+    if (needRelease && latest && CompareVersions(have, needRelease) < 0 && CompareVersions(latest, needRelease) >= 0)
+        return { target: m.core.latest, prerelease: false };
+    return null;
 }
 
 // Which dock page serves which action:
@@ -341,8 +377,9 @@ function ReadConnection() {
 }
 
 // One connection, one status command, then it closes. The answer is one of
-//   { kind: 'version', version, updater }   the status arrived (version is '' when the status has none).
+//   { kind: 'version', version, updater, prereleaseUpdates }   the status arrived (version is '' when the status has none).
 //                                           updater is true when the action also sent pb:'updater' until then, which only an action with a loader does.
+//                                           prereleaseUpdates is true when the status says settings.prereleaseUpdates is the JSON value true (the person's switch Try prerelease versions).
 //   { kind: 'no-action' }                   Streamer.bot answered and the Printer Bot action is not in its list
 //   { kind: 'failed', why }                 no connection, wrong password, no answer in time
 // The probe does not wait for a pb:'updater' message that comes after the status. A version below selfUpdateSince has no loader anyway.
@@ -370,7 +407,10 @@ function ProbeBackend(actionId) {
             if (!isObj(data)) return;
             if (data.pb === 'updater') { sawUpdater = true; return; }
             if (!waitingForStatus || data.pb !== 'status') return;
-            finish({ kind: 'version', version: typeof data.version === 'string' ? str(data.version, 40) : '', updater: sawUpdater });
+            finish({
+                kind: 'version', version: typeof data.version === 'string' ? str(data.version, 40) : '', updater: sawUpdater,
+                prereleaseUpdates: isObj(data.settings) && data.settings.prereleaseUpdates === true,
+            });
         };
 
         const ask = async () => {
@@ -413,8 +453,10 @@ let runId = 0, retryTimer = null, revealTimer = null, titleObserver = null;
 let switches = 0, updateSwitches = 0, fellBack = false, failedPage = '';
 let backendVersion = null;       // the version of the action when the router knows it from a live answer (the probe or a dock message), else null
 let backendHasLoader = false;    // did that action send pb:'updater' while the probe listened?
+let backendPrerelease = false;   // did the status of the probe say that the person switched on Try prerelease versions? A dock message does not change it
 let pinned = false;              // the person asked how to re-import: the dock page stays as it is and dock messages about the backend are ignored
-let bannerSince = '';            // the selfUpdateSince the banner on screen is about
+let bannerSince = '';            // the selfUpdateSince the banner on screen is about ('' when that banner is not on screen)
+let noticeTarget = '';           // the version the notice about a new import on screen is about ('' when that notice is not on screen)
 
 function SetView(kind, text, showRetry) {
     $('router-view').hidden = false;
@@ -443,20 +485,40 @@ function BannerDismissed(since) {
     return !!kept && !!wanted && CompareVersions(kept, wanted) >= 0;
 }
 
+// Has the person hidden the notice about a new import for exactly this version? Another version shows it again.
+function NoticeDismissed(target) {
+    return CompareVersionTexts(local.get(NOTICE_KEY), target) === 0;
+}
+
 // Shows or hides the banner for what the router knows now. It is called after the probe, after a dock message and after each of its buttons.
+// The banner for an action without a loader comes first. While NeedsBanner applies, the notice about a new import is not considered at all,
+// and that holds when the person hid the banner too.
 function RefreshBanner() {
-    if (!$('router-banner') || !$('router-banner-text')) { bannerSince = ''; return; }       // an index.html from before router 2 has no banner
-    const need = current && !pinned && backendVersion !== null ? NeedsBanner(currentManifest, backendVersion, backendHasLoader) : null;
-    const show = !!need && !BannerDismissed(need.since);
-    bannerSince = show ? need.since : '';
-    if (show) {
+    if (!$('router-banner') || !$('router-banner-text')) { bannerSince = ''; noticeTarget = ''; return; }       // an index.html from before router 2 has no banner
+    const live = !!current && !pinned && backendVersion !== null;
+    const need = live ? NeedsBanner(currentManifest, backendVersion, backendHasLoader) : null;
+    const notice = live && !need ? NeedsImportNotice(currentManifest, backendVersion, backendPrerelease) : null;
+    const showBanner = !!need && !BannerDismissed(need.since);
+    const showNotice = !!notice && !NoticeDismissed(notice.target);
+    bannerSince = showBanner ? need.since : '';
+    noticeTarget = showNotice ? notice.target : '';
+    if (showBanner) {
         $('router-banner-text').textContent = `Printer Bot ${need.since} can update itself from this dock. Your Printer Bot is ${str(backendVersion, 40)}, so it needs one re-import first.`;
     }
-    $('router-banner').hidden = !show;
+    else if (showNotice) {
+        $('router-banner-text').textContent = `Printer Bot ${notice.target}${notice.prerelease ? ' (prerelease)' : ''} needs a new import in Streamer.bot. `
+            + `The Update button in the dock cannot install it, and your settings stay. Your Printer Bot is ${str(backendVersion, 40)}.`;
+    }
+    // Show how belongs to the banner for an action without a loader. The notice has the link How to import instead, and no button that swaps the frame.
+    const how = $('banner-show-button'), guide = $('banner-import-link');
+    if (how) how.hidden = !showBanner;
+    if (guide) guide.hidden = !showNotice;
+    $('router-banner').hidden = !(showBanner || showNotice);
     ApplyBannerOffset();
 }
 
-// Show how: the newest dock page explains the re-import. It stays, whatever the dock says about the backend, so the swap cannot undo itself.
+// Show how (the banner for an action without a loader only): the newest dock page explains the re-import. It stays, whatever the dock says about the backend,
+// so the swap cannot undo itself.
 function ShowHow() {
     if (!current || !currentManifest) return;
     const latest = PickFrontend(currentManifest, null);
@@ -465,9 +527,11 @@ function ShowHow() {
     if (latest && latest.page !== current.entry.page) ShowFrame(latest, 'the person asked how to re-import');
 }
 
-// Hide: the banner stays away for this selfUpdateSince and every earlier one. With storage blocked it stays away until this page is loaded again.
+// Hide: the banner stays away for this selfUpdateSince and every earlier one. The notice about a new import stays away for its version only.
+// With storage blocked either one stays away until this page is loaded again.
 function HideBanner() {
     if (bannerSince) local.set(BANNER_KEY, bannerSince);
+    else if (noticeTarget) local.set(NOTICE_KEY, noticeTarget);
     RefreshBanner();
 }
 
@@ -609,6 +673,7 @@ async function Start(quiet) {
     failedPage = '';
     backendVersion = null;
     backendHasLoader = false;
+    backendPrerelease = false;
     pinned = false;
     RefreshBanner();
     if (!quiet) SetView('loading', 'Loading Printer Bot…', false);
@@ -638,6 +703,7 @@ async function Start(quiet) {
             backend = probe.version;
             backendVersion = probe.version;
             backendHasLoader = probe.updater === true;
+            backendPrerelease = probe.prereleaseUpdates === true;
             why = `the action reports version "${probe.version}"`;
         }
         else if (probe.kind === 'no-action') {
@@ -666,7 +732,7 @@ if (typeof ResizeObserver === 'function' && $('router-banner')) new ResizeObserv
 else window.addEventListener('resize', ApplyBannerOffset);
 
 // The pure parts are public so that tests can call them
-window.PrinterBotRouter = Object.freeze({ ROUTER_BUILD, ParseVersion, CompareVersionTexts, IsPrerelease, NormalizeManifest, PickFrontend, NeedsBanner });
+window.PrinterBotRouter = Object.freeze({ ROUTER_BUILD, ParseVersion, CompareVersionTexts, IsPrerelease, NormalizeManifest, PickFrontend, NeedsBanner, NeedsImportNotice });
 
 if (window.name === FRAME_NAME) SetView('error', 'This page is the router. It cannot open inside the dock frame.', false);
 else Start(false);

@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.1",
-  "built": "202610092045",
+  "version": "3.0.0-beta.2",
+  "built": "202610100152",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.1.bin",
-      "size": 395776,
-      "sha256": "6f09522a948864f2d6ec3f609bd4fdc4cc1ace1a22196fda8f34c4c3289234e5"
+      "name": "core-3.0.0-beta.2.bin",
+      "size": 436736,
+      "sha256": "193fff006a63008ef2145c7ae0ff6ecc08150d50868524058929324219ef6936"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.1 is a test version of Printer Bot 3.0 and it can have mistakes. It prints on up to five printers at once. Add printers in the dock and give each one rules that say which events it prints, for example cheers of more than 500 bits on printer 1 and cheers of 500 bits or less on printer 3. An event that no rule names prints on the printer you choose for everything else. The new Backup card saves your printers, rules and print options to a file with one click, and Restore settings puts them back. The Updates card has a new switch, Try prerelease versions, and it is off until you switch it on. Install updates automatically is off until you switch it on, and a prerelease is never installed by itself. Reload the dock after the update.",
+  "notes": "Prerelease 3.0.0-beta.2 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. Printer Bot now prints on up to 100 printers at once, with up to 300 rules that choose which events print where. The profile picture on a receipt is about 10 mm larger on 80 mm paper and 5 mm larger on 58 mm paper, and the receipt is as long as before. Printer Bot keeps a backup copy of your settings outside the Streamer.bot folder and puts it back when settings.json is missing or damaged. A change you make while the dock loses its connection is kept and sent when the connection is back, and the dock warns you about a version that needs a new import. Reload the dock after the update.",
   "successor": null,
   "revokeKeys": []
 }

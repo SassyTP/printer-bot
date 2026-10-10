@@ -35,7 +35,29 @@ If the values differ, do not import. Get the file again and, if it still differs
 
 ### My printers and rules are gone
 
-Printer Bot reads them from `settings.json` in its data folder. If Streamer.bot lost that folder, or you imported Printer Bot on a new PC, the settings start from the defaults. Open the **Backup** card of the dock and press **Restore settings**, then choose the file that **Save settings** made earlier. If you never saved one, the setup has to be made again. See [Backing up your settings](PRINTER_OPERATION.md#backing-up-your-settings).
+Printer Bot reads them from `settings.json` in its data folder. If Streamer.bot lost that folder, or you imported Printer Bot on a new PC, the settings would start from the defaults. From 3.0.0-beta.2 on, Printer Bot keeps a copy of its settings outside the Streamer.bot folder (in the data of your Windows account on this PC) and puts it back by itself when `settings.json` is missing or damaged. A new PC has no copy yet. Look for the log line `Restored your settings from the backup copy` and for the note in the dock (see the next entry). If the copy is old or missing, open the **Backup** card of the dock and press **Restore settings**, then choose the file that **Save settings** made earlier. If you never saved one, the setup has to be made again. See [Backing up your settings](PRINTER_OPERATION.md#backing-up-your-settings).
+
+### The dock says Printer Bot restored your settings from a backup copy
+
+The note reads "Printer Bot restored your settings from a backup copy outside the Streamer.bot folder." Streamer.bot lost the settings file, or the file was empty or damaged, and Printer Bot took your settings back from its second copy. The settings are those of the last save (the copy is written about two seconds after a save). Nothing needs doing. Press **Dismiss** to hide the note (the dock remembers it), and use **Save settings** in the Backup card to keep a file of your own as well.
+
+The log line `Restored your settings from the backup copy` names the Streamer.bot folder that wrote the copy (`written for the folder ...`). If you run two Streamer.bot folders on one PC, check that name, because the copy belongs to the one that saved last. To begin again from the defaults on purpose, close Streamer.bot, delete `settings.json` in `<Streamer.bot>\SassyTP\printer-bot\` and delete the folder `%LOCALAPPDATA%\SassyTP\printer-bot\mirror`. With only `settings.json` deleted, the copy is put back.
+
+### The dock says the settings are too large to save
+
+Printer Bot does not let `settings.json` grow beyond 60,000 bytes (the part that reads your update switches reads 65,536 bytes at most). The dock shows the sentence "The settings are too large to save: they would take 71,340 bytes and the limit is 60,000, so remove some rules or printers, or shorten their names, and save again." in a warning line above the printers, and the log has a line with the same numbers. Your earlier settings are still in force. Remove some rules or printers, or shorten their names, and the next save goes through. A setup of 100 printers with ordinary names and 300 rules of one test each takes about 47,000 bytes. With two tests in every rule it takes about 60,000 bytes or more, so it may not fit. Very long printer names (up to 256 characters each) and rules with four long tests are what fill the file. The warning stays until a save goes through whole.
+
+### A line in Settings says "Settings use 45,000 of 60,000 bytes."
+
+Printer Bot keeps its settings in one file with a limit of 60,000 bytes. The line shows when the file is above 70 percent of that. Remove printers or rules you do not need before the limit is reached. A change that would make the file too large is refused (see the previous entry).
+
+### The dock says "Not saved yet. Waiting for Streamer.bot."
+
+A change you made has not reached Printer Bot yet. The dock lost its connection to Streamer.bot after you changed a setting (Streamer.bot was restarting or closed), or Streamer.bot did not take the change. The dock keeps the change and sends it when the connection is back, or again after 1, 2, 4, 8 and 16 seconds when Streamer.bot does not take it. The line goes away when the change has been sent. If the line stays, check that Streamer.bot runs, that its WebSocket server is on and that the Printer Bot action is enabled, then reload the dock. A reload drops a change that was not saved yet.
+
+### The dock says "The change could not be saved. The settings show what Printer Bot has."
+
+The dock tried six times (once, then again after 1, 2, 4, 8 and 16 seconds) and Streamer.bot did not take the change. The fields show what Printer Bot has. Check that the Printer Bot action is enabled and read the Streamer.bot log, then change the setting again.
 
 ### Nothing prints
 
@@ -61,12 +83,17 @@ Choose the printer yourself. If it does not speak ESC/POS, set **Output** to *Wi
 With more than one printer, check these:
 
 - The card of the printer says **Not set up yet**. Choose a printer for it. A printer that is not set up takes no receipts.
-- The status line says the printer is not installed. A printer 2 to 5 that was removed from Windows is not replaced by another one. Choose an installed printer.
+- The status line says the printer is not installed. A printer 2 or higher that was removed from Windows is not replaced by another one. Choose an installed printer.
+- In a long list of printers, look for **Needs attention** in the line of the printer, or open the list under **Printers** in the status card (it reads **Show the 3 printers that cannot print**, with the number that fits).
 - The card has no rules and is not the printer for everything else. Then nothing prints there. Add a rule, or turn on **Use this printer for everything else** on its card.
 - Everything else prints on printer 1, although you picked another printer for it. The printer you picked is not set up. Its card and the line under **Everything else prints on** say so. Choose a printer for it, or pick another printer.
 - **Check where an event prints** (in Settings, under the cards) says where an event goes. Pick the trigger, type the values your rules test and press **Check**. The Streamer.bot log has the same answer for each real event (`TwitchCheer goes to printer 1 (rule 2).`).
 - A rule that is not complete keeps its last saved version. The line under the rule says what is missing.
 - A rule with a test that needs a value matches nothing until the value is there. A parameter that an event does not carry fails number tests and reads as empty text in text tests.
+
+### A test print says "Test print not sent"
+
+A test print that names printers takes only the printers that exist and are set up. "Test print not sent. Left out of the test print: 9 (there are only 3 printers)." means that none of the printers the request named can print, so nothing was printed and nothing counted against the 20 test prints a minute. Name printers by number (`2`), with commas (`2,5`), with ranges (`2,5,10-12`) or as `all`.
 
 ### The last line is clipped by the cutter
 

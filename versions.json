@@ -1,11 +1,11 @@
 {
   "format": 1,
-  "router": 3,
+  "router": 4,
   "actionId": "bdc70b66-6b06-d5ee-54a4-7030d080b8b5",
   "latest": "2.5.0",
   "core": {
     "latest": "2.5.4",
-    "prerelease": "3.0.0-beta.1",
+    "prerelease": "3.0.0-beta.2",
     "selfUpdateSince": "2.4.0",
     "api": 1
   },
@@ -34,6 +34,11 @@
       "version": "3.0.0-beta.1",
       "page": "v/3.0.0-beta.1/index.html",
       "build": "6975a22e6ad7"
+    },
+    {
+      "version": "3.0.0-beta.2",
+      "page": "v/3.0.0-beta.2/index.html",
+      "build": "1e14397697dd"
     }
   ]
 }

@@ -152,11 +152,14 @@ body {
     margin-left: auto;
 }
 
-.router-banner-buttons button {
+/* The link How to import (the notice about a new import) looks like the buttons next to it. */
+.router-banner-buttons button,
+.router-banner-buttons a {
     padding: 0.3em 0.9em;
     font-size: 1em;
     font-weight: 600;
     color: white;
+    text-decoration: none;
     background-color: var(--button-color);
     border: 1px solid var(--border-color);
     border-radius: 0.5em;
@@ -164,7 +167,13 @@ body {
     cursor: pointer;
 }
 
-.router-banner-buttons button:hover {
+.router-banner-buttons a {
+    display: flex;
+    align-items: center;
+}
+
+.router-banner-buttons button:hover,
+.router-banner-buttons a:hover {
     opacity: 1;
 }
 

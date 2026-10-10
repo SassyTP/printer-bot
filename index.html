@@ -8,32 +8,34 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; frame-src 'self'; connect-src 'self' ws: wss:; base-uri 'none'; form-action 'none'; object-src 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Printer Bot</title>
-    <link rel="icon" href="assets/logo.png?v=e09a0508ea8a" type="image/png">
+    <link rel="icon" href="assets/logo.png?v=c97cb21818ee" type="image/png">
 
     <!-- The build tool rewrites the ?v= stamps. A changed file gets a new address, so a browser that caches hard still fetches it. -->
-    <link rel="stylesheet" href="css/router.css?v=e09a0508ea8a" />
+    <link rel="stylesheet" href="css/router.css?v=c97cb21818ee" />
 </head>
 
 <body>
-    <!-- A bar above the dock for an action that cannot update itself. js/router.js fills it in and shows it. -->
+    <!-- A bar above the dock. js/router.js fills it in and shows it, for an action that cannot update itself (Show how) and for a release that needs a new
+         import in Streamer.bot (the link How to import, which opens the guide in a new tab). -->
     <div id="router-banner" role="status" hidden>
         <p id="router-banner-text" class="router-banner-text"></p>
         <div class="router-banner-buttons">
             <button type="button" id="banner-show-button">Show how</button>
+            <a id="banner-import-link" href="https://github.com/SassyTP/printer-bot/blob/master/UPDATING.md#a-later-change-to-the-import" target="_blank" rel="noopener noreferrer" hidden>How to import</a>
             <button type="button" id="banner-hide-button">Hide</button>
         </div>
     </div>
 
     <!-- Shown while the router works and when it cannot go on. The dock page itself is added to the body by js/router.js. -->
     <main id="router-view" class="loading">
-        <img id="router-logo" class="router-logo" src="assets/logo.png?v=e09a0508ea8a" alt="" />
+        <img id="router-logo" class="router-logo" src="assets/logo.png?v=c97cb21818ee" alt="" />
         <div id="router-title" class="router-title">Printer Bot</div>
         <p id="router-text" class="router-text" role="status">Loading…</p>
         <button type="button" id="retry-button" hidden>Retry</button>
     </main>
 
-    <script src="vendor/streamerbot-client.js?v=e09a0508ea8a"></script>
-    <script src="js/router.js?v=e09a0508ea8a"></script>
+    <script src="vendor/streamerbot-client.js?v=c97cb21818ee"></script>
+    <script src="js/router.js?v=c97cb21818ee"></script>
 </body>
 
 </html>
