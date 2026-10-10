@@ -76,7 +76,7 @@ The log says "...or choose one in the dock.". Install the printer in Windows, th
 
 ### It prints on the wrong printer, or pages of strange characters come out
 
-Choose the printer yourself. If it does not speak ESC/POS, set **Output** to *Windows printer driver*.
+Choose the printer yourself. If it does not speak ESC/POS, set **Output** to *Windows printer driver*. From 3.0.0-beta.4 the dock helps with this. It warns when a printer on Thermal output looks like an office printer and offers a one-click switch, and **Check this printer** sends one short test line (see [Printers that do not take ESC/POS](PRINTER_OPERATION.md#printers-that-do-not-take-escpos)).
 
 ### One of my printers prints nothing, or an event prints on the wrong printer
 
@@ -106,6 +106,27 @@ Install or repair Microsoft Edge (it comes with Windows 10 and 11), then press *
 ### The dock says "Enter a whole number from 1 to 100." under Printers per browser
 
 The setting takes a whole number from 1 to 100. A 0, a negative number, a fraction, text or an empty box is refused, and the number that was in use stays. Type a number such as 3 and the message goes.
+
+### The dock says "Enter a whole number of seconds from 90 to 300." under Hype Train end wait
+
+The setting takes a whole number from 90 to 300. A number below 90 or above 300, a negative number, a fraction, text or an empty box is refused, and the number that was in use stays. Type a number such as 120 and the message goes.
+
+### A printer is held back and its receipts fail at once
+
+Printer Bot sent a receipt to this printer, and the job did not leave the print queue although the queue reports no problem. The card of the printer says so and offers **Clear stuck jobs**, which takes out of the queue the jobs Printer Bot sent and no other document, and **Try again**, which lets receipts go to the printer again and leaves the stuck job in the queue. The usual cause is a printer that does not understand ESC/POS. Choose *Windows printer driver* for it, clear the stuck job and press **Check this printer** to see a line print. If you cleared the job in Windows yourself, the hold ends by itself within a few seconds. A printer that is off, offline or out of paper is not held back. Its receipts wait in the queue and print when it is ready.
+
+### The dock says a printer looks like an office printer
+
+Printer Bot read the driver and the port of the print queue and found words of an office, home or virtual printer. Thermal output sends ESC/POS commands, which such a printer usually does not understand. Press **Check this printer**. It sends one short line of text. If the line prints correctly, answer **Yes, it printed** and the warning goes. If pages of strange characters come out, or nothing does, answer **No** and press **Use the Windows printer driver**.
+
+### A Hype Train did not print its end receipt
+
+Check in this order:
+
+- **Print Hype Trains** (under Advanced) is on, and the four Hype Train triggers are in the action. An import since 2.5.0 has them.
+- Streamer.bot is 1.0.4 or newer. Twitch stopped sending the old Hype Train events in January 2026, so an older Streamer.bot sends none.
+- Printer Bot waits for the End event. When it does not come, Printer Bot prints the end receipt itself 90 seconds after the time the train was due to expire, or after the wait you set under **Advanced → Hype Train end wait (seconds)**. Twitch moves that time on at every level up, so it can be a while after the last level. The Streamer.bot log says "No End event came for Hype Train ..." when it happens.
+- Streamer.bot or Printer Bot was restarted during the train. The expiry times are kept in memory, so the clock starts again with the next event of the train. A train that has been silent for 30 minutes stops counting cheers.
 
 ### A printer fails with "port 9292 is used by another program"
 

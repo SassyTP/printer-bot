@@ -22,8 +22,9 @@
 // versions.json names the newest dock page of a release as "latest", which is what an action that does not exist yet gets.
 //
 // Since router 4 the bar above the frame has a second text, a notice that a release needs a NEW import in Streamer.bot. versions.json names the newest release
-// and the newest prerelease that need one in "core.import". An action older than that version cannot take the release as a program update, so the notice says
-// that the Update button in the dock cannot install it and that the settings stay. A prerelease counts only for a person who switched on Try prerelease versions
+// and the newest prerelease that need one in "core.import". An action older than that version needs an import before it has everything the release brings, so the
+// notice says that the Update button in the dock cannot replace what an import carries and that the settings stay. (Router build 4 said that the button cannot install it.
+// That is true for an updater that is too old and false for a version that installs but lacks the triggers of the import, so build 5 says what holds for both.) A prerelease counts only for a person who switched on Try prerelease versions
 // (the probe reads that setting from the same status). The banner for an action without a loader keeps its priority, and while it applies the notice is not
 // considered at all. Hide for the notice keeps it away for that version only, and a later version shows it again. The notice has a link, How to import, in place of
 // Show how. It opens the guide in a new tab and changes nothing in this page: it does not pin the dock page and does not swap the frame. Show how belongs to the
@@ -42,7 +43,7 @@
 
 // The number of this router. A larger "router" number in versions.json makes this page reload itself once at ./?r=<number>,
 // which is a new address, so an old cached index.html and router.js are replaced. The build tool keeps the two numbers in step.
-const ROUTER_BUILD = 4;
+const ROUTER_BUILD = 5;
 
 const MANIFEST_TIMEOUT_MS = 8000;      // fetching versions.json
 const CONNECT_TIMEOUT_MS = 3000;       // connecting to Streamer.bot, up to and including its greeting
@@ -507,7 +508,7 @@ function RefreshBanner() {
     }
     else if (showNotice) {
         $('router-banner-text').textContent = `Printer Bot ${notice.target}${notice.prerelease ? ' (prerelease)' : ''} needs a new import in Streamer.bot. `
-            + `The Update button in the dock cannot install it, and your settings stay. Your Printer Bot is ${str(backendVersion, 40)}.`;
+            + `The Update button in the dock cannot replace what an import carries (the triggers, the action and the updater), so import once. Your settings stay. Your Printer Bot is ${str(backendVersion, 40)}.`;
     }
     // Show how belongs to the banner for an action without a loader. The notice has the link How to import instead, and no button that swaps the frame.
     const how = $('banner-show-button'), guide = $('banner-import-link');

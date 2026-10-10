@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.3",
-  "built": "202610101318",
+  "version": "3.0.0-beta.4",
+  "built": "202610102126",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.3.bin",
-      "size": 447488,
-      "sha256": "ffcb61b63dafa63a4fdf014d0f75cead161bab2709797415193ae3ad9f9975e0"
+      "name": "core-3.0.0-beta.4.bin",
+      "size": 481280,
+      "sha256": "d0dfa64b27fa352382612dd04d3e1e330dea8120cbe46ca5b4f0901103d74a80"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.3 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. A new setting, Printers per browser, says how many printers each hidden Edge browser serves, from 1 to 100. The default of 100 keeps one browser for all printers, as before, and Printer Bot never starts more than 16. Hype Train receipts always use the first browser. Reload the dock after the update.",
+  "notes": "Prerelease 3.0.0-beta.4 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. A Hype Train that never gets its End event now prints its end receipt by itself (see Advanced, Hype Train end wait) and needs Streamer.bot 1.0.4 or newer. The dock warns about printers that may not take ESC/POS, with a Check this printer button, and holds back a printer whose job is stuck. The Test card has a new switch, Follow the rules, and the card of printer 1 closes like the other cards. Reload the dock after the update.",
   "successor": null,
   "revokeKeys": []
 }
