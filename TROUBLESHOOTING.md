@@ -103,6 +103,18 @@ Raise **Extra feed before cut**.
 
 Install or repair Microsoft Edge (it comes with Windows 10 and 11), then press **Test print** again.
 
+### The dock says "Enter a whole number from 1 to 100." under Printers per browser
+
+The setting takes a whole number from 1 to 100. A 0, a negative number, a fraction, text or an empty box is refused, and the number that was in use stays. Type a number such as 3 and the message goes.
+
+### A printer fails with "port 9292 is used by another program"
+
+Each receipt browser after the first needs its own port on this PC (9292 to 9306 on a normal install). When another program already listens on a port, Printer Bot leaves that program alone. The printers of that browser fail, the other printers print, and the Streamer.bot log says `port 9292 is used by another program, so receipt browser 2 cannot start there`. Close the other program, or raise **Printers per browser** until Printer Bot needs fewer browsers.
+
+### Printer Bot uses a lot of memory with many printers
+
+Each receipt browser is a hidden Edge with its own processes and its own memory. Raise **Printers per browser** (100 keeps one browser) to start fewer of them. The line under the setting says how many browsers your printers need, and the status card of the dock shows the printers.
+
 ### The WebSocket server did not start after a restart
 
 The Streamer.bot log says `Failed to bind to address http://127.0.0.1:8080: address already in use`. Printer Bot 2.3.0 and older started the hidden Edge in a way that kept Streamer.bot's port busy after Streamer.bot closed. End the hidden Edge in Task Manager (the Edge process with no window, see [Where Printer Bot keeps its files](PRINTER_OPERATION.md#where-printer-bot-keeps-its-files)), then start the WebSocket server again in Streamer.bot (**Servers/Clients → WebSocket Server**).

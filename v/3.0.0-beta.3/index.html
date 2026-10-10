@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- What this page may load and do. There are no inline scripts or handlers anywhere, so the policy can be this strict. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; base-uri 'none'; form-action 'none'; object-src 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Printer Bot</title>
+    <!-- Every address below ends in ?v=<build>. The build tool rewrites the stamp when a file of this folder changes,
+         so a changed file gets a new address and a browser that caches hard still fetches it. -->
+    <link rel="icon" href="assets/logo.png?v=1ee95ba39ef8" type="image/png">
+
+    <link rel="stylesheet" href="css/dock.css?v=1ee95ba39ef8" />
+</head>
+
+<body>
+    <div id="dock-wrapper">
+
+        <!-- Header -->
+        <div id="header">
+            <img class="brand-logo" src="assets/logo.png?v=1ee95ba39ef8" alt="" />
+            <label id="title" class="title"></label>
+            <div id="header-end">
+                <!-- A small dot while an update is available. It scrolls to the Updates card. -->
+                <button type="button" id="update-badge" class="icon-button" aria-label="A Printer Bot update is available" title="A Printer Bot update is available" hidden>
+                    <span class="update-dot"></span>
+                </button>
+                <button type="button" id="sb-status-button" class="icon-button" aria-label="Streamer.bot connection">
+                    <img id="sb-status-icon" alt="" />
+                </button>
+            </div>
+        </div>
+
+        <div id="content">
+
+            <!-- Shown while this dock page or the running Printer Bot is a prerelease -->
+            <p id="prerelease-note" class="note" hidden><span id="prerelease-note-text"></span></p>
+
+            <!-- Messages about this page itself (a bad ?config=, a config.json that could not be loaded) -->
+            <div id="page-notices"></div>
+
+            <!-- Shown until the Streamer.bot action is found -->
+            <section id="setup-card" class="card" hidden>
+                <h2 id="setup-title">Set up Streamer.bot</h2>
+                <p id="setup-text" class="hint"></p>
+                <ol class="steps">
+                    <li>Click <b>Copy import code</b>.</li>
+                    <li>In Streamer.bot open <b>Import</b> (top bar), paste, and click <b>Import</b>.</li>
+                    <li>Come back here and click <b>Check again</b>.</li>
+                </ol>
+                <div class="button-row">
+                    <button type="button" id="copy-import-button">Copy import code</button>
+                    <button type="button" id="check-action-button">Check again</button>
+                </div>
+                <div id="import-result-setup" class="import-result" hidden></div>
+                <p id="legacy-note" class="note" hidden>
+                    You still have the old <b>Printer Bot | Events</b> and <b>Printer Bot | Print Routine</b> actions.
+                    After importing, <b>disable or delete both</b>, otherwise every event prints twice.
+                </p>
+            </section>
+
+            <!-- Main panel -->
+            <div id="main" hidden>
+
+                <section class="card">
+                    <div class="status-line">
+                        <span id="status-dot" class="dot"></span>
+                        <span id="status-text">Waiting for Streamer.bot&#x2026;</span>
+                    </div>
+                    <dl id="status-grid" class="kv"></dl>
+                </section>
+
+                <section class="card">
+                    <h2>Settings <span id="saved-flag" class="saved" hidden>Saved &#x2713;</span></h2>
+
+                    <!-- Edits that could not be sent yet (the connection was lost), or a save that was given up -->
+                    <p id="unsaved-line" class="unsaved-line" role="status" hidden></p>
+
+                    <!-- Why the last save was refused or cleaned, as the action says it (status.saveNote) -->
+                    <p id="save-note" class="note" role="alert" hidden></p>
+
+                    <!-- The settings came back from the backup copy outside the Streamer.bot folder (status.settingsRestored). Dismissed once, remembered by this page -->
+                    <div id="mirror-note" class="note" hidden>
+                        Printer Bot restored your settings from a backup copy outside the Streamer.bot folder.
+                        <button type="button" id="mirror-note-dismiss" class="inline-button">Dismiss</button>
+                    </div>
+
+                    <!-- Shown when this dock page is older than the action says it should be (the action's minDock) -->
+                    <div id="dock-outdated" class="note" hidden>
+                        This dock page is older than the Printer Bot action in Streamer.bot. Reload the dock, or restart OBS, to get the matching one.
+                        <button type="button" id="reload-dock-button" class="inline-button">Reload dock</button>
+                    </div>
+
+                    <!-- Shown when the imported action is older than this dock (see minActionVersion in config.json) -->
+                    <div id="action-outdated" class="note" hidden>
+                        The Printer Bot action in Streamer.bot is older than this dock, so some settings below are switched off.
+                        <div id="outdated-import">
+                            Import it again (delete the old Printer Bot action first), then reload this dock. The steps are in Updates, at the bottom of this page.
+                            <button type="button" id="show-updates-button" class="inline-button">Show the steps</button>
+                            <button type="button" id="copy-import-outdated-button" class="inline-button">Copy import code</button>
+                            <div id="import-result-outdated" class="import-result" hidden></div>
+                        </div>
+                        <div id="outdated-update" hidden>Open Updates below and install the new version.</div>
+                    </div>
+
+                    <!-- Printer 1. With one printer these rows sit here, as they always did. With more printers the script moves the two wrappers into the card of printer 1. -->
+                    <div id="printers-single">
+                    <div id="printer-one-main">
+                    <div class="setting printer-row">
+                        <div>
+                            <div class="setting-label">Printer</div>
+                            <div class="setting-description">Auto-detect finds your receipt printer</div>
+                        </div>
+                        <select id="printer"></select>
+                    </div>
+                    <div id="legacy-printer" class="note" hidden>
+                        Your old settings used <b id="legacy-printer-name"></b>.
+                        <button type="button" id="legacy-printer-button" class="inline-button">Use it</button>
+                    </div>
+                    </div>
+
+                    <div id="printer-one-more">
+                    <div class="setting">
+                        <div>
+                            <div class="setting-label">Paper width</div>
+                        </div>
+                        <select id="paperWidthMm">
+                            <option value="80">80 mm</option>
+                            <option value="58">58 mm</option>
+                        </select>
+                    </div>
+
+                    <div class="setting">
+                        <div>
+                            <div class="setting-label">Output</div>
+                            <div class="setting-description" id="mode-description"></div>
+                        </div>
+                        <select id="mode">
+                            <option value="escpos">Thermal printer (ESC/POS)</option>
+                            <option value="windows">Windows printer driver</option>
+                            <option value="png">Preview only (no printer)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting">
+                        <div>
+                            <div class="setting-label">Picture style</div>
+                            <div class="setting-description">How avatars are turned into black and white</div>
+                        </div>
+                        <select id="dither">
+                            <option value="floyd">Detailed</option>
+                            <option value="atkinson">Soft</option>
+                            <option value="threshold">Crisp (no shading)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting" data-only="escpos">
+                        <div>
+                            <div class="setting-label">Paper cut</div>
+                        </div>
+                        <select id="cut">
+                            <option value="partial">Partial</option>
+                            <option value="full">Full</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+
+                    <div class="setting" data-only="escpos">
+                        <div>
+                            <div class="setting-label">Extra feed before cut</div>
+                            <div class="setting-description">Raise this if the cut clips the last line</div>
+                        </div>
+                        <input type="number" id="feedDots" min="0" max="400" step="10">
+                    </div>
+                    </div>
+
+                    <div id="add-printer-row" class="setting stack-narrow">
+                        <div>
+                            <div class="setting-label">More printers</div>
+                            <div class="setting-description" id="add-printer-description">Print on several printers at once, and choose which events print where.</div>
+                        </div>
+                        <div class="setting-actions">
+                            <button type="button" id="add-printer-button">Add another printer</button>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- More than one printer: a card for each, with the events it prints. The script builds the cards. -->
+                    <div id="printers-multi" hidden>
+                        <!-- With more than five extra printers: open all, close all, find a printer by its number or name, and how many need a look -->
+                        <div id="printers-toolbar" class="printers-toolbar" hidden>
+                            <div class="printers-toolbar-row">
+                                <button type="button" id="cards-expand" class="small-button">Expand all</button>
+                                <button type="button" id="cards-collapse" class="small-button">Collapse all</button>
+                                <input type="search" id="cards-find" class="cards-find" placeholder="Find a printer" aria-label="Find a printer" autocomplete="off" spellcheck="false">
+                            </div>
+                            <p id="cards-attention" class="routing-empty warn" hidden></p>
+                            <p id="cards-none" class="hint" role="status" hidden>No printer matches.</p>
+                        </div>
+                        <div id="printer-cards" class="printer-cards"></div>
+                        <div id="add-printer-row-multi" class="setting stack-narrow">
+                            <div>
+                                <div class="setting-description" id="add-printer-note"></div>
+                            </div>
+                            <div class="setting-actions">
+                                <button type="button" id="add-printer-button-multi">Add another printer</button>
+                            </div>
+                        </div>
+                        <p id="settings-size" class="hint muted" hidden></p>
+                        <div class="setting stack-narrow" id="route-else-row">
+                            <div>
+                                <label class="setting-label" for="route-else">Everything else prints on</label>
+                                <div class="setting-description" id="route-else-description">An event that none of the rules above names prints on this printer. An event that passes rules on several printers prints on all of them.</div>
+                            </div>
+                            <select id="route-else" aria-describedby="route-else-description"></select>
+                        </div>
+                        <p class="routing-empty warn" id="route-else-warning" role="status" hidden></p>
+                        <div class="setting stack-narrow" id="per-browser-row">
+                            <div>
+                                <label class="setting-label" for="printersPerBrowser">Printers per browser</label>
+                                <div class="setting-description" id="per-browser-description">Printer Bot draws receipts in hidden Edge browsers. Each browser serves this many printers, so 9 printers at 3 per browser use 3 browsers and 10 printers use 4. More browsers draw at the same time and use more memory. 100 keeps every printer in one browser. Use a whole number from 1 to 100. Printer Bot never starts more than 16 browsers, and Hype Train receipts always use the first one.</div>
+                                <div class="setting-description example" id="per-browser-example"></div>
+                                <p class="field-error" id="per-browser-error" role="alert" hidden></p>
+                            </div>
+                            <input type="number" id="printersPerBrowser" min="1" max="100" step="1" inputmode="numeric" autocomplete="off" aria-describedby="per-browser-description per-browser-example per-browser-error">
+                        </div>
+                        <details id="route-check" class="advanced route-check">
+                            <summary>Check where an event prints</summary>
+                            <p class="hint">Pick a trigger and type the values of the parameters your rules test. Printer Bot says where such an event would print. Nothing is printed.</p>
+                            <div class="setting stack-narrow">
+                                <div><label class="setting-label" for="check-trigger">Trigger</label></div>
+                                <select id="check-trigger"></select>
+                            </div>
+                            <div id="check-fields" class="check-fields"></div>
+                            <div class="button-row">
+                                <button type="button" id="check-button">Check</button>
+                            </div>
+                            <div id="check-result" class="callout" hidden></div>
+                        </details>
+                    </div>
+
+                    <div class="setting">
+                        <div>
+                            <div class="setting-label">High Roller (bits)</div>
+                            <div class="setting-description">Cheers of at least this many bits may style their message with HTML (colors, sizes, rotated text, tables). Scripts, links and anything loaded from outside are always removed. Smaller cheers print as plain text only. 0 = plain text for everyone.</div>
+                        </div>
+                        <input type="number" id="highRollerBits" min="0" step="5">
+                    </div>
+
+                    <div class="setting">
+                        <div>
+                            <div class="setting-label">Ignore test triggers</div>
+                            <div class="setting-description">Skip 'Test' and 'Simulate' events from Streamer.bot</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="ignoreTestTriggers">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting">
+                        <div>
+                            <div class="setting-label">Keep debug files</div>
+                            <div class="setting-description">Saves the last event and receipt image</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="keepDebugFiles">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <details id="advanced" class="advanced">
+                        <summary>Advanced<span id="advanced-hint" class="muted"></span><span id="advanced-saved" class="saved" hidden>Saved &#x2713;</span></summary>
+                        <div class="setting stack-narrow">
+                            <div>
+                                <label class="setting-label" for="highRollerBitsPerInch">High Roller: bits per inch</label>
+                                <div class="setting-description" id="bits-per-inch-description">Caps how long a High Roller message can print: up to (bits &#xF7; this number) inches, so at 10, a 100-bit cheer gets 10 inches. Shorter messages print in full. Longer ones fade out at the limit. 0 = no limit.</div>
+                                <div class="setting-description example" id="bits-per-inch-example"></div>
+                            </div>
+                            <input type="number" id="highRollerBitsPerInch" min="0" step="0.5" placeholder="0" aria-describedby="bits-per-inch-description bits-per-inch-example">
+                        </div>
+
+                        <div class="setting stack-narrow">
+                            <div>
+                                <label class="setting-label" for="highRollerMaxInches">High Roller: maximum length (inches)</label>
+                                <div class="setting-description" id="max-inches-description">The longest a High Roller message can print, whatever bits per inch says. Applies to cheers only. Gift sub lists are never shortened. 0 = the built-in limit of 16.7 inches. Up to 40.</div>
+                            </div>
+                            <input type="number" id="highRollerMaxInches" min="0" max="40" step="0.5" placeholder="0" aria-describedby="max-inches-description">
+                        </div>
+
+                        <div class="setting">
+                            <div>
+                                <label class="setting-label" for="hideLinks">Hide links in messages</label>
+                                <div class="setting-description">Replaces text that looks like a web address in a normal message with [link] on the receipt (not every bare domain name is caught). High Roller messages are not touched.</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="hideLinks">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting">
+                            <div>
+                                <label class="setting-label" for="hypeTrain">Print Hype Trains</label>
+                                <div class="setting-description" id="hype-train-description">Prints a receipt when a Hype Train starts, when a new Conductor (the top cheerer) takes over, at every level up and when the train ends. It needs the four Hype Train triggers in Streamer.bot. They come with the 2.5.0 import. If you updated without importing again, add them under Twitch, Hype Train. Off stops all four, even with the triggers in place. The Hype Train test prints always print.</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="hypeTrain" aria-describedby="hype-train-description">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting stack-narrow">
+                            <div>
+                                <label class="setting-label" for="freePrintsPerMinute">Free receipts per minute</label>
+                                <div class="setting-description" id="free-description">Stops a flood of free prints. Counts only channel-point redemptions and raids. Cheers, subs, gifts and tips are never limited. 0 = no limit.</div>
+                                <div class="setting-description skipped" id="skipped-free" hidden></div>
+                            </div>
+                            <input type="number" id="freePrintsPerMinute" min="0" max="100000" step="1" placeholder="0" aria-describedby="free-description">
+                        </div>
+
+                        <div class="setting stack-narrow">
+                            <div>
+                                <div class="setting-label">Viewer pictures</div>
+                                <div class="setting-description" id="avatar-cache-description">Printer Bot remembers where each viewer's profile picture is, and for two hours a name it could not find. Clear that memory to fetch everyone's latest picture on their next receipt.</div>
+                                <div class="setting-description example" id="avatar-cache-count"></div>
+                            </div>
+                            <div class="setting-actions">
+                                <button type="button" id="clear-avatars-button" aria-describedby="avatar-cache-description">Clear picture cache</button>
+                            </div>
+                        </div>
+
+                        <div class="setting stack-narrow">
+                            <div>
+                                <div class="setting-label">Customize receipts</div>
+                                <div class="setting-description">Put a file named <b>theme.css</b> in this folder to restyle your receipts. It applies on the next print, no restart needed.</div>
+                                <div id="folder" class="callout"></div>
+                                <div id="folder-hint" class="setting-description" hidden>This folder is inside your Streamer.bot folder.</div>
+                            </div>
+                            <div class="setting-actions">
+                                <button type="button" id="copy-folder-button">Copy folder path</button>
+                            </div>
+                        </div>
+                    </details>
+                </section>
+
+                <section class="card">
+                    <h2>Test</h2>
+                    <div id="test-printers-row" class="setting" hidden>
+                        <div>
+                            <label class="setting-label" for="test-printers">Print on</label>
+                        </div>
+                        <select id="test-printers"></select>
+                    </div>
+                    <div class="button-row">
+                        <select id="sample"></select>
+                        <button type="button" id="test-print-button">Test print</button>
+                    </div>
+                    <div class="button-row">
+                        <button type="button" id="preview-button">Show last receipt</button>
+                    </div>
+                    <div id="preview-box" hidden>
+                        <img id="preview-img" alt="Last receipt">
+                        <div id="preview-caption" class="hint"></div>
+                    </div>
+                </section>
+
+                <section class="card" id="backup-card">
+                    <h2>Backup</h2>
+                    <div class="backup-body">
+                        <div class="setting stack-narrow">
+                            <div>
+                                <div class="setting-label">Save settings</div>
+                                <div class="setting-description">Saves your printers, routing rules and print options to a file. If Streamer.bot ever loses its data, Restore settings brings them back.</div>
+                            </div>
+                            <div class="setting-actions">
+                                <button type="button" id="settings-save-button">Save settings</button>
+                            </div>
+                        </div>
+
+                        <div class="setting stack-narrow">
+                            <div>
+                                <div class="setting-label">Restore settings</div>
+                                <div class="setting-description">Reads a file made by Save settings. You see what it holds before anything changes.</div>
+                            </div>
+                            <div class="setting-actions">
+                                <button type="button" id="settings-restore-button">Restore settings</button>
+                                <input type="file" id="settings-file" accept=".json,application/json" aria-label="A settings file made by Save settings" hidden>
+                            </div>
+                        </div>
+
+                        <div id="settings-restore-preview" class="note" hidden>
+                            <div id="settings-restore-summary"></div>
+                            <div class="button-row">
+                                <button type="button" id="settings-apply-button">Restore these settings</button>
+                                <button type="button" id="settings-cancel-button">Cancel</button>
+                            </div>
+                        </div>
+                        <p id="backup-message" class="hint" role="status" hidden></p>
+
+                        <details id="backup-text-box" class="advanced">
+                            <summary>Settings as text</summary>
+                            <p class="hint">Some docks cannot save or open files. Copy the text of your settings from here, and paste a copy back below.</p>
+                            <div class="button-row">
+                                <button type="button" id="settings-text-show-button">Show settings as text</button>
+                                <button type="button" id="settings-text-copy-button">Copy the text</button>
+                            </div>
+                            <textarea id="settings-text-out" class="import-code" readonly rows="6" aria-label="Your settings as text" spellcheck="false" hidden></textarea>
+                            <textarea id="settings-text-in" class="import-code" rows="6" aria-label="Paste saved settings here" spellcheck="false" placeholder="Paste the text of a saved settings file here"></textarea>
+                            <div class="button-row">
+                                <button type="button" id="settings-text-check-button">Check the pasted text</button>
+                            </div>
+                        </details>
+                    </div>
+                </section>
+
+                <section class="card" id="updates-card">
+                    <!-- The whole card is one collapsible group. It stays closed until it is opened, and the summary line says what needs attention. -->
+                    <details id="updates-box" class="advanced updates-box">
+                        <summary><h2>Updates</h2><span id="updates-hint" class="muted"></span><span id="updates-saved" class="saved" hidden>Saved &#x2713;</span></summary>
+                        <div class="updates-body">
+                            <dl id="update-grid" class="kv"></dl>
+
+                            <!-- Printer Bot 2.4.0 and later: the updater is part of the action -->
+                            <div id="update-main" class="update-main" hidden>
+                                <div class="setting">
+                                    <div>
+                                        <div class="setting-label">Last checked</div>
+                                        <div class="setting-description" id="update-checked">not yet</div>
+                                    </div>
+                                    <div class="setting-actions">
+                                        <button type="button" id="core-check-button">Check now</button>
+                                    </div>
+                                </div>
+
+                                <div class="status-line">
+                                    <span id="update-dot" class="dot"></span>
+                                    <span id="update-state-text">Waiting for the updater&#x2026;</span>
+                                </div>
+                                <progress id="update-progress" max="100" value="0" hidden></progress>
+                                <p id="update-message" class="note" hidden></p>
+
+                                <div id="update-notes" hidden>
+                                    <div class="setting-label">What's new</div>
+                                    <p id="update-notes-text" class="update-notes"></p>
+                                </div>
+
+                                <div class="button-row">
+                                    <button type="button" id="core-update-button" hidden>Update</button>
+                                    <button type="button" id="core-reload-button" hidden>Reload dock</button>
+                                </div>
+                                <p id="update-refused" class="hint" hidden></p>
+                                <p id="update-restart" class="note" hidden>Restart Streamer.bot first. Then press Reload dock, so the update takes properly.</p>
+                                <p id="update-hint" class="hint" hidden>Receipts pause for a moment while the new version starts.</p>
+                                <p id="update-auto-info" class="hint" hidden></p>
+
+                                <div class="setting">
+                                    <div>
+                                        <label class="setting-label" for="autoUpdateCore">Install updates automatically</label>
+                                        <div class="setting-description">Installs a new release by itself when Printer Bot has been idle for a while. It stays off until you switch it on, and a prerelease is never installed this way.</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="autoUpdateCore">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="setting">
+                                    <div>
+                                        <label class="setting-label" for="prereleaseUpdates">Try prerelease versions</label>
+                                        <div class="setting-description">Offers test versions of Printer Bot before they are released. They can have mistakes, and one is installed only when you press Update. With this off you are offered releases only.</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="prereleaseUpdates">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <p id="prerelease-hint" class="hint" hidden></p>
+
+                                <details id="update-more" class="advanced">
+                                    <summary>More</summary>
+                                    <div class="setting stack-narrow">
+                                        <div>
+                                            <div class="setting-label">Previous version</div>
+                                            <div class="setting-description">Switches back to the version that ran before the last update. Without an earlier downloaded version it uses the built-in one, which stays until you press Update.</div>
+                                        </div>
+                                        <div class="setting-actions">
+                                            <button type="button" id="core-rollback-button">Go back to the previous version</button>
+                                        </div>
+                                    </div>
+                                    <div class="setting stack-narrow">
+                                        <div>
+                                            <div class="setting-label">Built-in version</div>
+                                            <div class="setting-description">Switches to the version that came with the import. It stays until you press Update.</div>
+                                        </div>
+                                        <div class="setting-actions">
+                                            <button type="button" id="core-builtin-button">Use the built-in version</button>
+                                        </div>
+                                    </div>
+                                    <div class="setting stack-narrow" id="update-reinstall-row" hidden>
+                                        <div>
+                                            <div class="setting-label">Reinstall</div>
+                                            <div class="setting-description">Downloads the program again and replaces the stored copy. Your settings stay.</div>
+                                        </div>
+                                        <div class="setting-actions">
+                                            <button type="button" id="core-reinstall-button" disabled>Reinstall</button>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- A Printer Bot that has no updater (before 2.4.0), or one whose updater needs a newer one: import once -->
+                            <div id="update-reimport" class="note" hidden>
+                                <p id="update-reimport-text"></p>
+                                <p id="update-reimport-notes" hidden></p>
+                                <ol class="steps">
+                                    <li>Click <b>Copy import code</b>.</li>
+                                    <li>In Streamer.bot, delete the old <b>Printer Bot</b> action.</li>
+                                    <li>Open <b>Import</b> (top bar), paste, and click <b>Import</b>.</li>
+                                    <li>Reload this dock.</li>
+                                </ol>
+                                <div class="button-row">
+                                    <button type="button" id="copy-import-updates-button">Copy import code</button>
+                                </div>
+                                <div id="import-result-updates" class="import-result" hidden></div>
+                            </div>
+
+                            <!-- Receipt layouts and the switch for all downloads -->
+                            <div class="update-layouts">
+                                <div class="setting stack-narrow">
+                                    <div>
+                                        <div class="setting-label">Renderer updates</div>
+                                        <div class="setting-description">Where Printer Bot looks for newer receipt layouts. Normally this dock.</div>
+                                        <div class="setting-description example-line" id="update-source-state"></div>
+                                    </div>
+                                    <div class="setting-actions">
+                                        <button type="button" id="update-check-button">Check layouts</button>
+                                        <button type="button" id="update-use-button" hidden>Use this dock</button>
+                                    </div>
+                                </div>
+
+                                <div class="setting">
+                                    <div>
+                                        <label class="setting-label" for="allowHostedUpdates">Download updates (layouts and program updates)</label>
+                                        <div class="setting-description">Newer receipt layouts and program updates are only used if the author signed them. Off downloads nothing and uses the built-in layout, and a program update you installed earlier keeps running until you press Use the built-in version.</div>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="allowHostedUpdates">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="setting stack-narrow">
+                                    <div>
+                                        <div class="setting-label">Renderer</div>
+                                        <div class="setting-description" id="renderer-detail"></div>
+                                        <div class="setting-description">Reset throws away any downloaded copy and goes back to the layout built into the action.</div>
+                                    </div>
+                                    <div class="setting-actions">
+                                        <button type="button" id="renderer-reset-button">Reset to built-in renderer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- Overlay behind the connect dialog -->
+        <div id="blur-layer" class="blur"></div>
+
+        <!-- Streamer.bot connect dialog -->
+        <div id="sb-connect-dialog" class="dialog" role="dialog" aria-label="Connect to Streamer.bot">
+            <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">&#xD7;</button>
+            <div class="dialog-brand">
+                <img class="brand-logo" src="assets/icons/plug.svg?v=1ee95ba39ef8" loading="lazy" decoding="async" alt="" />
+                <label class="title">Streamer.bot</label>
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label for="sb-address">Address <span class="required">*</span></label>
+                    <input type="text" id="sb-address" name="sb-address" placeholder="127.0.0.1" value="127.0.0.1">
+                </div>
+                <div class="field">
+                    <label for="sb-port">Port <span class="required">*</span></label>
+                    <input type="text" id="sb-port" name="sb-port" placeholder="8080" value="8080">
+                </div>
+            </div>
+            <div class="field">
+                <label for="sb-password">Password</label>
+                <input type="password" id="sb-password" name="sb-password">
+            </div>
+            <label class="check">
+                <input type="checkbox" id="sb-remember" checked>
+                <span>Remember on this computer</span>
+            </label>
+            <p class="hint">Keeps the address, port and password in this browser so OBS reconnects after a restart. Untick it on a shared computer: the password is then not saved.</p>
+            <p id="sb-http-warning" class="note" hidden>
+                <b>This dock is loaded over plain http.</b> Anyone on the way can change this page, and a Streamer.bot password cannot be
+                used from it. Use an https address for the dock if you can.
+            </p>
+            <p id="sb-https-note" class="note" hidden>
+                This dock is on https but Streamer.bot is reached over plain ws://. Browsers may block that unless Streamer.bot is on this computer.
+            </p>
+            <p id="sb-local-note" class="note" hidden>
+                This dock is loaded from a web server but talks only to Streamer.bot on this computer. If your browser asks whether this site may connect to
+                devices on your computer or local network (it may be called "Apps on device"), choose <b>Allow</b>.
+            </p>
+            <p class="hint">In Streamer.bot, enable <b>Servers/Clients &#x2192; WebSocket Server</b> and keep the port here in sync.</p>
+            <label id="sb-error-label"></label>
+            <button type="button" id="sb-connect-button">Connect</button>
+        </div>
+    </div>
+
+    <script src="vendor/streamerbot-client.js?v=1ee95ba39ef8"></script>
+    <script src="js/version.js?v=1ee95ba39ef8"></script>
+    <script src="js/catalog.js?v=1ee95ba39ef8"></script>
+    <script src="js/printers.js?v=1ee95ba39ef8"></script>
+    <script src="js/app.js?v=1ee95ba39ef8"></script>
+</body>
+
+</html>

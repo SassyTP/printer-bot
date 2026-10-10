@@ -1,0 +1,10 @@
+{
+  "title": "Printer Bot",
+  "minActionVersion": "3.0.0-beta.3",
+  "requiredSbActions": [
+    {
+      "id": "bdc70b66-6b06-d5ee-54a4-7030d080b8b5",
+      "name": "Printer Bot"
+    }
+  ]
+}

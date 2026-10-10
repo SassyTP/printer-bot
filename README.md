@@ -13,9 +13,9 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## Prerelease 3.0.0-beta.2
+## Prerelease 3.0.0-beta.3
 
-The newest release is 2.5.4. Version 3.0.0-beta.2 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.1 (no new import is needed) and the steps to go back to 2.5.4.
+The newest release is 2.5.4. Version 3.0.0-beta.3 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.2 (no new import is needed) and the steps to go back to 2.5.4.
 
 What is new in it:
 
@@ -30,6 +30,7 @@ What is new in it:
 9. **A larger profile picture.** The picture at the top of a receipt is about 10 mm larger on 80 mm paper and about 5 mm larger on 58 mm paper, and the receipt is as long as before.
 10. **A warning about imports.** When a version needs a new import in Streamer.bot, the dock shows a bar above the page to a Printer Bot that is older than the newest version that changed the import. See [A later change to the import](UPDATING.md#a-later-change-to-the-import).
 11. **Prerelease versions are your choice.** The Updates card has a switch, **Try prerelease versions**. It is off until you switch it on. **Install updates automatically** is off until you switch it on, and a prerelease is never installed by itself.
+12. **Printers per browser.** Printer Bot draws receipts in hidden Edge browsers. The new setting **Printers per browser** (in Settings, with two printers or more) says how many printers one browser serves, a whole number from 1 to 100. With 3 per browser, 9 printers use 3 browsers and 10 printers use 4. The default of 100 keeps every printer in one browser, as before. The dock refuses 0, negative numbers and anything that is not a whole number, and says so under the setting. See [Printers and rules](PRINTER_OPERATION.md#printers-and-rules).
 
 ## Requirements
 
@@ -71,7 +72,7 @@ Download this repository as a ZIP only if you [host your own dock](DOCK_SELECTIO
 | `import.sha256.txt` | the SHA-256 fingerprint of `import.txt`, for the optional check in [Troubleshooting](TROUBLESHOOTING.md#check-your-import-optional) |
 | `import.prerelease.txt`, `import.prerelease.sha256.txt` | the same two files for the prerelease (see [Prerelease versions](UPDATING.md#prerelease-versions)) |
 | `index.html`, `js/router.js`, `css/router.css`, `versions.json` | the launcher that asks the action for its version and opens the matching dock page, and the list of dock pages (with a hint about the newest program update and about versions that need a new import, which the launcher uses for the bars described in [Updating](UPDATING.md#from-230-or-231-import-once) and [A later change to the import](UPDATING.md#a-later-change-to-the-import)) |
-| `v/` | the dock pages for Printer Bot 2.3.0 and later (`v/2.3.0/`, `v/2.4.0/`, `v/2.4.5/`, `v/2.5.0/`, `v/3.0.0-beta.1/` and `v/3.0.0-beta.2/`), one folder for each version, with its own receipt layout, signature and `version.json` |
+| `v/` | the dock pages for Printer Bot 2.3.0 and later (`v/2.3.0/`, `v/2.4.0/`, `v/2.4.5/`, `v/2.5.0/`, `v/3.0.0-beta.1/`, `v/3.0.0-beta.2/` and `v/3.0.0-beta.3/`), one folder for each version, with its own receipt layout, signature and `version.json` |
 | `core/api1/manifest.json`, `core/api1/manifest.json.sig`, `core/api1/core-<version>.bin` | program updates for the dock's **Update** button: a signed list that names the newest program, its signature and the program itself (served by the dock's host) |
 | `core/api1/prerelease/` | the same three files for the prerelease, which Printer Bot reads only when you switch **Try prerelease versions** on |
 | `vendor/streamerbot-client.js`, `vendor/LICENSE-streamerbot-client.txt` | Streamer.bot's own client library for the dock (MIT licence, notice included) |

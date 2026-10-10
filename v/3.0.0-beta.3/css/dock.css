@@ -1,0 +1,1457 @@
+/*
+ * Printer Bot dock (control panel)
+ *
+ * Styles the OBS dock only. Receipts are styled by the receipt page (renderer.html) and the streamer's theme.css.
+ *
+ * Fonts: "Inter" if it is installed locally, otherwise the system font.
+ */
+
+
+/* ------------------------------------------------------------------ */
+/* Variables                                                          */
+/* ------------------------------------------------------------------ */
+
+:root {
+    /* Read by js/app.js to build the page title (the domain, a bullet character and the title) */
+    --domain: SassyTP;
+
+    /* Surfaces */
+    --background-color: #181818;
+    --dialog-background: #1d1d1d;
+    --card-background: #1d1d1d;
+    --callout-background: #181818;
+    --input-background: #171717;
+    --button-color: #2e2e2e;
+
+    /* Lines */
+    --border-color: #404040;
+    --border-soft: #40404080;
+
+    /* Status */
+    --accent-color: #2196f3;
+    --success-color: #3be477;
+    --warn-color: #e0a73a;
+    --error-color: #c65e5e;
+    --error-background: #a82d2e33;
+    --mandatory-field-color: #c93f3f;
+
+    --blur-intensity: 20px;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Base                                                               */
+/* ------------------------------------------------------------------ */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Inter, system-ui, sans-serif;
+    color: white;
+    background-color: var(--background-color);
+}
+
+/* .setting and similar classes set their own display, which would beat the hidden attribute */
+[hidden] {
+    display: none !important;
+}
+
+.required {
+    color: var(--mandatory-field-color);
+}
+
+.muted {
+    opacity: 0.6;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Text                                                               */
+/* ------------------------------------------------------------------ */
+
+.title {
+    font-weight: 900;
+    font-size: 1.2em;
+    text-transform: uppercase;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.9;
+}
+
+.setting-label {
+    display: block;
+    font-weight: 500;
+}
+
+.setting-description,
+.hint {
+    font-size: 0.9em;
+    font-weight: 100;
+}
+
+.hint {
+    margin: 0;
+}
+
+.note {
+    margin: 0;
+    padding: 0.7em 0.9em;
+    font-size: 0.9em;
+    background: #e0a73a22;
+    border: 1px solid #e0a73a55;
+    border-radius: 0.5em;
+}
+
+.note.error {
+    color: var(--error-color);
+    background: var(--error-background);
+    border-color: var(--error-color);
+}
+
+/* messages about the page itself (a bad ?config=, a config.json that did not load) */
+#page-notices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+}
+
+#page-notices:empty {
+    display: none;
+}
+
+.steps {
+    margin: 0;
+    padding-left: 1.4em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    font-size: 0.95em;
+}
+
+.saved {
+    white-space: nowrap;
+    margin-left: 0.6em;
+    font-size: 0.85em;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--success-color);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Controls: buttons, inputs, selects, switches, scrollbars           */
+/* ------------------------------------------------------------------ */
+
+button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.5em 1em;
+    font-size: 1em;
+    font-weight: 600;
+    color: white;
+    background-color: var(--button-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5em;
+    opacity: 0.8;
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.icon-button {
+    width: 1em;
+    height: 1em;
+    padding: 1em;
+    font-size: 1.1em;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+}
+
+.icon-button:hover {
+    background: var(--button-color);
+}
+
+.icon-button img {
+    height: 1em;
+}
+
+.inline-button {
+    display: inline-flex;
+    width: auto;
+    margin-left: 0.5em;
+    padding: 0.2em 0.7em;
+    font-size: 0.9em;
+}
+
+/* the Copy import code button inside the "action is older" note sits on its own line under the text */
+#action-outdated .inline-button {
+    display: flex;
+    width: fit-content;
+    margin: 0.6em 0 0;
+}
+
+/* the Reload dock button in the "dock page is older" note does the same */
+#dock-outdated .inline-button {
+    display: flex;
+    width: fit-content;
+    margin: 0.6em 0 0;
+}
+
+.button-row {
+    display: flex;
+    gap: 0.6em;
+}
+
+.button-row > * {
+    flex: 1;
+}
+
+/*
+ * Every text/number input and every dropdown gets the same box model and the same height. A <select> is border-box by default
+ * and an <input> is content-box. With a shared width (see .setting below), the input came out as wide as the select plus its
+ * padding (about 14 px wider) and, with its own line height, 2 px shorter. Fixing both makes them identical at any width.
+ */
+input:not([type="checkbox"]),
+select {
+    box-sizing: border-box;
+    height: 2.5em;
+    padding: 0.5em;
+    font-family: inherit;
+    font-size: 0.9em;
+    line-height: normal;
+    color: white;
+    background-color: var(--input-background);
+    border: none;
+    border-radius: 0.5em;
+    outline: 1px solid var(--border-color);
+    transition: 0.2s;
+}
+
+/* Chrome adds 4 px of its own space before the text in a dropdown. Taking it off the padding lines the text up with the number boxes. */
+select {
+    min-width: 0;
+    padding-left: calc(0.5em - 4px);
+    cursor: pointer;
+}
+
+/* a dropdown next to a button (Test card) stretches to the button's height */
+.button-row > select {
+    height: auto;
+}
+
+input:not([type="checkbox"]):disabled {
+    opacity: 0.5;
+}
+
+input:not([type="checkbox"]):focus,
+select:focus {
+    outline: 1px solid var(--accent-color);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+/* "Remember on this computer" */
+.check {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    cursor: pointer;
+}
+
+.check input {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.field-row {
+    display: flex;
+    gap: 1em;
+}
+
+.field-row .field {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Toggle switch: <label class="switch"><input type="checkbox"><span class="slider"></span></label> */
+.switch {
+    position: relative;
+    display: inline-block;
+    flex: none;
+    width: 3em;
+    height: 1.5em;
+    overflow: hidden;
+}
+
+.switch input {
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+.slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 1.5em;
+    transition: 0.4s;
+}
+
+.slider::before {
+    content: "";
+    position: absolute;
+    left: 0.2em;
+    top: 50%;
+    width: 1.1em;
+    height: 1.1em;
+    background-color: white;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    transition: 0.4s;
+}
+
+input:checked + .slider {
+    background-color: var(--accent-color);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--accent-color);
+}
+
+input:checked + .slider::before {
+    transform: translate(1.5em, -50%);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2c2c2c;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #9f9f9f;
+    border: none;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #d1d1d1;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Layout: header + scrolling content area                            */
+/* ------------------------------------------------------------------ */
+
+#dock-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+    padding: 0 1em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+    z-index: 1;
+}
+
+#header-end {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: auto;
+}
+
+.brand-logo {
+    height: 40px;
+}
+
+#content,
+#main {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+#content {
+    flex: 1;
+    overflow: auto;
+    padding: 1em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Cards                                                              */
+/* ------------------------------------------------------------------ */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    padding: 1em;
+    background: var(--card-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.6em;
+}
+
+.status-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    font-weight: 600;
+}
+
+.dot {
+    flex: none;
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    background: #777;
+}
+
+.dot.ok { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+.dot.warn { background: var(--warn-color); }
+.dot.bad { background: var(--error-color); }
+.dot.info { background: var(--accent-color); }
+
+/* label / value pairs */
+.kv {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35em 1em;
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.kv dt {
+    font-weight: 100;
+    opacity: 0.75;
+}
+
+.kv dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.signed {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.queue-error,
+.queue-stale {
+    color: var(--warn-color);
+}
+
+.queue-unknown {
+    opacity: 0.7;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Settings rows                                                      */
+/* ------------------------------------------------------------------ */
+
+.setting {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.8em;
+}
+
+.setting > div:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Every control on the right of a row (dropdown, number/text input, or the button group) has the same width */
+.setting > select,
+.setting > input,
+.setting > .setting-actions {
+    flex: none;
+    width: 14em;
+    max-width: 50%;
+    margin-left: auto;
+}
+
+.setting .switch {
+    margin-left: auto;
+}
+
+/* one or two buttons where a row would have an input (update source, reset renderer) */
+.setting-actions {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    font-size: 0.9em;               /* the same em as the inputs and dropdowns, so 14em is the same width */
+}
+
+.setting-actions button {
+    box-sizing: border-box;
+    min-height: 2.5em;
+    padding: 0.3em 0.8em;
+    line-height: 1.2;
+}
+
+button.confirming {
+    color: #1d1d1d;
+    background-color: var(--warn-color);
+    border-color: var(--warn-color);
+    opacity: 1;
+}
+
+.skipped {
+    margin-top: 0.3em;
+    color: var(--warn-color);
+}
+
+/* A value that was typed and is not allowed: the message under the label and a red box. Nothing is saved while it shows. */
+.field-error {
+    margin: 0.4em 0 0;
+    font-size: 0.9em;
+    color: var(--error-color);
+}
+
+input[aria-invalid="true"],
+input[aria-invalid="true"]:focus {
+    outline: 1px solid var(--error-color);
+}
+
+.example-line {
+    margin-top: 0.3em;
+    opacity: 0.8;
+}
+
+/* "Advanced": a collapsible group at the bottom of the settings card */
+.advanced {
+    border-top: 1px solid var(--border-soft);
+    padding-top: 0.8em;
+}
+
+.advanced > summary {
+    cursor: pointer;
+    font-weight: 500;
+    opacity: 0.85;
+    list-style: none;
+    user-select: none;
+}
+
+.advanced > summary::-webkit-details-marker {
+    display: none;
+}
+
+.advanced > summary::before {
+    content: "\25B8";
+    display: inline-block;
+    width: 1.1em;
+    transition: transform 0.12s;
+}
+
+.advanced[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.advanced > .setting {
+    margin-top: 0.9em;
+}
+
+.example {
+    margin-top: 0.4em;
+    min-height: 2.7em;          /* two lines: the rows below don't jump while the example changes as you type */
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.advanced .note {
+    margin-top: 0.5em;
+}
+
+/* narrow docks (OBS panels): the input or buttons go under their text, so the text doesn't get squeezed into a thin column
+   (rows with a toggle switch keep the switch on the right) */
+@media (max-width: 640px) {
+    .advanced > .setting.stack-narrow,
+    .update-layouts > .setting.stack-narrow,
+    .backup-body > .setting.stack-narrow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .example {
+        min-height: 4.2em;      /* three lines */
+    }
+
+    .advanced > .setting.stack-narrow > input,
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions,
+    .backup-body > .setting.stack-narrow > .setting-actions {
+        width: 100%;                /* 100% wide including padding and border (everything is border-box), so it lines up with the text above */
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    .advanced > .setting.stack-narrow > .setting-actions,
+    .update-layouts > .setting.stack-narrow > .setting-actions,
+    .backup-body > .setting.stack-narrow > .setting-actions {
+        flex-direction: row;
+    }
+
+    .advanced > .setting.stack-narrow > .setting-actions button,
+    .update-layouts > .setting.stack-narrow > .setting-actions button,
+    .backup-body > .setting.stack-narrow > .setting-actions button {
+        flex: 1;
+    }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Backup card                                                        */
+/* ------------------------------------------------------------------ */
+
+.backup-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.backup-body .note {
+    margin-top: 0;
+}
+
+#settings-restore-summary p {
+    margin: 0 0 0.4em;
+}
+
+#settings-restore-preview > .button-row {
+    margin-top: 0.7em;
+}
+
+#backup-message.error {
+    color: var(--error-color);
+}
+
+#backup-text-box > .hint,
+#backup-text-box > .button-row,
+#backup-text-box > textarea {
+    margin-top: 0.6em;
+}
+
+#backup-text-box > textarea {
+    display: block;
+}
+
+#backup-text-box > textarea[hidden] {
+    display: none;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Updates card                                                       */
+/* ------------------------------------------------------------------ */
+
+/* The whole card is one collapsible group that stays closed until it is opened. It reuses the look of "Advanced" (the same marker and summary),
+   without the line above it, because the card has its own border. The heading is inside the summary and sits inline next to the marker. */
+.advanced.updates-box {
+    border-top: none;
+    padding-top: 0;
+}
+
+.updates-box > summary {
+    opacity: 1;
+}
+
+.updates-box > summary > h2 {
+    display: inline;
+}
+
+/* what needs attention while the card is closed. An open card says it in full, so the hint goes then. */
+#updates-hint:not(:empty)::before {
+    content: "\A0\B7\A0";
+}
+
+.updates-box[open] > summary > #updates-hint {
+    display: none;
+}
+
+/* the body keeps the layout the card had before it became a group: a column of blocks with a gap */
+.updates-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.updates-body .note {
+    margin-top: 0;
+}
+
+.update-layouts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    padding-top: 0.9em;
+    border-top: 1px solid var(--border-soft);
+}
+#update-source-state {
+    overflow-wrap: anywhere;
+}
+.update-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+/* the small dot next to the connection icon while an update is available.
+   The content box of the button around it is 0 wide (its size comes from the padding), so the dot needs flex: none or it shrinks to nothing. */
+.update-dot {
+    display: block;
+    flex: none;
+    width: 0.6em;
+    height: 0.6em;
+    background: var(--accent-color);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--accent-color);
+}
+
+#update-badge {
+    margin-right: -0.4em;
+}
+
+progress {
+    box-sizing: border-box;
+    width: 100%;
+    height: 0.5em;
+    appearance: none;
+    border: none;
+    border-radius: 0.25em;
+    background: var(--input-background);
+}
+
+progress::-webkit-progress-bar {
+    background: var(--input-background);
+    border-radius: 0.25em;
+}
+
+progress::-webkit-progress-value {
+    background: var(--accent-color);
+    border-radius: 0.25em;
+}
+
+/* The Update button is the one thing the card asks for, so it carries the accent color. Armed, it keeps the warning color of button.confirming. */
+#core-update-button:not(.confirming):not(:disabled) {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    opacity: 1;
+}
+
+#core-update-button:not(.confirming):not(:disabled):hover {
+    filter: brightness(1.1);
+}
+
+#update-message {
+    overflow-wrap: anywhere;
+}
+
+/* the release notes: plain text, line breaks kept */
+.update-notes {
+    margin: 0.3em 0 0;
+    padding: 0.6em 0.8em;
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    background: var(--callout-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.5em;
+}
+
+/* the one-time import: a short text, the steps and the copy button */
+#update-reimport {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+}
+
+#update-reimport p {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* a newer updater exists: a calm hint, no warning color */
+#update-reimport:not(.note) {
+    padding-top: 0.2em;
+    font-size: 0.9em;
+    font-weight: 100;
+}
+
+#update-more > .setting .setting-description {
+    margin-top: 0.2em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Import code result (hash + manual-copy box)                        */
+/* ------------------------------------------------------------------ */
+
+.import-result {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    margin-top: 0.6em;
+}
+
+.import-result p {
+    overflow-wrap: anywhere;
+}
+
+.import-hash {
+    font-family: monospace;
+}
+
+textarea.import-code {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.5em;
+    resize: vertical;
+    font-family: monospace;
+    font-size: 0.8em;
+    color: white;
+    background-color: var(--input-background);
+    border: none;
+    border-radius: 0.5em;
+    outline: 1px solid var(--border-color);
+}
+
+/* a temporary box used only to put text on the clipboard */
+.offscreen {
+    position: fixed;
+    top: 0;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Preview + callout                                                  */
+/* ------------------------------------------------------------------ */
+
+#preview-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.8em;
+    background: #fff;
+    border-radius: 0.5em;
+    color: #000;
+}
+
+#preview-img {
+    max-width: 100%;
+    image-rendering: pixelated;
+}
+
+#preview-img:not([src]) {
+    display: none;
+}
+
+#preview-caption {
+    text-align: center;
+}
+
+.setting-description + .callout {
+    margin-top: 0.5em;
+}
+.callout + .setting-description {
+    margin-top: 0.4em;
+}
+.callout {
+    padding: 0.7em 0.9em;
+    font-family: monospace;
+    font-size: 0.85em;
+    overflow-wrap: anywhere;
+    background-color: var(--callout-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.5em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Overlay: blur layer + connect dialog                               */
+/* ------------------------------------------------------------------ */
+
+.blur {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+}
+
+/* Hidden until js/app.js sets style.display = "flex" */
+.dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    gap: 1em;
+    box-sizing: border-box;
+    width: 90%;
+    max-width: 30em;
+    max-height: 90vh;
+    padding: 1em;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 1em;
+    background-color: var(--dialog-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.5em;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+    backdrop-filter: blur(var(--blur-intensity));
+}
+
+.dialog-nav-button {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    width: 1em;
+    height: 1em;
+    padding: 0;
+    font-size: 1.5em;
+    font-weight: 100;
+    background: transparent;
+    border: none;
+}
+
+.dialog-nav-button:hover {
+    background: var(--button-color);
+}
+
+.dialog-brand {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+}
+
+#sb-connect-button:enabled:hover {
+    background-color: var(--success-color);
+}
+
+#sb-error-label {
+    display: none;
+    padding: 1em;
+    color: var(--error-color);
+    background: var(--error-background);
+    border-radius: 0.5em;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* More than one printer (3.0)                                        */
+/* ------------------------------------------------------------------ */
+
+/* With one printer the wrappers around the rows of printer 1 add nothing: the rows lay out as if they were children of the card, as they did before 3.0 */
+#printers-single,
+#printer-one-main,
+#printer-one-more {
+    display: contents;
+}
+
+/* in the card of printer 1 they are blocks again, with the gap the card gives its rows */
+.printer-body > #printer-one-main,
+.printer-body > #printer-one-more,
+.printer-more-body > #printer-one-more {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+#printers-multi {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+.printer-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+.printer-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+    padding: 0.8em;
+    background: var(--callout-background);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.6em;
+}
+
+.printer-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em 0.6em;
+}
+
+.printer-card-title {
+    margin: 0;
+    font-size: 1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.printer-card-name {
+    flex: 1 1 5em;
+    min-width: 0;
+    font-size: 0.9em;
+    overflow-wrap: break-word;
+}
+
+.printer-card-tools {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.6em;
+}
+
+.printer-card-else {
+    font-size: 0.8em;
+    color: var(--accent-color);
+}
+
+.small-button {
+    width: auto;
+    padding: 0.25em 0.7em;
+    font-size: 0.85em;
+}
+
+.printer-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+}
+
+.printer-more {
+    border-top: none;
+    padding-top: 0;
+}
+
+.printer-more > summary .printer-more-hint {
+    margin-left: 0.5em;
+    font-size: 0.85em;
+    font-weight: 100;
+}
+
+.printer-more-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9em;
+    margin-top: 0.9em;
+}
+
+.routing-title {
+    font-size: 0.85em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+}
+
+.routing {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    padding-top: 0.8em;
+    border-top: 1px solid var(--border-soft);
+}
+
+.rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+}
+
+.rule {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 0.6em;
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5em;
+}
+
+.rule.unfinished {
+    border-color: var(--warn-color);
+}
+
+.rule-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.rule-head select {
+    flex: 1 1 11em;
+    min-width: 0;
+}
+
+.rule-number {
+    flex: none;
+    font-size: 0.8em;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.cond {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.cond > select {
+    flex: 1 1 10em;
+    min-width: 0;
+}
+
+.cond > input {
+    flex: 1 1 6em;
+    min-width: 0;
+}
+
+.cond > .cond-field {
+    flex: 1 1 100%;
+}
+
+.cond > .cond-remove {
+    flex: none;
+}
+
+.icon-small {
+    box-sizing: border-box;
+    width: 2.5em;
+    height: 2.5em;
+    padding: 0;
+    font-size: 0.9em;
+}
+
+.rule-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+}
+
+.rule-summary {
+    margin: 0;
+    font-size: 0.85em;
+    opacity: 0.85;
+    overflow-wrap: anywhere;
+}
+
+.rule-summary.warn {
+    color: var(--warn-color);
+    opacity: 1;
+}
+
+.routing-empty {
+    margin: 0;
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.routing-empty.warn {
+    color: var(--warn-color);
+    opacity: 1;
+}
+
+/* The switch that picks a printer for everything else, at the foot of its card (a row like the other switches of the dock). The one that is on is locked, and a printer that is not set up is dimmed */
+.route-pick.on .slider,
+.route-pick .switch input:disabled + .slider {
+    cursor: default;
+}
+
+.route-pick.off .switch input:disabled + .slider {
+    opacity: 0.5;
+}
+
+.route-check .check-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+}
+
+.route-check > .hint,
+.route-check > .setting,
+.route-check > .check-fields,
+.route-check > .button-row,
+.route-check > #check-result {
+    margin-top: 0.9em;
+}
+
+#check-result {
+    font-family: inherit;
+    font-size: 0.9em;
+}
+
+.setting > select.wide {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* A card of printer 2 and up opens and closes. Its title is a button that looks like the title, with a small arrow in front of it. */
+.printer-card-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    width: auto;
+    padding: 0.15em 0.2em;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    text-align: left;
+    color: inherit;
+    background: none;
+    border: none;
+    border-radius: 0.3em;
+    opacity: 1;
+}
+
+.printer-card-toggle::before {
+    content: "";
+    flex: none;
+    width: 0.4em;
+    height: 0.4em;
+    margin: 0 0.1em 0.15em 0.05em;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.15s ease-in-out;
+}
+
+.printer-card.collapsed .printer-card-toggle::before {
+    transform: rotate(-45deg);
+}
+
+.printer-card-toggle:focus-visible {
+    outline: 1px solid var(--accent-color);
+}
+
+/* A collapsed card is one line: the title, the name, the facts, a marker when something is wrong, and the tag. Its Remove button waits until the card is opened. */
+.printer-card.collapsed {
+    gap: 0;
+    padding: 0.5em 0.8em;
+}
+
+.printer-card.collapsed .printer-card-remove {
+    display: none;
+}
+
+.printer-card-facts {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 0.8em;
+    overflow-wrap: break-word;
+}
+
+.printer-card:not(.collapsed) .printer-card-facts {
+    display: none;
+}
+
+.printer-card-problem {
+    flex: none;
+    padding: 0.1em 0.55em;
+    font-size: 0.75em;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #1d1d1d;
+    background: var(--warn-color);
+    border-radius: 1em;
+}
+
+.printer-card-problem.soft {
+    color: var(--warn-color);
+    background: transparent;
+    border: 1px solid var(--warn-color);
+}
+
+/* a card of printer 2 and up that is open says what is wrong in its own rows, and its heading keeps the look it had. Printer 1 has no collapsed form, so it keeps its marker */
+.printer-card:not([data-slot="1"]):not(.collapsed) .printer-card-problem {
+    display: none;
+}
+
+/* above many cards: open all, close all, find a printer, and how many need a look */
+.printers-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.printers-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.printers-toolbar-row .small-button {
+    flex: none;
+}
+
+.cards-find {
+    flex: 1 1 9em;
+    min-width: 0;
+}
+
+/* the line under the heading of Settings: edits that wait for a connection, or a save that was given up */
+.unsaved-line {
+    margin: 0;
+    font-size: 0.9em;
+    color: var(--warn-color);
+}
+
+/* the status card with many printers: one summary row and a list of those that cannot print */
+.status-problems {
+    margin-top: 0.4em;
+}
+
+.status-problems > summary {
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.status-problem-list {
+    margin: 0.4em 0 0;
+    padding-left: 1.2em;
+    font-size: 0.9em;
+}
+
+@media (max-width: 399px) {
+    /* A test in a narrow dock keeps its x beside the parameter. The parameter takes the line less the x (it can never share the line with the next part). The test keeps the width
+       of its longest name, so that no name is cut, and the value takes what is left of that line, or the line below when it has less than a short box needs. A variable name and
+       its kind share a line between them. Only the order on the screen changes, the order of the parts for the keyboard stays. */
+    .cond > .cond-field {
+        flex: 1 1 calc(100% - 3em);
+        order: 1;
+    }
+
+    .cond > .cond-remove {
+        order: 2;
+    }
+
+    .cond > .cond-name {
+        flex: 1 1 7em;
+        order: 3;
+    }
+
+    .cond > .cond-kind {
+        flex: 1 1 6em;
+        order: 4;
+    }
+
+    .cond > .cond-op {
+        flex: 1 1 auto;
+        order: 5;
+    }
+
+    .cond > .cond-value {
+        flex: 1 1 5em;
+        order: 6;
+    }
+
+    .cond > select.cond-value {
+        flex-basis: 8em;
+    }
+}
+
+@media (max-width: 369px) {
+    /* The head of a rule in a narrower dock: the number and the x on the first line, the trigger on the line below with all the room there is */
+    .rule-head > select {
+        flex: 1 1 100%;
+        order: 3;
+    }
+
+    .rule-head > .icon-small {
+        margin-left: auto;
+        order: 2;
+    }
+}
+
+@media (max-width: 640px) {
+    /* In a card the list of printers has a line of its own, so that the name of the printer is not cut */
+    .printer-card .printer-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4em;
+    }
+
+    .printer-card .printer-row > select {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    #add-printer-row-multi.stack-narrow,
+    #route-else-row.stack-narrow,
+    #add-printer-row.stack-narrow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #route-else-row.stack-narrow > select,
+    #add-printer-row.stack-narrow > .setting-actions,
+    #add-printer-row-multi.stack-narrow > .setting-actions {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
+}

@@ -57,11 +57,13 @@ A prerelease is a test version of the next release, with a number like 3.0.0-bet
 1. Copy the import code of the prerelease, [import.prerelease.txt](https://raw.githubusercontent.com/SassyTP/printer-bot/beta/import.prerelease.txt), as in step 1 of [Install](README.md#install).
 2. In Streamer.bot, delete the old **Printer Bot** action.
 3. Import the code as in step 1. An import creates the triggers again, so switch **Channel Reward** on again if you use it.
-4. Reload the dock. A note at the top of the dock says "Prerelease 3.0.0-beta.2. This is a test version of Printer Bot and it can have mistakes."
+4. Reload the dock. A note at the top of the dock says "Prerelease 3.0.0-beta.3. This is a test version of Printer Bot and it can have mistakes."
 
 Your settings stay in their own folder. From this version on, Printer Bot also keeps a backup copy of them on this PC and puts it back when the settings file is missing (see [Backing up your settings](PRINTER_OPERATION.md#backing-up-your-settings)).
 
 **From 3.0.0-beta.1 to 3.0.0-beta.2.** No import is needed. The import of 3.0.0-beta.1 has the same triggers, the same keys and the same updater (revision 3), and a program update replaces the rest. Open the Updates card, switch on **Try prerelease versions**, and a moment later the card says "Update available: 3.0.0-beta.2 (prerelease)". Press **Update to 3.0.0-beta.2 (prerelease)** twice, restart Streamer.bot and press **Reload dock**. Your settings stay. If you host your own dock, upload its files again first (see [Dock Selection](DOCK_SELECTION.md#host-it-yourself)).
+
+**From 3.0.0-beta.2 to 3.0.0-beta.3.** No import is needed. The import of 3.0.0-beta.2 has the same triggers, the same keys and the same updater (revision 3), and a program update replaces the rest. Open the Updates card, switch on **Try prerelease versions**, and a moment later the card says "Update available: 3.0.0-beta.3 (prerelease)". Press **Update to 3.0.0-beta.3 (prerelease)** twice, restart Streamer.bot and press **Reload dock**. Your settings stay. If you host your own dock, upload its files again first (see [Dock Selection](DOCK_SELECTION.md#host-it-yourself)).
 
 **The switch Try prerelease versions.** The Updates card has the switch **Try prerelease versions**. It is off. While it is off, Printer Bot offers releases only. Switch it on and Printer Bot also looks at the prereleases the author publishes. It offers the highest version of the two lists, and a release is higher than its own prereleases. So 3.0.0 is higher than 3.0.0-beta.2, 3.0.0-beta.2 is higher than 3.0.0-beta.1, and 3.0.0-beta.1 is higher than 2.5.4. You install the offer with the two clicks of the **Update** button, as for any update. The card and the button say "prerelease" next to its number. Printer Bot checks again by itself a moment after you flip the switch, so the card shows what the change brings.
 
@@ -115,7 +117,7 @@ The Update button does not replace the import. It cannot install some versions, 
 
 **Versions that needed an import.**
 
-Version 3.0.0-beta.1 brought revision 3 of the updater, which **Try prerelease versions** needs. The imports of 2.4.3 to 2.5.4 hold revision 2. They go on taking releases as before and know nothing of prereleases. Version 3.0.0-beta.2 needs no new import, so a Printer Bot on 3.0.0-beta.1 updates from the Updates card (see [Prerelease versions](#prerelease-versions)).
+Version 3.0.0-beta.1 brought revision 3 of the updater, which **Try prerelease versions** needs. The imports of 2.4.3 to 2.5.4 hold revision 2. They go on taking releases as before and know nothing of prereleases. Versions 3.0.0-beta.2 and 3.0.0-beta.3 need no new import, so a Printer Bot on 3.0.0-beta.1 or 3.0.0-beta.2 updates from the Updates card (see [Prerelease versions](#prerelease-versions)).
 
 Version 2.5.0 added four triggers (Hype Train Start, Update, Level Up and End), and the triggers are part of the import. The dock could not see that they were missing, so the notes of the update said it. If your import is older than 2.5.0, import once more, or add the four triggers to your Printer Bot action by hand (Twitch → Hype Train). Your settings stay.
 

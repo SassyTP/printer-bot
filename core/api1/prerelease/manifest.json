@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.2",
-  "built": "202610100152",
+  "version": "3.0.0-beta.3",
+  "built": "202610101318",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.2.bin",
-      "size": 436736,
-      "sha256": "193fff006a63008ef2145c7ae0ff6ecc08150d50868524058929324219ef6936"
+      "name": "core-3.0.0-beta.3.bin",
+      "size": 447488,
+      "sha256": "ffcb61b63dafa63a4fdf014d0f75cead161bab2709797415193ae3ad9f9975e0"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.2 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. Printer Bot now prints on up to 100 printers at once, with up to 300 rules that choose which events print where. The profile picture on a receipt is about 10 mm larger on 80 mm paper and 5 mm larger on 58 mm paper, and the receipt is as long as before. Printer Bot keeps a backup copy of your settings outside the Streamer.bot folder and puts it back when settings.json is missing or damaged. A change you make while the dock loses its connection is kept and sent when the connection is back, and the dock warns you about a version that needs a new import. Reload the dock after the update.",
+  "notes": "Prerelease 3.0.0-beta.3 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. A new setting, Printers per browser, says how many printers each hidden Edge browser serves, from 1 to 100. The default of 100 keeps one browser for all printers, as before, and Printer Bot never starts more than 16. Hype Train receipts always use the first browser. Reload the dock after the update.",
   "successor": null,
   "revokeKeys": []
 }
