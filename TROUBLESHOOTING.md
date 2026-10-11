@@ -119,6 +119,18 @@ Printer Bot sent a receipt to this printer, and the job did not leave the print 
 
 Printer Bot read the driver and the port of the print queue and found words of an office, home or virtual printer. Thermal output sends ESC/POS commands, which such a printer usually does not understand. Press **Check this printer**. It sends one short line of text. If the line prints correctly, answer **Yes, it printed** and the warning goes. If pages of strange characters come out, or nothing does, answer **No** and press **Use the Windows printer driver**.
 
+### A Letter receipt comes out on the wrong paper, in the wrong size or in black and white
+
+Printer Bot asks the driver of the printer to print on Letter paper, upright, in color or in monochrome, and the driver has the last word. Open the printer's defaults in Windows (Settings, Printers, your printer, Printing preferences) and check three things. The paper size is Letter and no scaling such as "Fit to page" or "Shrink to fit" is on, because Printer Bot sizes the picture for the sheet itself. The color setting allows color, because a printer set to black and white by default prints a color receipt in gray. The paper tray holds Letter paper. A driver that does not let a program choose the paper (some office printers) prints on the paper its defaults say. If the picture is cut at an edge, the printer cannot print that close to it. Printer Bot keeps half an inch of margin and makes the picture narrower when the printable area is smaller. **Preview only** shows what Printer Bot made, in black and white.
+
+### The log says "This receipt is longer than 10 pages of Letter paper"
+
+A receipt on Letter paper prints at most 10 pages in black and white and 5 in color. Only a very long gift list is that long. The log says how many pages printed. A color page takes 20 MB of memory, which is why color stops sooner. Switch the printer to black and white, or to a roll, if you want a list like that printed in full.
+
+### The dock says every printer has Allow High Roller prints turned off
+
+**High Roller (bits)** is above 0, which makes cheers of that many bits print their message styled, and the switch **Allow High Roller prints** is off under every printer. Those cheers print as ordinary cheers on all printers. Turn the switch on under a printer, or set **High Roller (bits)** to 0 if you meant to switch High Roller off. The switch shows only while **High Roller (bits)** is above 0, and the dock remembers its setting while it is hidden.
+
 ### A Hype Train did not print its end receipt
 
 Check in this order:
