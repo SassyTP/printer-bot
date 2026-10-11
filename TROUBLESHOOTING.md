@@ -127,6 +127,10 @@ Printer Bot asks the driver of the printer to print on Letter paper, upright, in
 
 A receipt on Letter paper prints at most 10 pages in black and white and 5 in color. Only a very long gift list is that long. The log says how many pages printed. A color page takes 20 MB of memory, which is why color stops sooner. Switch the printer to black and white, or to a roll, if you want a list like that printed in full.
 
+### A High Roller cheer on Letter paper is cut short, or its message area looks empty
+
+From 3.0.0-beta.6 a High Roller message on Letter paper stays on one page (3.0.0-beta.5 printed a very large message on several). The viewer's picture, the name and the footer come first, and the message gets what is left of the 10 inch page, about 2 inches on a receipt with a picture. A longer message fades out at the end of the page, and the Streamer.bot log says `the end of the page of Letter paper`. A very large font makes the first line start lower than the message area is tall, so the area shows blank space. Use smaller sizes in the cheer, or print that cheer on a roll, where a message can be much longer. **Maximum length** and **bits per inch** cannot make a Letter message longer than its page.
+
 ### The dock says every printer has Allow High Roller prints turned off
 
 **High Roller (bits)** is above 0, which makes cheers of that many bits print their message styled, and the switch **Allow High Roller prints** is off under every printer. Those cheers print as ordinary cheers on all printers. Turn the switch on under a printer, or set **High Roller (bits)** to 0 if you meant to switch High Roller off. The switch shows only while **High Roller (bits)** is above 0, and the dock remembers its setting while it is hidden.

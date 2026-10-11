@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.5",
-  "built": "202610110320",
+  "version": "3.0.0-beta.6",
+  "built": "202610110524",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.5.bin",
-      "size": 503296,
-      "sha256": "7c18543ead430a120e9d3d8ff4b1facd3f512c6af4d1ed470cbe7be16e8f1b27"
+      "name": "core-3.0.0-beta.6.bin",
+      "size": 506880,
+      "sha256": "6cf6e33020976c83c86e9e0a11386bca833a8bf876ae78b411cec48aaca0962b"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.5 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. Every printer can print on Letter paper (8.5 x 11 in) through the Windows printer driver or in the preview, in black and white or in color. Under each printer, Allow High Roller prints keeps High Roller cheers off that printer, and the dock warns when it is off on every printer. Reload the dock after the update.",
+  "notes": "Prerelease 3.0.0-beta.6 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. On Letter paper (8.5 x 11 in) the message of a High Roller cheer stops at the end of its page, so a cheer with a huge message prints on one sheet. Rolls keep their limits. Reload the dock after the update.",
   "successor": null,
   "revokeKeys": []
 }

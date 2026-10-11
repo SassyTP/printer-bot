@@ -13,9 +13,9 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## Prerelease 3.0.0-beta.5
+## Prerelease 3.0.0-beta.6
 
-The newest release is 2.5.4. Version 3.0.0-beta.5 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.4 (no new import is needed) and the steps to go back to 2.5.4.
+The newest release is 2.5.4. Version 3.0.0-beta.6 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.5 (no new import is needed) and the steps to go back to 2.5.4.
 
 What is new in it:
 
@@ -38,6 +38,7 @@ What is new in it:
 17. **Letter paper (8.5 x 11 in).** The paper list of every printer has a third entry, **Letter (8.5 x 11 in)**, for a printer on the **Windows printer driver** and for **Preview only**. A thermal printer prints on its roll, so the entry is off for it. A Letter receipt is laid out 400 pixels wide and printed 7.5 inches wide with half an inch of margin on every side, so text and pictures come out about 1.8 times as large as on an 80 mm roll and a line holds about half as much text again. A typical receipt fits on one page. A longer receipt goes on to the next page, and a page ends between two lines of text, so no line is cut in two. At most 10 pages print in black and white and 5 in color. See [Letter paper and print profiles](PRINTER_OPERATION.md#letter-paper-and-print-profiles).
 18. **Black and white or color.** A printer on Letter paper with the Windows printer driver has a row **Print profile**. **Black and white** (the default) shades the pictures of the receipt, the viewer's picture and the images of a message, with the **Picture style** at 300 dots to the inch and prints the letters and the lines as they are, so they stay sharp. **Color** prints the receipt as it looks with no shading and sets the printer driver to print in color. A thermal printer cannot print in color, so only the Windows printer driver has the row.
 19. **Allow High Roller prints.** While **High Roller (bits)** is above 0, every printer has a switch, **Allow High Roller prints**, under its settings. A printer with the switch off prints a High Roller cheer as an ordinary cheer with plain text, and the other printers print it styled. When the switch is off on every printer and **High Roller (bits)** is above 0, the dock says so under the box. The limits on the length of a High Roller message count inches of paper, so 2 inches are 2 inches on a roll and on Letter paper.
+20. **A High Roller message stays on one page of Letter paper.** On Letter paper the message of a High Roller cheer stops at the end of its page, so a cheer with a very large message prints on one sheet. The viewer's picture, the name and the footer come first, and the message gets what is left of the page, about 2 inches on a receipt with a picture. A longer message fades out at the end. A roll prints a continuous strip and keeps its limits. See [Letter paper and print profiles](PRINTER_OPERATION.md#letter-paper-and-print-profiles).
 
 ## Requirements
 
