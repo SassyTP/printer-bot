@@ -117,7 +117,7 @@ Printer Bot sent a receipt to this printer, and the job did not leave the print 
 
 ### The dock says a printer looks like an office printer
 
-Printer Bot read the driver and the port of the print queue and found words of an office, home or virtual printer. Thermal output sends ESC/POS commands, which such a printer usually does not understand. Press **Check this printer**. It sends one short line of text. If the line prints correctly, answer **Yes, it printed** and the warning goes. If pages of strange characters come out, or nothing does, answer **No** and press **Use the Windows printer driver**.
+Printer Bot read the driver and the port of the print queue and found words of an office, home or virtual printer. Thermal output sends ESC/POS commands, which such a printer usually does not understand. Press **Check this printer**. It sends one short line of text. If the line prints correctly, answer **Yes, it printed** and the warning goes. If pages of strange characters come out, or nothing does, answer **No** and press **Use the Windows printer driver on Letter paper**. From 3.0.0-beta.7 that sets the paper to Letter as well, because most printers that do not take ESC/POS are office or home printers. A thermal printer that is out of paper prints nothing too, so look at its paper before you answer.
 
 ### A Letter receipt comes out on the wrong paper, in the wrong size or in black and white
 
@@ -131,9 +131,17 @@ A receipt on Letter paper prints at most 10 pages in black and white and 5 in co
 
 From 3.0.0-beta.6 a High Roller message on Letter paper stays on one page (3.0.0-beta.5 printed a very large message on several). The viewer's picture, the name and the footer come first, and the message gets what is left of the 10 inch page, about 2 inches on a receipt with a picture. A longer message fades out at the end of the page, and the Streamer.bot log says `the end of the page of Letter paper`. A very large font makes the first line start lower than the message area is tall, so the area shows blank space. Use smaller sizes in the cheer, or print that cheer on a roll, where a message can be much longer. **Maximum length** and **bits per inch** cannot make a Letter message longer than its page.
 
+### The print queue of a printer is full of old jobs
+
+From 3.0.0-beta.7 every printer with a print queue on this PC has the button **Clear print queue** in its card. Press it and press it again when it asks. It takes every job out of the Windows print queue of that printer, the documents of other programs as well, and the sentence under the button says how many jobs went. A queue on a network share has no button, so clear it in Windows (Settings, Printers, the printer, Open print queue).
+
 ### The dock says every printer has Allow High Roller prints turned off
 
 **High Roller (bits)** is above 0, which makes cheers of that many bits print their message styled, and the switch **Allow High Roller prints** is off under every printer. Those cheers print as ordinary cheers on all printers. Turn the switch on under a printer, or set **High Roller (bits)** to 0 if you meant to switch High Roller off. The switch shows only while **High Roller (bits)** is above 0, and the dock remembers its setting while it is hidden.
+
+### A printer does not cut after a Hype Train
+
+A printer that has **Do not cut Hype Trains** leaves its receipts uncut from the first Hype Train receipt to the End. The dock says "A Hype Train is running" under the box while it does. When the train is over and the dock still says so, press **Reset Hype Train** under the box. Printer Bot cuts the paper, brings the cuts back and tells you what it did. Printer Bot ends a train by itself when the End event comes, when its own end receipt is printed (see the next entry), and when no Hype Train event has come for 4 hours. If the box is on and a Hype Train never begins, check that **Print Hype Trains** is on and that the printer is on **Thermal printer (ESC/POS)** output, because the box does nothing on the Windows printer driver, on **Preview only**, or when **Paper cut** is **None**.
 
 ### A Hype Train did not print its end receipt
 

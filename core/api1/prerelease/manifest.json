@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.6",
-  "built": "202610110524",
+  "version": "3.0.0-beta.7",
+  "built": "202610122236",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.6.bin",
-      "size": 506880,
-      "sha256": "6cf6e33020976c83c86e9e0a11386bca833a8bf876ae78b411cec48aaca0962b"
+      "name": "core-3.0.0-beta.7.bin",
+      "size": 517120,
+      "sha256": "60ec18f44b6e7aef82b8ed9ae759292b960cd9993e003fe78f8d92cd57ce1e84"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.6 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. On Letter paper (8.5 x 11 in) the message of a High Roller cheer stops at the end of its page, so a cheer with a huge message prints on one sheet. Rolls keep their limits. Reload the dock after the update.",
+  "notes": "Prerelease 3.0.0-beta.7 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. Every printer with a print queue has a button, Clear print queue. Check this printer ends its test line with a cut, Check again works at once after you answer, and answering No offers the Windows printer driver on Letter paper. A printer on thermal output has a box, Do not cut Hype Trains, which prints a Hype Train on it as one strip of paper. Reload the dock after the update.",
   "successor": null,
   "revokeKeys": []
 }
