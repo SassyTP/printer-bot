@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.7",
-  "built": "202610122236",
+  "version": "3.0.0-beta.8",
+  "built": "202610130156",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.7.bin",
-      "size": 517120,
-      "sha256": "60ec18f44b6e7aef82b8ed9ae759292b960cd9993e003fe78f8d92cd57ce1e84"
+      "name": "core-3.0.0-beta.8.bin",
+      "size": 522240,
+      "sha256": "bce0ca79bd92359c6c7dac0e2c61eaf570c58c0d57e7e8c2f9a6da1da6f4e79d"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.7 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. Every printer with a print queue has a button, Clear print queue. Check this printer ends its test line with a cut, Check again works at once after you answer, and answering No offers the Windows printer driver on Letter paper. A printer on thermal output has a box, Do not cut Hype Trains, which prints a Hype Train on it as one strip of paper. Reload the dock after the update.",
+  "notes": "Prerelease 3.0.0-beta.8 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. The hidden browser that draws receipts is put at rest between receipts and starts below normal priority, so a stream on the same PC comes first. A browser that was being replaced finishes no receipt any more, a few errors that could end Streamer.bot are caught, and a print queue on a network share is no longer read while a receipt prints. Reload the dock after the update.",
   "successor": null,
   "revokeKeys": []
 }

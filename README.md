@@ -13,9 +13,9 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## Prerelease 3.0.0-beta.7
+## Prerelease 3.0.0-beta.8
 
-The newest release is 2.5.4. Version 3.0.0-beta.7 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.6 (no new import is needed) and the steps to go back to 2.5.4.
+The newest release is 2.5.4. Version 3.0.0-beta.8 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.7 (no new import is needed) and the steps to go back to 2.5.4.
 
 What is new in it:
 
@@ -41,6 +41,7 @@ What is new in it:
 20. **A High Roller message stays on one page of Letter paper.** On Letter paper the message of a High Roller cheer stops at the end of its page, so a cheer with a very large message prints on one sheet. The viewer's picture, the name and the footer come first, and the message gets what is left of the page, about 2 inches on a receipt with a picture. A longer message fades out at the end. A roll prints a continuous strip and keeps its limits. See [Letter paper and print profiles](PRINTER_OPERATION.md#letter-paper-and-print-profiles).
 21. **Check this printer, and Clear print queue.** The test line of **Check this printer** ends with a cut, so the paper is easy to take. **Check again** works at once after you answer **Yes, it printed** or **No**. Before, a click within 5 seconds of the first test line was ignored without a word: the button turned gray, then normal, and did nothing. A click that is ignored now has a line in the Streamer.bot log. After the answer **No**, the button that follows is **Use the Windows printer driver on Letter paper**, because most printers that do not take ESC/POS are ordinary office or home printers. Every printer with a print queue on this PC has a button **Clear print queue**, which takes every job out of that queue after two clicks. See [Printers that do not take ESC/POS](PRINTER_OPERATION.md#printers-that-do-not-take-escpos).
 22. **Do not cut Hype Trains.** A printer on thermal output has a box, **Do not cut Hype Trains**. With it on, the printer also takes the four Hype Train triggers, and every receipt it prints from the first Hype Train receipt to the End goes out without a cut, so the train is one strip of paper. Other events that print on that printer in the meantime, such as a YouTube event, come out inside the strip, and the dock says so under the box. The strip is cut when the train ends. When Printer Bot does not see the end, the button **Reset Hype Train** under the box ends the train and brings the cuts back. See [What prints](PRINTER_OPERATION.md#what-prints).
+23. **The receipt browser rests between receipts.** Printer Bot draws every receipt in a hidden Edge. Since 3.0.0-beta.8 the browser puts the receipt away 1.5 seconds after the last one, so a receipt with a moving picture does not keep it drawing, and the browser starts below normal priority, so a stream on the same PC comes first. Receipts look as they did.
 
 ## Requirements
 
