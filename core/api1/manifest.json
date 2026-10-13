@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "2.5.4",
-  "built": "202610090056",
+  "version": "3.0.0",
+  "built": "202610132200",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-2.5.4.bin",
-      "size": 378880,
-      "sha256": "0d1e8a9c3f55fd79d28df7181ea99d801b11ec4a07e54e0921bb57d887ca1a1c"
+      "name": "core-3.0.0.bin",
+      "size": 591872,
+      "sha256": "9655288116bab5ffed1d581abb75c9d8b6b1829abbaccac074851e1d57b72b8e"
     }
   ],
-  "notes": "Printer Bot 2.5.4 shows both Conductors of a Hype Train, the Bits Conductor and the Gift Sub Conductor, on the Conductor, Level up and final receipts. Test print has a new step, TwitchHypeTrainSubConductor, and the end-to-end test prints six receipts. A Fourthwall order prints every item (50 at most) and its closing line. A long name is broken at the end of the line so its ending stays on the paper, and a name that shows as nothing reads Anonymous supporter. Everything else prints as before, and no re-import is needed.",
+  "notes": "Printer Bot 3.0.0 adds up to 100 printers, rules that choose the printer for each event, 8.5x11 inch paper in black and white or color with a large message layout, pictures from Imgur, Catbox and ImgBB in messages, and backups of your settings. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.0 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
