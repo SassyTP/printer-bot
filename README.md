@@ -13,9 +13,9 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## Prerelease 3.0.0-beta.8
+## Prerelease 3.0.0-beta.9
 
-The newest release is 2.5.4. Version 3.0.0-beta.8 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.7 (no new import is needed) and the steps to go back to 2.5.4.
+The newest release is 2.5.4. Version 3.0.0-beta.9 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.8 (no new import is needed) and the steps to go back to 2.5.4.
 
 What is new in it:
 
@@ -42,6 +42,7 @@ What is new in it:
 21. **Check this printer, and Clear print queue.** The test line of **Check this printer** ends with a cut, so the paper is easy to take. **Check again** works at once after you answer **Yes, it printed** or **No**. Before, a click within 5 seconds of the first test line was ignored without a word: the button turned gray, then normal, and did nothing. A click that is ignored now has a line in the Streamer.bot log. After the answer **No**, the button that follows is **Use the Windows printer driver on Letter paper**, because most printers that do not take ESC/POS are ordinary office or home printers. Every printer with a print queue on this PC has a button **Clear print queue**, which takes every job out of that queue after two clicks. See [Printers that do not take ESC/POS](PRINTER_OPERATION.md#printers-that-do-not-take-escpos).
 22. **Do not cut Hype Trains.** A printer on thermal output has a box, **Do not cut Hype Trains**. With it on, the printer also takes the four Hype Train triggers, and every receipt it prints from the first Hype Train receipt to the End goes out without a cut, so the train is one strip of paper. Other events that print on that printer in the meantime, such as a YouTube event, come out inside the strip, and the dock says so under the box. The strip is cut when the train ends. When Printer Bot does not see the end, the button **Reset Hype Train** under the box ends the train and brings the cuts back. See [What prints](PRINTER_OPERATION.md#what-prints).
 23. **The receipt browser rests between receipts.** Printer Bot draws every receipt in a hidden Edge. Since 3.0.0-beta.8 the browser puts the receipt away 1.5 seconds after the last one, so a receipt with a moving picture does not keep it drawing, and the browser starts below normal priority, so a stream on the same PC comes first. Receipts look as they did.
+24. **Images in messages.** A viewer's message can print a picture. In the dock, in the **Advanced** card, under **Images in messages**, switch on the image sites you accept pictures from: Imgur, Catbox and ImgBB. A direct link to a picture on one of them, such as `https://i.imgur.com/<name>.png`, prints as that picture, up to three to a message. Every site is off until you switch it on, and a link from a site that is off stays text. Each printer has a switch, **Allow images**, to keep pictures off that printer. Printer Bot makes the picture itself, so a message cannot run anything, and it does not look at what a picture shows. See [Images in messages](PRINTER_OPERATION.md#images-in-messages) and [Privacy](PRIVACY.md#privacy-and-third-party-services).
 
 ## Requirements
 

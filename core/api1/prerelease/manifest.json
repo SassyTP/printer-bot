@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.8",
-  "built": "202610130156",
+  "version": "3.0.0-beta.9",
+  "built": "202610131156",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.8.bin",
-      "size": 522240,
-      "sha256": "bce0ca79bd92359c6c7dac0e2c61eaf570c58c0d57e7e8c2f9a6da1da6f4e79d"
+      "name": "core-3.0.0-beta.9.bin",
+      "size": 547840,
+      "sha256": "3dfb71ddf1eeba8acea7351bcf812fadb5f45b86fd912ed09310d25fce287be6"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.8 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. The hidden browser that draws receipts is put at rest between receipts and starts below normal priority, so a stream on the same PC comes first. A browser that was being replaced finishes no receipt any more, a few errors that could end Streamer.bot are caught, and a print queue on a network share is no longer read while a receipt prints. Reload the dock after the update.",
+  "notes": "Prerelease 3.0.0-beta.9 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. New: Images in messages. In the dock, switch on the image sites you accept (Imgur, Catbox, ImgBB). A link in a viewer's message to a picture on one of those sites then prints as that picture, up to three to a message. Every site is off until you switch it on, and a link from a site that is off stays text. Each printer has a switch, Allow images. Printer Bot loads the picture from the site when the message prints, so the site sees this PC's address, and it does not look at what the picture shows. The hidden receipt browser is started again once after the update, so that it can reach the sites. Reload the dock after the update.",
   "successor": null,
   "revokeKeys": []
 }
