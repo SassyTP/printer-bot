@@ -127,6 +127,10 @@ Printer Bot asks the driver of the printer to print on Letter paper, upright, in
 
 A receipt on Letter paper prints at most 10 pages in black and white and 5 in color. Only a very long gift list is that long. The log says how many pages printed. A color page takes 20 MB of memory, which is why color stops sooner. Switch the printer to black and white, or to a roll, if you want a list like that printed in full.
 
+### The row "Letter layout" is missing, or Large message changes nothing
+
+The row **Letter layout** (from 3.0.0-beta.10) shows for a printer whose paper size is **Letter** and whose output is the **Windows printer driver** or **Preview only**. A roll, and **Thermal printer (ESC/POS)**, have no such row, and they print on their roll whatever was chosen. The dock page of an older version has no row: after an update, restart Streamer.bot and press **Reload dock**. With **Large message** a short receipt is one whole page: the viewer's small picture in the top left corner with the amount, the name and the time beside it, the message below, and the logo at the bottom. If two printers on Letter paper print the same layout, check the row under each printer: every printer has its own. A list longer than one page (a gift bomb, an order) goes on to the next page, and the logo ends the list.
+
 ### A High Roller cheer on Letter paper is cut short, or its message area looks empty
 
 From 3.0.0-beta.6 a High Roller message on Letter paper stays on one page (3.0.0-beta.5 printed a very large message on several). The viewer's picture, the name and the footer come first, and the message gets what is left of the 10 inch page, about 2 inches on a receipt with a picture. A longer message fades out at the end of the page, and the Streamer.bot log says `the end of the page of Letter paper`. A very large font makes the first line start lower than the message area is tall, so the area shows blank space. Use smaller sizes in the cheer, or print that cheer on a roll, where a message can be much longer. **Maximum length** and **bits per inch** cannot make a Letter message longer than its page.

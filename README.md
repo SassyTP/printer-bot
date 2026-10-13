@@ -13,9 +13,9 @@ For each event it draws the receipt in a hidden Microsoft Edge window, turns it 
 1. LLM Used: Yes
 2. LLM Disclosure Information: Claude Sonnet 5.5 was used in the creation of this code, with work specifically focused on documentation, as well as security and performance optimizations.
 
-## Prerelease 3.0.0-beta.9
+## Prerelease 3.0.0-beta.10
 
-The newest release is 2.5.4. Version 3.0.0-beta.9 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.8 (no new import is needed) and the steps to go back to 2.5.4.
+The newest release is 2.5.4. Version 3.0.0-beta.10 is a prerelease, a test version of the next release that you can try if you want to. It can have mistakes. [Prerelease versions](UPDATING.md#prerelease-versions) has the steps to try it, the steps to update from 3.0.0-beta.9 (no new import is needed) and the steps to go back to 2.5.4.
 
 What is new in it:
 
@@ -43,6 +43,7 @@ What is new in it:
 22. **Do not cut Hype Trains.** A printer on thermal output has a box, **Do not cut Hype Trains**. With it on, the printer also takes the four Hype Train triggers, and every receipt it prints from the first Hype Train receipt to the End goes out without a cut, so the train is one strip of paper. Other events that print on that printer in the meantime, such as a YouTube event, come out inside the strip, and the dock says so under the box. The strip is cut when the train ends. When Printer Bot does not see the end, the button **Reset Hype Train** under the box ends the train and brings the cuts back. See [What prints](PRINTER_OPERATION.md#what-prints).
 23. **The receipt browser rests between receipts.** Printer Bot draws every receipt in a hidden Edge. Since 3.0.0-beta.8 the browser puts the receipt away 1.5 seconds after the last one, so a receipt with a moving picture does not keep it drawing, and the browser starts below normal priority, so a stream on the same PC comes first. Receipts look as they did.
 24. **Images in messages.** A viewer's message can print a picture. In the dock, in the **Advanced** card, under **Images in messages**, switch on the image sites you accept pictures from: Imgur, Catbox and ImgBB. A direct link to a picture on one of them, such as `https://i.imgur.com/<name>.png`, prints as that picture, up to three to a message. Every site is off until you switch it on, and a link from a site that is off stays text. Each printer has a switch, **Allow images**, to keep pictures off that printer. Printer Bot makes the picture itself, so a message cannot run anything, and it does not look at what a picture shows. See [Images in messages](PRINTER_OPERATION.md#images-in-messages) and [Privacy](PRIVACY.md#privacy-and-third-party-services).
+25. **A second layout for Letter paper.** A printer on Letter paper has a row **Letter layout** with two choices. **Scaled like 80 mm** (the default) is the layout Letter paper has had since 3.0.0-beta.5: the receipt of an 80 mm roll made larger, with a big picture and a small box for the message. **Large message** is new: the viewer's picture is small and in the top left corner, with the amount, the name and the time beside it, the platform logo is small and at the bottom of the page, and all the space between is for the message and its pictures, which may be 6 inches tall. Every printer has its own layout, a roll and a thermal printer have no such row, and nothing changes until you choose **Large message**. See [Letter paper and print profiles](PRINTER_OPERATION.md#letter-paper-and-print-profiles).
 
 ## Requirements
 
