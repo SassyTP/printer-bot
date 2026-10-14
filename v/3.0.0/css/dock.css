@@ -43,6 +43,9 @@
     --gap-part: 0.5rem;     /* the parts of one control or block: buttons side by side, the fields of a test, the parts of a rule, a text and the box that belongs to it */
     --gap-row: 0.9rem;      /* the rows and blocks of a card, of a group and of a printer card, and above and below a divider line */
     --gap-card: 1rem;       /* the cards of the page and the padding of a card */
+
+    /* 3.0.3: the light padding inside the box of an open group (Advanced, Paper and output, More ...) */
+    --box-pad: 0.7rem;
 }
 
 
@@ -601,7 +604,7 @@ input[aria-invalid="true"]:focus {
     opacity: 0.8;
 }
 
-/* YouTube High Roller (3.0.2): the line under Your currency that says where the exchange rates stand. Amber while none can be used (offline). */
+/* YouTube High Roller (3.0.2): the line under YouTube currency that says where the exchange rates stand. Amber while none can be used (offline). */
 .exchange-line {
     margin-top: var(--gap-text);
     opacity: 0.8;
@@ -642,9 +645,55 @@ input[aria-invalid="true"]:focus {
 }
 
 /* Everything in an open group (Advanced, More, Paper and output, Settings as text, Check where an event prints, the Updates card) is a row under the heading of the group:
-   the same gap from the heading to the first row and from row to row, whatever the row is (a setting, a hint, a box, a button, a note). */
+   the same gap from the heading to the first row and from row to row, whatever the row is (a setting, a hint, a box, a button, a note).
+   From 3.0.3 the rows of a group sit in one element under the heading (.details-body, or .printer-more-body and .updates-body, which were there before), and that element
+   lays them out with the same gap. */
 .advanced > :not(summary) {
     margin-top: var(--gap-row);
+}
+
+.details-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-row);
+}
+
+/* 3.0.3: what an open group shows sits in a box (a thin line, a light padding and round corners), so what was hidden stands apart from the rows around the group. The box is the one
+   element under the heading of the group: .details-body (Advanced, Check where an event prints, Settings as text, More), .printer-more-body (Paper and output in a printer card) and
+   the list of the printers that cannot print (status card, with many printers). A closed group draws none of it. The Updates card is a group as a whole: its own border is the box,
+   and a line under its heading closes the box at the top (see Updates card below). */
+.advanced[open] > .details-body,
+.printer-more[open] > .printer-more-body,
+.status-problems[open] > .status-problem-list {
+    padding: var(--box-pad);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+}
+
+/* the list keeps the room of its bullets inside the box */
+.status-problems[open] > .status-problem-list {
+    padding-left: calc(var(--box-pad) + 1.2em);
+}
+
+/* Advanced (3.0.3): a group for Twitch, one for YouTube and one for what applies to every platform, each under a heading of its own. The groups after the first start with a line. */
+.advanced-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-row);
+}
+
+.advanced-group + .advanced-group {
+    padding-top: var(--gap-row);
+    border-top: 1px solid var(--border-soft);
+}
+
+/* the heading of a group: smaller and lighter than the name of a setting, like the title Prints these events of a printer card, but in sentence case */
+.advanced-group-title {
+    margin: 0;
+    font-size: 0.85em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.75;
 }
 
 .example {
@@ -745,7 +794,8 @@ input[aria-invalid="true"]:focus {
 /* narrow docks (OBS panels): the input or buttons go under their text, so the text doesn't get squeezed into a thin column
    (rows with a toggle switch keep the switch on the right) */
 @media (max-width: 640px) {
-    .advanced > .setting.stack-narrow,
+    .details-body > .setting.stack-narrow,
+    .advanced-group > .setting.stack-narrow,
     .update-layouts > .setting.stack-narrow,
     .backup-body > .setting.stack-narrow {
         flex-direction: column;
@@ -757,9 +807,12 @@ input[aria-invalid="true"]:focus {
         min-height: 4.2em;      /* three lines */
     }
 
-    .advanced > .setting.stack-narrow > input,
-    .advanced > .setting.stack-narrow > select,
-    .advanced > .setting.stack-narrow > .setting-actions,
+    .details-body > .setting.stack-narrow > input,
+    .details-body > .setting.stack-narrow > select,
+    .details-body > .setting.stack-narrow > .setting-actions,
+    .advanced-group > .setting.stack-narrow > input,
+    .advanced-group > .setting.stack-narrow > select,
+    .advanced-group > .setting.stack-narrow > .setting-actions,
     .update-layouts > .setting.stack-narrow > .setting-actions,
     .backup-body > .setting.stack-narrow > .setting-actions {
         width: 100%;               /* 100% wide including padding and border (everything is border-box), so it lines up with the text above */
@@ -767,13 +820,15 @@ input[aria-invalid="true"]:focus {
         margin-left: 0;
     }
 
-    .advanced > .setting.stack-narrow > .setting-actions,
+    .details-body > .setting.stack-narrow > .setting-actions,
+    .advanced-group > .setting.stack-narrow > .setting-actions,
     .update-layouts > .setting.stack-narrow > .setting-actions,
     .backup-body > .setting.stack-narrow > .setting-actions {
         flex-direction: row;
     }
 
-    .advanced > .setting.stack-narrow > .setting-actions button,
+    .details-body > .setting.stack-narrow > .setting-actions button,
+    .advanced-group > .setting.stack-narrow > .setting-actions button,
     .update-layouts > .setting.stack-narrow > .setting-actions button,
     .backup-body > .setting.stack-narrow > .setting-actions button {
         flex: 1;
@@ -810,11 +865,11 @@ input[aria-invalid="true"]:focus {
     color: var(--error-color);
 }
 
-#backup-text-box > textarea {
+#backup-text-box textarea {
     display: block;
 }
 
-#backup-text-box > textarea[hidden] {
+#backup-text-box textarea[hidden] {
     display: none;
 }
 
@@ -852,6 +907,13 @@ input[aria-invalid="true"]:focus {
     display: flex;
     flex-direction: column;
     gap: var(--gap-row);
+}
+
+/* 3.0.3: the open card is the box of what was hidden (see the boxes of the other groups above). A second frame inside the card would put More in a third one, so a line
+   under the heading closes the box of the card at the top instead. */
+.updates-box[open] > .updates-body {
+    padding-top: var(--gap-row);
+    border-top: 1px solid var(--border-color);
 }
 
 .update-layouts {

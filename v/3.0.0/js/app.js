@@ -491,13 +491,29 @@ function NormalizeStatus(d) {
         imageSites: ImageSitesOf(d.imageSites),
         // 3.0.2: the exchange rates of YouTube High Roller (where they stand, the date of the rates in use) and the currencies the streamer may choose. Null from an action that does not say.
         exchange: ExchangeOf(d.exchange),
+        // 3.0.3: how the last Save settings went in the action. Null from an action that does not save the file itself (see BackupOf)
+        backup: BackupOf(d.backup),
     };
+}
+
+// ---- Save settings in the action (3.0.3)
+// status.backup: seq (one more for every saveBackup the action handled, saved or refused, and 0 again after each start of the action), ok, file (where the file is, relative to the
+// Streamer.bot folder, like status.folder) and error (one sentence, '' when ok). An action that reports it writes the file of Save settings itself. One that does not (before 3.0.3)
+// gets the browser download of the older pages. A seq that is not a whole number of 0 or more makes the field unusable, so it counts as missing. The texts are cut and lose their
+// control characters, and they only ever go into the page with textContent.
+const BACKUP_FILE_MAX = 260;
+const BACKUP_ERROR_MAX = 300;
+
+function BackupOf(x) {
+    if (!isObj(x) || typeof x.seq !== 'number' || !Number.isSafeInteger(x.seq) || x.seq < 0) return null;
+    const text = (v, max) => typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, max) : '';
+    return { seq: x.seq, ok: x.ok === true, file: text(x.file, BACKUP_FILE_MAX), error: text(x.error, BACKUP_ERROR_MAX) };
 }
 
 // ---- The exchange rates of YouTube High Roller (3.0.2)
 // state: off (no printer allows YouTube High Roller prints, or the amount is 0, so no rates are asked for), checking (none yet, a request is on its way), ok (rates of `date` are in use) or offline
 // (none can be used: only a Super Chat in the streamer's own currency can be a YouTube High Roller one). currencies: the ISO 4217 code and a name of each currency the action takes. The page
-// lists no currency of its own: the list Your currency is the one of the status. Anything else in a currency or a state is left out, so a forged message can only show what fits.
+// lists no currency of its own: the list YouTube currency is the one of the status. Anything else in a currency or a state is left out, so a forged message can only show what fits.
 const CURRENCY_CODE = /^[A-Z]{3}$/;
 const CURRENCIES_MAX = 300;
 const EXCHANGE_STATES = ['off', 'checking', 'ok', 'offline'];
@@ -570,6 +586,8 @@ function RenderStatus(raw) {
 
     ConfirmSaves(s);
     CheckRestore(false);
+    RenderBackupCard(s);
+    CheckBackupSave(s);
     if (previewOpen && s.hasPreview && s.last.at !== lastPreviewAt) Send('preview');
     OfferLegacyPrinter(s);
     FirstStatus(s);
@@ -1642,7 +1660,7 @@ const hypeWaitBox = StrictIntegerBox({ id: 'hypeEndWaitSeconds', errorId: 'hype-
 const YOUTUBE_AMOUNT_MAX = 1000000000;
 const AMOUNT_TEXT = /^(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
 const AMOUNT_BOXES = {
-    youtubeHighRollerAmount: { errorId: 'youtube-amount-error', noun: 'The YouTube High Roller amount' },
+    youtubeHighRollerAmount: { errorId: 'youtube-amount-error', noun: 'The YouTube High Roller threshold' },
     youtubeHighRollerAmountPerInch: { errorId: 'youtube-per-inch-error', noun: 'YouTube High Roller: amount per inch' },
 };
 
@@ -1714,7 +1732,7 @@ for (const id of Object.keys(AMOUNT_BOXES)) {
     });
 }
 
-// Your currency: the currencies of status.exchange.currencies, each as its code and its name, the value being the code. A currency the action reports and does not list (an action that
+// YouTube currency: the currencies of status.exchange.currencies, each as its code and its name, the value being the code. A currency the action reports and does not list (an action that
 // sends no list) is shown as its code alone, so the box never shows a currency that is not in use. The list is made again only when it changed, and not while it has the focus.
 let currencySignature = '';
 
@@ -1757,19 +1775,19 @@ function DateInWords(text) {
     return `${day} ${MONTH_NAMES[month - 1]} ${m[1]}`;
 }
 
-// The small line under Your currency: where the exchange rates stand. Hidden for an action that does not say (no status.exchange) or says something the page does not know.
+// The small line under YouTube currency: where the exchange rates stand. Hidden for an action that does not say (no status.exchange) or says something the page does not know.
 function RenderExchange(s) {
     const line = $('exchange-state');
     const x = s ? s.exchange : null;
     let text = '', warn = false;
-    if (x && x.state === 'off') text = 'Exchange rates are loaded only while YouTube High Roller (amount) is above 0 and a printer allows YouTube High Roller prints.';
+    if (x && x.state === 'off') text = 'Exchange rates are loaded only while the YouTube High Roller threshold is above 0 and a printer allows YouTube High Roller prints.';
     else if (x && x.state === 'checking') text = 'Loading exchange rates from the U.S. Treasury...';
     else if (x && x.state === 'ok') {
         const when = DateInWords(x.date);
         text = 'Super Chats in other currencies are converted with the U.S. Treasury exchange rates' + (when ? ` of ${when}.` : '.');
     }
     else if (x && x.state === 'offline') {
-        text = `Currency exchange is offline right now, so only Super Chats in ${CurrencyShown() || 'your currency'} can print as YouTube High Roller messages. Printer Bot tries again by itself.`;
+        text = `Currency exchange is offline right now, so only Super Chats in ${CurrencyShown() || 'your YouTube currency'} can print as YouTube High Roller messages. Printer Bot tries again by itself.`;
         warn = true;
     }
     line.textContent = text;
@@ -1777,7 +1795,7 @@ function RenderExchange(s) {
     line.classList.toggle('warn', warn);
 }
 
-// What the amount per inch means, in the person's own numbers: the YouTube High Roller amount and four times it, in their currency
+// What the amount per inch means, in the person's own numbers: the YouTube High Roller threshold and four times it, in their YouTube currency
 function RenderYouTubeExample() {
     const line = $('youtube-per-inch-example');
     if (!pbStatus || !hasOwn(pbStatus.settings, 'youtubeHighRollerAmountPerInch')) { line.textContent = ''; return; }
@@ -1796,7 +1814,7 @@ function RenderYouTubeExample() {
     const inches = (n) => { const v = n / perInch; return v > limitInches ? null : v < 0.01 ? `less than 0.01${NB}inches` : inchText(round(v, 2)); };
     let text;
     if (!(perInch > 0) && !(cap > 0)) text = 'Off: YouTube High Roller messages print in full.';
-    else if (!(amount > 0)) text = 'YouTube High Roller (amount) is 0, so no Super Chat is a High Roller and this has no effect.';
+    else if (!(amount > 0)) text = 'YouTube High Roller threshold (amount) is 0, so no Super Chat is a High Roller and this has no effect.';
     else if (!(perInch > 0)) text = `No amount per inch limit. A YouTube High Roller message prints up to ${ceiling}, then fades out.`;
     else {
         const low = amount, high = round(amount * 4, 2);
@@ -1886,7 +1904,7 @@ function MaxInchesSetting() {
     return v > 0 && isFinite(v) ? Math.min(v, MAX_INCHES_LIMIT) : 0;
 }
 
-// What the bits-per-inch number means, in the user's own numbers (and the High Roller threshold they have set).
+// What the bits-per-inch number means, in the user's own numbers (and the Twitch High Roller threshold they have set).
 // A message never prints longer than its ceiling. That is the built-in 1600 px = 1600 / 96 = 16.7 inches, or the maximum length when one is set.
 const MAX_MESSAGE_INCHES = 1600 / 96;
 function RenderBitsPerInchExample() {
@@ -1902,9 +1920,9 @@ function RenderBitsPerInchExample() {
     // inches a cheer of n bits may print: null when that is past the ceiling
     const inches = (n) => { const v = n / perInch; return v > limitInches ? null : v < 0.01 ? `<${NB}0.01${NB}in` : `${round(v, 2)}${NB}in`; };
     let text;
-    if (!(perInch > 0) && !(cap > 0)) text = 'Off: High Roller messages print in full.';
-    else if (threshold <= 0) text = 'High Roller (bits) is 0, so no message is a High Roller and this has no effect.';
-    else if (!(perInch > 0)) text = `No bits per inch limit. A High Roller message prints up to ${ceiling}, then fades out.`;
+    if (!(perInch > 0) && !(cap > 0)) text = 'Off: Twitch High Roller messages print in full.';
+    else if (threshold <= 0) text = 'Twitch High Roller threshold (bits) is 0, so no cheer is a High Roller and this has no effect.';
+    else if (!(perInch > 0)) text = `No bits per inch limit. A Twitch High Roller message prints up to ${ceiling}, then fades out.`;
     else {
         const low = threshold, high = threshold * 4;
         if (inches(low) === null) text = `At ${bits(perInch)} per inch, even ${bits(low)} reaches ${ceiling}, ${ceilingName}.`;
@@ -1928,6 +1946,8 @@ function RenderAdvancedHint() {
     }
     if (pbStatus && pbStatus.skippedFree > 0) parts.push(`${pbStatus.skippedFree} skipped`);
     if (pbStatus && !$('hypeTrain').disabled && !$('hypeTrain').checked) parts.push('Hype Trains off');
+    // 3.0.3: the warning under the Twitch High Roller threshold sits in Advanced now, so a closed Advanced still says that no printer takes those cheers (printers.js, RtRenderHighRoller)
+    if (!$('high-roller-warning').hidden) parts.push('Twitch High Roller off on every printer');
     $('advanced-hint').textContent = parts.length ? ' \u00B7 ' + parts.join(' \u00B7 ') : '';
 }
 $('highRollerBitsPerInch').addEventListener('input', RenderBitsPerInchExample);
@@ -2359,9 +2379,32 @@ function BackupFileName() {
     return `printer-bot-settings-${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}.json`;
 }
 
-// One click: the browser gets the file. A dock that cannot download files (some OBS docks) has the text box below.
+// Save settings, 3.0.3. A dock in OBS (the browser of obs-browser) drops a browser download without a word, so up to 3.0.2 no file was ever saved there. A Printer Bot that
+// reports status.backup writes the file itself: the page sends it the text of the file (saveBackup) and waits for a status whose backup.seq is above the one it saw when it
+// sent, at most BACKUP_SAVE_WAIT_MS. The button is off meanwhile, so one click is one file. An older Printer Bot gets the browser download, with words that say what OBS does with it.
+const BACKUP_SAVE_WAIT_MS = RESTORE_CHECK_MS;
+let backupSaving = null;                 // while a saveBackup waits for its answer: { seq: status.backup.seq when it was sent, timer }
+
+const SAVE_TEXT_ACTION = 'Printer Bot writes your printers, routing rules and print options to a file in its backups folder, inside the Streamer.bot folder. Copy the file somewhere else as well: if Streamer.bot ever loses its data, Restore settings brings the settings back from it.';
+const SAVE_TEXT_BROWSER = 'Saves your printers, routing rules and print options to a file in the downloads of your browser. A dock in OBS cannot download files: update Printer Bot, or use Settings as text below. If Streamer.bot ever loses its data, Restore settings brings them back.';
+const RESTORE_TEXT_ACTION = 'Reads a file made by Save settings, such as one from the backups folder of Printer Bot. You see what it holds before anything changes.';
+const RESTORE_TEXT_BROWSER = 'Reads a file made by Save settings. You see what it holds before anything changes.';
+const BACKUP_SAVING_TEXT = 'Saving the settings file\u2026';
+const BACKUP_UNCONFIRMED_TEXT = 'Printer Bot did not confirm the save, so the file may be missing. Use Settings as text below to keep a copy of your settings.';
+const BACKUP_UPDATE_TEXT = 'Update Printer Bot (from 3.0.3 on it saves the file itself), or use Settings as text below.';
+
+// The two descriptions of the card, for the Printer Bot the dock talks to
+function RenderBackupCard(s) {
+    const own = !!s.backup;
+    const set = (id, text) => { if ($(id).textContent !== text) $(id).textContent = text; };
+    set('settings-save-description', own ? SAVE_TEXT_ACTION : SAVE_TEXT_BROWSER);
+    set('settings-restore-description', own ? RESTORE_TEXT_ACTION : RESTORE_TEXT_BROWSER);
+}
+
+// One click. A Printer Bot from 3.0.3 on writes the file. An older one: the browser gets the file, and a dock that cannot download files (a dock in OBS) has the text box below.
 function SaveSettingsFile() {
     if (!pbStatus) { BackupMessage('Printer Bot has not answered yet. Connect to Streamer.bot first.', 'error'); return; }
+    if (pbStatus.backup) { SaveBackupInAction(); return; }
     const text = BackupFileText();
     const name = BackupFileName();
     try {
@@ -2371,11 +2414,38 @@ function SaveSettingsFile() {
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 10000);
-        BackupMessage(`Saved ${name} in the downloads of your browser. If no file appears, this dock cannot save files. Use the text box below instead.`);
+        BackupMessage(`Sent ${name} to the downloads of your browser. A dock in OBS cannot download files, so in OBS no file appears. ${BACKUP_UPDATE_TEXT}`);
     } catch (err) {
         console.warn('Could not save the settings file:', err);
-        BackupMessage('This dock could not save a file. Use the text box below instead.', 'error');
+        BackupMessage(`This dock could not save a file. ${BACKUP_UPDATE_TEXT}`, 'error');
     }
+}
+
+function SaveBackupInAction() {
+    if (backupSaving) return;                                   // one save at a time (the button is off meanwhile)
+    const wait = { seq: pbStatus.backup.seq, timer: null };
+    backupSaving = wait;
+    wait.timer = setTimeout(() => EndBackupSave(wait, null), BACKUP_SAVE_WAIT_MS);
+    $('settings-save-button').disabled = true;
+    BackupMessage(BACKUP_SAVING_TEXT);
+    // A command that did not reach the action (no connection, refused) ends the wait at once
+    Send('saveBackup', { text: BackupFileText() }).then(ok => { if (!ok) EndBackupSave(wait, null); });
+}
+
+// The end of a save: backup is status.backup of the status that answered it, or null when none did (the wait ran out, or the command did not reach the action)
+function EndBackupSave(wait, backup) {
+    if (backupSaving !== wait) return;                          // that save is over already
+    clearTimeout(wait.timer);
+    backupSaving = null;
+    $('settings-save-button').disabled = false;
+    if (!backup) BackupMessage(BACKUP_UNCONFIRMED_TEXT, 'error');
+    else if (backup.ok) BackupMessage(!backup.file ? 'Saved.' : IsAbsolutePath(backup.file) ? `Saved: ${backup.file}` : `Saved in your Streamer.bot folder: ${backup.file}`);
+    else BackupMessage(backup.error || 'Printer Bot did not save the settings file.', 'error');
+}
+
+// Called with every status: the first one whose backup.seq is above the one of the send answers the save that waits
+function CheckBackupSave(s) {
+    if (backupSaving && s.backup && s.backup.seq > backupSaving.seq) EndBackupSave(backupSaving, s.backup);
 }
 
 function ShowSettingsText() {
@@ -2454,7 +2524,7 @@ function PrepareRestore(text) {
     if (outside.length) {
         BackupMessage(outside.includes('hypeEndWaitSeconds') ? 'The file cannot be used. The Hype Train end wait must be a whole number of seconds from 90 to 300.'
             : outside.includes('printersPerBrowser') ? `The file cannot be used. Printers per browser must be a whole number from 1 to ${PER_BROWSER_MAX}.`
-                : 'The file cannot be used. The YouTube High Roller amount and the amount per inch must be numbers from 0 to 1,000,000,000.', 'error');
+                : 'The file cannot be used. The YouTube High Roller threshold and the amount per inch must be numbers from 0 to 1,000,000,000.', 'error');
         return;
     }
     if (Object.keys(settings).length === 0) { BackupMessage('The file holds no settings this dock knows.', 'error'); return; }

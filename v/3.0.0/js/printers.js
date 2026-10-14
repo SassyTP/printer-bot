@@ -843,8 +843,10 @@ function RtReturnPrinterOne() {
     single.insertBefore(rt$('printer-one-hr'), rt$('add-printer-row'));
 }
 
-// "Allow Twitch High Roller prints" shows under every printer while High Roller is on (the box High Roller (bits) holds a number above 0). When every printer has it off, High Roller
-// prints nowhere, and the page says so under the box. (Its key is allowHighRoller, as before 3.0.2: only the words gained "Twitch", next to the switch for YouTube.)
+// "Allow Twitch High Roller prints" shows under every printer while High Roller is on (the box Twitch High Roller threshold (bits) holds a number above 0). When every printer has it off,
+// High Roller prints nowhere, and the page says so under the box. (Its key is allowHighRoller, as before 3.0.2: only the words gained "Twitch", next to the switch for YouTube.)
+// From 3.0.3 the box and that warning sit in the Twitch group of Advanced, and the summary line of a closed Advanced names the warning too (RenderAdvancedHint in app.js reads it after
+// every status, through RenderOutdated, and as the box is typed in, through RenderBitsPerInchExample).
 function RtHighRollerBits() {
     const n = parseInt(rt$('highRollerBits').value, 10);
     return n > 0 ? n : 0;
@@ -857,7 +859,7 @@ function RtRenderHighRoller() {
     const none = known && bits > 0 && !rt$('allowHighRoller').checked && (!working || working.extras.every(e => !e.allowHighRoller));
     const warning = rt$('high-roller-warning');
     warning.hidden = !none;
-    warning.textContent = none ? `High Roller is on for cheers of ${bits} ${bits === 1 ? 'bit' : 'bits'} or more, and every printer has Allow Twitch High Roller prints turned off. Those cheers print as ordinary cheers with plain text.` : '';
+    warning.textContent = none ? `Twitch High Roller is on for cheers of ${bits} ${bits === 1 ? 'bit' : 'bits'} or more, and every printer has Allow Twitch High Roller prints turned off. Those cheers print as ordinary cheers with plain text.` : '';
     RtRenderYouTube();
     RtRenderImages();
 }
@@ -876,11 +878,11 @@ function RtExtraHighRoller(slot) {
 }
 
 // ---- Allow YouTube High Roller prints (3.0.2) -----------------------------------------------------------------------------------------------
-// A switch under every printer, next to the one for Twitch: a Super Chat of at least the YouTube High Roller amount prints its styled message (and the pictures in it) on the printers
-// that have it on, and as an ordinary Super Chat on the others. It starts off, for printer 1 and for every printer that is added. It shows while YouTube High Roller (amount) is above 0,
-// the way the switch for Twitch shows while High Roller (bits) is. Printer 1 has the top-level setting allowYouTubeHighRoller, and the printers 2 and up have it in their own entry of
+// A switch under every printer, next to the one for Twitch: a Super Chat of at least the YouTube High Roller threshold prints its styled message (and the pictures in it) on the printers
+// that have it on, and as an ordinary Super Chat on the others. It starts off, for printer 1 and for every printer that is added. It shows while YouTube High Roller threshold (amount) is above 0,
+// the way the switch for Twitch shows while Twitch High Roller threshold (bits) is. Printer 1 has the top-level setting allowYouTubeHighRoller, and the printers 2 and up have it in their own entry of
 // extraPrinters (the action leaves it out of an entry that has it off, so a missing key is off). The rows have the class yt-row, and RtRenderYouTube shows and hides all of them.
-const RT_YOUTUBE_TEXT = 'This printer prints Super Chats of at least the YouTube High Roller amount with their styled message and the pictures in it. Off prints them as ordinary Super Chats with plain text and no pictures.';
+const RT_YOUTUBE_TEXT = 'This printer prints Super Chats of at least the YouTube High Roller threshold with their styled message and the pictures in it. Off prints them as ordinary Super Chats with plain text and no pictures.';
 
 const RtYouTubeKnown = () => !!pbStatus && isObj(pbStatus.settings) && hasOwn(pbStatus.settings, 'allowYouTubeHighRoller');
 // The amount as the page shows it now: what is typed in the box when it is a number the page would send, else the amount in use (app.js, YouTubeAmountShown)
@@ -907,7 +909,7 @@ function RtExtraYouTube(slot) {
 }
 
 // ---- Allow images (3.0.0-beta.9) -----------------------------------------------------------------------------------------------------------
-// "Allow images" shows under every printer while at least one image site is on (settings.imageSites is not empty), the way Allow Twitch High Roller prints shows while High Roller (bits) is above 0.
+// "Allow images" shows under every printer while at least one image site is on (settings.imageSites is not empty), the way Allow Twitch High Roller prints shows while Twitch High Roller threshold (bits) is above 0.
 // High Roller messages are the cheers and, from 3.0.2, the Super Chats that a printer prints as High Roller messages: the pictures of both follow this switch.
 // A printer with it off prints a link to a picture as text (or [link], with Hide links), as it does when no site is on. Printer 1 has the top-level setting allowImages, and the printers
 // 2 and up have it in their own entry of extraPrinters. The rows have the class img-row, and RtRenderImages shows and hides all of them.

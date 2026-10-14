@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.2",
-  "built": "202610141534",
+  "version": "3.0.3",
+  "built": "202610142007",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.2.bin",
-      "size": 632832,
-      "sha256": "183bf1e21f347ebdc08c0101a0b1ae79104714af5170eec18e49b9019c500a3e"
+      "name": "core-3.0.3.bin",
+      "size": 636928,
+      "sha256": "c685f3bf1f2726072ad93a760c698b45e72995d439264b29f8d4d467f1bea377"
     }
   ],
-  "notes": "Printer Bot 3.0.2 uses the paper better for a long gifted-subs list on Letter paper: with the Large message layout every page after the first is full and the platform logo is at the bottom of every page. It also brings High Roller to YouTube Super Chats, with a switch under each printer that is off until you switch it on, an amount in your own currency and an amount per inch. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.2 on GitHub.",
+  "notes": "Printer Bot 3.0.3 fixes Save settings in an OBS dock: Printer Bot now writes the file itself, into the folder backups of its data folder, and the dock shows its name. The Advanced box is now grouped into Twitch, YouTube and All platforms, both High Roller thresholds are in it with matching names, and an open box (Advanced, Paper and output and the others) has a border around what it shows. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.3 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
