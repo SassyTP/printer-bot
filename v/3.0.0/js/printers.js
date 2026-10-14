@@ -111,6 +111,7 @@ function RtCleanExtra(p) {
         letterImageFit: RtFitOf(p.letterImageFit),                                              // 3.0.0: how a picture is set in the large layout: fill, fit or stretch (a file or a status from before has none: fit)
         allowHighRoller: typeof p.allowHighRoller === 'boolean' ? p.allowHighRoller : true,
         allowImages: typeof p.allowImages === 'boolean' ? p.allowImages : true,                // 3.0.0-beta.9: pictures from links in messages print on this printer (a file from before has none: yes)
+        allowYouTubeHighRoller: p.allowYouTubeHighRoller === true,                              // 3.0.2: off unless it is exactly true (the action leaves the key out of a printer that has it off)
         uncutHypeTrain: p.uncutHypeTrain === true,
         dither: RT_DITHERS.includes(p.dither) ? p.dither : 'floyd',
         cut: RT_CUTS.includes(p.cut) ? p.cut : 'partial',
@@ -596,6 +597,7 @@ function RtAddPrinter() {
     if (!working || working.extras.length >= RtLimits().printers - 1) return;
     const base = pbStatus && isObj(pbStatus.settings) ? pbStatus.settings : {};
     RtSetOpen(2 + working.extras.length, true);                   // the new printer opens, so the person can set it up
+    // It takes the paper, the output and the switches of printer 1, except Allow YouTube High Roller prints (3.0.2): that one starts off on every new printer (RtCleanExtra)
     RtEdit(w => w.extras.push(RtCleanExtra({
         printer: '', paperWidthMm: base.paperWidthMm, paperSize: base.paperSize, mode: base.mode, printProfile: base.printProfile, letterLayout: base.letterLayout, letterImageFit: base.letterImageFit, allowHighRoller: base.allowHighRoller, allowImages: base.allowImages,
         dither: base.dither, cut: base.cut, feedDots: base.feedDots,
@@ -841,8 +843,8 @@ function RtReturnPrinterOne() {
     single.insertBefore(rt$('printer-one-hr'), rt$('add-printer-row'));
 }
 
-// "Allow High Roller prints" shows under every printer while High Roller is on (the box High Roller (bits) holds a number above 0). When every printer has it off, High Roller
-// prints nowhere, and the page says so under the box.
+// "Allow Twitch High Roller prints" shows under every printer while High Roller is on (the box High Roller (bits) holds a number above 0). When every printer has it off, High Roller
+// prints nowhere, and the page says so under the box. (Its key is allowHighRoller, as before 3.0.2: only the words gained "Twitch", next to the switch for YouTube.)
 function RtHighRollerBits() {
     const n = parseInt(rt$('highRollerBits').value, 10);
     return n > 0 ? n : 0;
@@ -855,7 +857,8 @@ function RtRenderHighRoller() {
     const none = known && bits > 0 && !rt$('allowHighRoller').checked && (!working || working.extras.every(e => !e.allowHighRoller));
     const warning = rt$('high-roller-warning');
     warning.hidden = !none;
-    warning.textContent = none ? `High Roller is on for cheers of ${bits} ${bits === 1 ? 'bit' : 'bits'} or more, and every printer has Allow High Roller prints turned off. Those cheers print as ordinary cheers with plain text.` : '';
+    warning.textContent = none ? `High Roller is on for cheers of ${bits} ${bits === 1 ? 'bit' : 'bits'} or more, and every printer has Allow Twitch High Roller prints turned off. Those cheers print as ordinary cheers with plain text.` : '';
+    RtRenderYouTube();
     RtRenderImages();
 }
 
@@ -866,14 +869,46 @@ function RtExtraHighRoller(slot) {
     box.checked = extra.allowHighRoller;
     box.addEventListener('change', () => RtEdit(w => { const e = RtExtraAt(w, slot); if (e) e.allowHighRoller = box.checked; }, true));
     const row = h('div', { class: 'setting hr-row' },
-        h('div', null, h('label', { class: 'setting-label', for: `allow-hr-${slot}` }, 'Allow High Roller prints'), h('div', { class: 'setting-description' }, RT_HIGH_ROLLER_TEXT)),
+        h('div', null, h('label', { class: 'setting-label', for: `allow-hr-${slot}` }, 'Allow Twitch High Roller prints'), h('div', { class: 'setting-description' }, RT_HIGH_ROLLER_TEXT)),
         h('label', { class: 'switch' }, box, h('span', { class: 'slider' })));
     row.hidden = RtHighRollerBits() === 0;
     return row;
 }
 
+// ---- Allow YouTube High Roller prints (3.0.2) -----------------------------------------------------------------------------------------------
+// A switch under every printer, next to the one for Twitch: a Super Chat of at least the YouTube High Roller amount prints its styled message (and the pictures in it) on the printers
+// that have it on, and as an ordinary Super Chat on the others. It starts off, for printer 1 and for every printer that is added. It shows while YouTube High Roller (amount) is above 0,
+// the way the switch for Twitch shows while High Roller (bits) is. Printer 1 has the top-level setting allowYouTubeHighRoller, and the printers 2 and up have it in their own entry of
+// extraPrinters (the action leaves it out of an entry that has it off, so a missing key is off). The rows have the class yt-row, and RtRenderYouTube shows and hides all of them.
+const RT_YOUTUBE_TEXT = 'This printer prints Super Chats of at least the YouTube High Roller amount with their styled message and the pictures in it. Off prints them as ordinary Super Chats with plain text and no pictures.';
+
+const RtYouTubeKnown = () => !!pbStatus && isObj(pbStatus.settings) && hasOwn(pbStatus.settings, 'allowYouTubeHighRoller');
+// The amount as the page shows it now: what is typed in the box when it is a number the page would send, else the amount in use (app.js, YouTubeAmountShown)
+const RtYouTubeAmount = () => typeof YouTubeAmountShown === 'function' ? YouTubeAmountShown('youtubeHighRollerAmount') : 0;
+
+function RtRenderYouTube() {
+    const on = RtYouTubeAmount() > 0;
+    document.querySelectorAll('.yt-row').forEach(el => { el.hidden = !on; });
+}
+
+// The switch of a printer in a card (printer 1 has its own, which the page moves into its card)
+function RtExtraYouTube(slot) {
+    const extra = working.extras[slot - 2];
+    const box = RtFocus(h('input', { type: 'checkbox', id: `allow-yt-${slot}`, 'aria-describedby': `allow-yt-text-${slot}` }), `yt${slot}`);
+    box.checked = extra.allowYouTubeHighRoller;
+    box.disabled = !RtYouTubeKnown();
+    if (box.disabled) box.title = 'The Printer Bot action is older than this dock. Update it to use this setting.';
+    box.addEventListener('change', () => RtEdit(w => { const e = RtExtraAt(w, slot); if (e) e.allowYouTubeHighRoller = box.checked; }, true));
+    const row = h('div', { class: 'setting yt-row' },
+        h('div', null, h('label', { class: 'setting-label', for: `allow-yt-${slot}` }, 'Allow YouTube High Roller prints'), h('div', { class: 'setting-description', id: `allow-yt-text-${slot}` }, RT_YOUTUBE_TEXT)),
+        h('label', { class: 'switch' }, box, h('span', { class: 'slider' })));
+    row.hidden = !(RtYouTubeAmount() > 0);
+    return row;
+}
+
 // ---- Allow images (3.0.0-beta.9) -----------------------------------------------------------------------------------------------------------
-// "Allow images" shows under every printer while at least one image site is on (settings.imageSites is not empty), the way Allow High Roller prints shows while High Roller (bits) is above 0.
+// "Allow images" shows under every printer while at least one image site is on (settings.imageSites is not empty), the way Allow Twitch High Roller prints shows while High Roller (bits) is above 0.
+// High Roller messages are the cheers and, from 3.0.2, the Super Chats that a printer prints as High Roller messages: the pictures of both follow this switch.
 // A printer with it off prints a link to a picture as text (or [link], with Hide links), as it does when no site is on. Printer 1 has the top-level setting allowImages, and the printers
 // 2 and up have it in their own entry of extraPrinters. The rows have the class img-row, and RtRenderImages shows and hides all of them.
 const RT_IMAGES_TEXT = 'Pictures from links in High Roller messages print on this printer. Switch it off to print such links as text on this printer only.';
@@ -1153,7 +1188,7 @@ function RtBuildContent(slot) {
     more.append(moreBody);
     body.append(more);
     if (slot === 1) body.append(rt$('printer-one-hr'));
-    else { body.append(RtExtraHighRoller(slot)); body.append(RtExtraImages(slot)); }
+    else { body.append(RtExtraHighRoller(slot)); body.append(RtExtraYouTube(slot)); body.append(RtExtraImages(slot)); }
     if (slot > 1) for (const el of RtExtraHype(slot)) body.append(el);
     frag.append(body);
 
@@ -1259,7 +1294,7 @@ function RtCardSig(slot, rulesBySlot, ruleRoom, limits) {
     return JSON.stringify([
         slot, slot > 1 ? working.extras[slot - 2] : 0, working.routing.routeAllElse === slot, rulesBySlot.get(slot) || [],
         info ? [info.name, info.note, info.queue ? [info.queue.state, info.queue.text] : 0] : 0,
-        rtArmed === slot, ruleRoom, limits.conditions, limits.valueChars, RtLayoutKnown(), RtFitKnown(),
+        rtArmed === slot, ruleRoom, limits.conditions, limits.valueChars, RtLayoutKnown(), RtFitKnown(), RtYouTubeKnown(),
     ]);
 }
 
@@ -1676,3 +1711,5 @@ rt$('cards-find').addEventListener('input', RtApplyFilter);
 for (const id of ['paperWidthMm', 'mode', 'printProfile', 'dither', 'allowHighRoller', 'uncutHypeTrain']) rt$(id).addEventListener('change', () => { if (working) RtRefreshWords(); });
 rt$('highRollerBits').addEventListener('input', RtRenderHighRoller);
 rt$('highRollerBits').addEventListener('change', RtRenderHighRoller);
+rt$('youtubeHighRollerAmount').addEventListener('input', RtRenderYouTube);
+rt$('youtubeHighRollerAmount').addEventListener('change', RtRenderYouTube);

@@ -601,6 +601,17 @@ input[aria-invalid="true"]:focus {
     opacity: 0.8;
 }
 
+/* YouTube High Roller (3.0.2): the line under Your currency that says where the exchange rates stand. Amber while none can be used (offline). */
+.exchange-line {
+    margin-top: var(--gap-text);
+    opacity: 0.8;
+}
+
+.exchange-line.warn {
+    color: var(--warn-color);
+    opacity: 1;
+}
+
 /* "Advanced": a collapsible group at the bottom of the settings card */
 .advanced {
     border-top: 1px solid var(--border-soft);
@@ -747,10 +758,11 @@ input[aria-invalid="true"]:focus {
     }
 
     .advanced > .setting.stack-narrow > input,
+    .advanced > .setting.stack-narrow > select,
     .advanced > .setting.stack-narrow > .setting-actions,
     .update-layouts > .setting.stack-narrow > .setting-actions,
     .backup-body > .setting.stack-narrow > .setting-actions {
-        width: 100%;                /* 100% wide including padding and border (everything is border-box), so it lines up with the text above */
+        width: 100%;               /* 100% wide including padding and border (everything is border-box), so it lines up with the text above */
         max-width: 100%;
         margin-left: 0;
     }

@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.1",
-  "built": "202610140456",
+  "version": "3.0.2",
+  "built": "202610141534",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.1.bin",
-      "size": 598528,
-      "sha256": "237e5e97085f9e1e57efd34012dd63963291f32210f3ba843e57d121f2b84087"
+      "name": "core-3.0.2.bin",
+      "size": 632832,
+      "sha256": "183bf1e21f347ebdc08c0101a0b1ae79104714af5170eec18e49b9019c500a3e"
     }
   ],
-  "notes": "Printer Bot 3.0.1 fixes what the first prints of 3.0.0 showed. A message that is not printed as a High Roller message now prints as the words it says, with no tags, no styling and no pictures, so a link to a picture stays text. Gifted subs print in two columns on 80 mm and 58 mm paper when the names fit. Image fit now starts on Fit, so a picture is not cut off, and the dock is spaced more evenly. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.1 on GitHub.",
+  "notes": "Printer Bot 3.0.2 uses the paper better for a long gifted-subs list on Letter paper: with the Large message layout every page after the first is full and the platform logo is at the bottom of every page. It also brings High Roller to YouTube Super Chats, with a switch under each printer that is off until you switch it on, an amount in your own currency and an amount per inch. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.2 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }

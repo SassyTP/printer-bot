@@ -489,6 +489,34 @@ function NormalizeStatus(d) {
         // 3.0.0-beta.9: the image sites the action offers for Images in messages (the id and the name of each, and the most ids the action keeps). Null from an action that does not say.
         // The sites that are on are in settings.imageSites. The page never lists a site of its own: it shows what the action lists.
         imageSites: ImageSitesOf(d.imageSites),
+        // 3.0.2: the exchange rates of YouTube High Roller (where they stand, the date of the rates in use) and the currencies the streamer may choose. Null from an action that does not say.
+        exchange: ExchangeOf(d.exchange),
+    };
+}
+
+// ---- The exchange rates of YouTube High Roller (3.0.2)
+// state: off (no printer allows YouTube High Roller prints, or the amount is 0, so no rates are asked for), checking (none yet, a request is on its way), ok (rates of `date` are in use) or offline
+// (none can be used: only a Super Chat in the streamer's own currency can be a YouTube High Roller one). currencies: the ISO 4217 code and a name of each currency the action takes. The page
+// lists no currency of its own: the list Your currency is the one of the status. Anything else in a currency or a state is left out, so a forged message can only show what fits.
+const CURRENCY_CODE = /^[A-Z]{3}$/;
+const CURRENCIES_MAX = 300;
+const EXCHANGE_STATES = ['off', 'checking', 'ok', 'offline'];
+
+function ExchangeOf(x) {
+    if (!isObj(x)) return null;
+    const currencies = [];
+    if (Array.isArray(x.currencies)) {
+        for (const c of x.currencies) {
+            if (!isObj(c) || typeof c.code !== 'string' || !CURRENCY_CODE.test(c.code) || currencies.some(o => o.code === c.code)) continue;
+            currencies.push({ code: c.code, name: typeof c.name === 'string' && c.name.trim() ? str(c.name, 60).trim() : '' });
+            if (currencies.length >= CURRENCIES_MAX) break;
+        }
+    }
+    return {
+        state: EXCHANGE_STATES.includes(x.state) ? x.state : '',
+        date: typeof x.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.date) ? x.date : '',
+        local: typeof x.local === 'string' && CURRENCY_CODE.test(x.local) ? x.local : '',
+        currencies,
     };
 }
 
@@ -681,6 +709,9 @@ function FillSettings(s) {
     setValue('highRollerBits', num(st.highRollerBits));
     setValue('highRollerBitsPerInch', num(st.highRollerBitsPerInch) || 0);
     setValue('highRollerMaxInches', num(st.highRollerMaxInches) || 0);
+    if (hasOwn(st, 'youtubeHighRollerAmount')) setValue('youtubeHighRollerAmount', num(st.youtubeHighRollerAmount));                       // 3.0.2
+    if (hasOwn(st, 'youtubeHighRollerAmountPerInch')) setValue('youtubeHighRollerAmountPerInch', num(st.youtubeHighRollerAmountPerInch));
+    RenderCurrencies(s);
     setValue('freePrintsPerMinute', num(st.freePrintsPerMinute));
     if (hasOwn(st, 'printersPerBrowser')) setValue('printersPerBrowser', num(st.printersPerBrowser));
     if (hasOwn(st, 'hypeEndWaitSeconds')) setValue('hypeEndWaitSeconds', num(st.hypeEndWaitSeconds));
@@ -694,6 +725,7 @@ function FillSettings(s) {
     setCheck('hypeTrain', st.hypeTrain);
     setCheck('allowHighRoller', st.allowHighRoller);
     setCheck('allowImages', st.allowImages);
+    setCheck('allowYouTubeHighRoller', st.allowYouTubeHighRoller === true);         // 3.0.2: off unless the action says true
     setCheck('uncutHypeTrain', st.uncutHypeTrain);
     RenderImageSites(s);
 
@@ -710,6 +742,7 @@ function FillSettings(s) {
         $('autoUpdateCore').title = HOSTED_OFF_TEXT;
     }
     RenderBitsPerInchExample();
+    RenderExchange(s);
 
     const skipped = $('skipped-free');
     skipped.hidden = !(s.skippedFree > 0);
@@ -1363,7 +1396,8 @@ setInterval(() => { if (pbUpdater && pbStatus && !$('update-main').hidden) $('up
 // SETTINGS //
 //////////////
 
-const SETTING_CONTROLS = ['printer', 'paperWidthMm', 'mode', 'printProfile', 'letterLayout', 'letterImageFit', 'dither', 'cut', 'feedDots', 'highRollerBits', 'allowHighRoller', 'allowImages', 'uncutHypeTrain', 'highRollerBitsPerInch', 'highRollerMaxInches',
+const SETTING_CONTROLS = ['printer', 'paperWidthMm', 'mode', 'printProfile', 'letterLayout', 'letterImageFit', 'dither', 'cut', 'feedDots', 'highRollerBits', 'allowHighRoller', 'allowImages', 'allowYouTubeHighRoller', 'uncutHypeTrain', 'highRollerBitsPerInch', 'highRollerMaxInches',
+    'youtubeHighRollerAmount', 'youtubeHighRollerAmountPerInch', 'localCurrency',
     'ignoreTestTriggers', 'keepDebugFiles', 'allowHostedUpdates', 'freePrintsPerMinute', 'printersPerBrowser', 'hideLinks', 'hypeTrain', 'hypeEndWaitSeconds', 'autoUpdateCore', 'prereleaseUpdates'];
 
 const MAX_INCHES_LIMIT = 40;               // the action clamps the maximum length to this many inches
@@ -1441,8 +1475,33 @@ SETTING_CONTROLS.forEach(id => {
             el.value = value;
             RenderBitsPerInchExample();
         }
+        if (id === 'youtubeHighRollerAmount' || id === 'youtubeHighRollerAmountPerInch') {
+            // 3.0.2: a negative number, a number above 1,000,000,000 and anything that is no number are refused with a message, the amount in use comes back into the box and nothing
+            // is sent. A number with more digits after the point is rounded to two, as the action rounds it, and the box shows what is sent. An empty box is 0.
+            const n = AmountOf(el.value, AmountBadInput(el));
+            if (n === null) {
+                const kept = AmountKept(id);
+                SetAmountError(id, AmountMessage(id));
+                if (kept !== null) el.value = kept;
+                RenderYouTubeExample();
+                RtRenderYouTube();
+                return;
+            }
+            SetAmountError(id, '');
+            value = n;
+            el.value = n;
+        }
+        if (id === 'localCurrency' && !CurrencyListed(value)) {              // only a currency that the action lists is ever sent (the list holds nothing else, so this is a guard)
+            el.value = CurrencyShown();
+            return;
+        }
         pendingSettings[id] = value;
         saveFailedNote = '';                                                 // an edit starts a new try
+        if (id === 'youtubeHighRollerAmount' || id === 'youtubeHighRollerAmountPerInch' || id === 'localCurrency') {
+            RenderYouTubeExample();                                          // the example and the line of the exchange name the amount and the currency as they are now
+            RenderExchange(pbStatus);
+            RtRenderYouTube();
+        }
         if (id === 'hypeTrain') RenderAdvancedHint();
         if (id === 'letterLayout') RtRenderPaper1();                         // the row Image fit comes and goes with the choice at once, before the choice is saved
         // keep the visible rows in step right away. The confirmed values come back with the next status
@@ -1574,6 +1633,180 @@ function StrictIntegerBox(cfg) {
 
 const hypeWaitBox = StrictIntegerBox({ id: 'hypeEndWaitSeconds', errorId: 'hype-wait-error', min: 90, max: 300, unit: 'seconds', noun: 'The Hype Train end wait' });
 
+// ---- YouTube High Roller (3.0.2)
+// The amount and the amount per inch are money in the streamer's own currency (localCurrency): a number from 0 to 1,000,000,000, kept with two digits after the point. The action refuses
+// a negative number, a number above that and anything that is no number (status.saveNote says why), and rounds to two digits, half away from zero, in decimal. The page sends none of
+// the values the action refuses: the keys of a minus sign, an exponent and a comma do nothing and say why, a value that is not allowed shows the message under the box as it is typed,
+// and when the box is left with such a value the amount in use comes back into the box and nothing is sent. A number with more digits after the point is rounded the way the action
+// rounds it. An empty box is 0 (the amount: never; the amount per inch: no limit of its own), like the other number boxes of Advanced.
+const YOUTUBE_AMOUNT_MAX = 1000000000;
+const AMOUNT_TEXT = /^(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+const AMOUNT_BOXES = {
+    youtubeHighRollerAmount: { errorId: 'youtube-amount-error', noun: 'The YouTube High Roller amount' },
+    youtubeHighRollerAmountPerInch: { errorId: 'youtube-per-inch-error', noun: 'YouTube High Roller: amount per inch' },
+};
+
+// A number box that holds text it cannot read (the browser then reports an empty value)
+const AmountBadInput = (el) => !!(el && el.validity && el.validity.badInput);
+
+// n (a finite number from 0 to the most) with two digits after the point, rounded half away from zero as the action rounds it: in decimal, from the 15 digits that a decimal of .NET
+// takes from a double (so 5.005 is 5.01, where the double 5.00499... would round down)
+function RoundAmount(n) {
+    if (!(n >= 0.000001)) return 0;
+    const parts = n.toPrecision(15).split('.');
+    const frac = ((parts[1] || '') + '000').slice(0, 3);
+    let cents = Number(parts[0]) * 100 + Number(frac.slice(0, 2));
+    if (frac.charAt(2) >= '5') cents += 1;
+    return cents / 100;
+}
+
+// The text of a box as the amount the page would send, or null when it may not be sent
+function AmountOf(text, badInput) {
+    if (badInput) return null;
+    const t = String(text == null ? '' : text).trim();
+    if (t === '') return 0;
+    if (!AMOUNT_TEXT.test(t)) return null;
+    const n = Number(t);
+    return Number.isFinite(n) && n >= 0 && n <= YOUTUBE_AMOUNT_MAX ? RoundAmount(n) : null;
+}
+
+// The amount that is in use: an edit on its way, a save that is not confirmed yet, or what the action reports. Null when none is known.
+function AmountKept(id) {
+    let v;
+    if (hasOwn(pendingSettings, id)) v = pendingSettings[id];
+    else if (hasOwn(inFlight, id)) v = inFlight[id].value;
+    else if (pbStatus && pbStatus.settings) v = pbStatus.settings[id];
+    return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= YOUTUBE_AMOUNT_MAX ? v : null;
+}
+
+// The amount as the page shows it now: the number typed in the box when the page would send it, else the amount in use (0 when none is known)
+function YouTubeAmountShown(id) {
+    const el = $(id);
+    const typed = AmountOf(el.value, AmountBadInput(el));
+    if (typed !== null) return typed;
+    const kept = AmountKept(id);
+    return kept === null ? 0 : kept;
+}
+
+const AmountText = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function AmountMessage(id) {
+    const kept = AmountKept(id);
+    return 'Enter a number from 0 to 1,000,000,000, with no minus sign.' + (kept === null ? '' : ` ${AMOUNT_BOXES[id].noun} stays at ${AmountText(kept)}.`);
+}
+
+function SetAmountError(id, text) {
+    const out = $(AMOUNT_BOXES[id].errorId);
+    out.textContent = text;
+    out.hidden = !text;
+    if (text) $(id).setAttribute('aria-invalid', 'true'); else $(id).removeAttribute('aria-invalid');
+}
+
+for (const id of Object.keys(AMOUNT_BOXES)) {
+    const el = $(id);
+    el.addEventListener('keydown', (ev) => {
+        if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+        if (['e', 'E', '+', '-', ','].includes(ev.key)) { ev.preventDefault(); SetAmountError(id, AmountMessage(id)); }
+    });
+    el.addEventListener('input', () => {
+        SetAmountError(id, AmountOf(el.value, AmountBadInput(el)) === null ? AmountMessage(id) : '');
+        RenderYouTubeExample();
+    });
+}
+
+// Your currency: the currencies of status.exchange.currencies, each as its code and its name, the value being the code. A currency the action reports and does not list (an action that
+// sends no list) is shown as its code alone, so the box never shows a currency that is not in use. The list is made again only when it changed, and not while it has the focus.
+let currencySignature = '';
+
+const CurrencyListed = (code) => !!pbStatus && !!pbStatus.exchange && typeof code === 'string' && pbStatus.exchange.currencies.some(c => c.code === code);
+
+// The currency as the page shows it now (the choice in the box, an edit included), else the one the action reports
+function CurrencyShown() {
+    const v = $('localCurrency').value;
+    if (CURRENCY_CODE.test(v)) return v;
+    const st = pbStatus ? pbStatus.settings : null;
+    if (st && typeof st.localCurrency === 'string' && CURRENCY_CODE.test(st.localCurrency)) return st.localCurrency;
+    return pbStatus && pbStatus.exchange && pbStatus.exchange.local ? pbStatus.exchange.local : '';
+}
+
+function RenderCurrencies(s) {
+    const select = $('localCurrency');
+    const st = s.settings;
+    const saved = typeof st.localCurrency === 'string' && CURRENCY_CODE.test(st.localCurrency) ? st.localCurrency : '';
+    const items = (s.exchange ? s.exchange.currencies : []).map(c => [c.code, c.name ? `${c.code} (${c.name})` : c.code]);
+    if (saved && !items.some(i => i[0] === saved)) items.unshift([saved, saved]);
+    const busy = select === document.activeElement || Protected('localCurrency');
+    const signature = JSON.stringify(items);
+    if (signature !== currencySignature && select !== document.activeElement) {
+        const chosen = select.value;
+        currencySignature = signature;
+        select.replaceChildren(...items.map(i => new Option(i[1], i[0])));
+        select.value = Protected('localCurrency') && items.some(i => i[0] === chosen) ? chosen : saved;
+    }
+    else if (!busy && saved && select.value !== saved) select.value = saved;
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// "2026-09-30" -> "30 September 2026", or '' for anything else
+function DateInWords(text) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof text === 'string' ? text : '');
+    if (!m) return '';
+    const month = parseInt(m[2], 10), day = parseInt(m[3], 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return '';
+    return `${day} ${MONTH_NAMES[month - 1]} ${m[1]}`;
+}
+
+// The small line under Your currency: where the exchange rates stand. Hidden for an action that does not say (no status.exchange) or says something the page does not know.
+function RenderExchange(s) {
+    const line = $('exchange-state');
+    const x = s ? s.exchange : null;
+    let text = '', warn = false;
+    if (x && x.state === 'off') text = 'Exchange rates are loaded only while YouTube High Roller (amount) is above 0 and a printer allows YouTube High Roller prints.';
+    else if (x && x.state === 'checking') text = 'Loading exchange rates from the U.S. Treasury...';
+    else if (x && x.state === 'ok') {
+        const when = DateInWords(x.date);
+        text = 'Super Chats in other currencies are converted with the U.S. Treasury exchange rates' + (when ? ` of ${when}.` : '.');
+    }
+    else if (x && x.state === 'offline') {
+        text = `Currency exchange is offline right now, so only Super Chats in ${CurrencyShown() || 'your currency'} can print as YouTube High Roller messages. Printer Bot tries again by itself.`;
+        warn = true;
+    }
+    line.textContent = text;
+    line.hidden = !text;
+    line.classList.toggle('warn', warn);
+}
+
+// What the amount per inch means, in the person's own numbers: the YouTube High Roller amount and four times it, in their currency
+function RenderYouTubeExample() {
+    const line = $('youtube-per-inch-example');
+    if (!pbStatus || !hasOwn(pbStatus.settings, 'youtubeHighRollerAmountPerInch')) { line.textContent = ''; return; }
+    const perInch = YouTubeAmountShown('youtubeHighRollerAmountPerInch');
+    const amount = YouTubeAmountShown('youtubeHighRollerAmount');
+    const currency = CurrencyShown();
+    const cap = MaxInchesSetting();
+    const NB = '\u00A0';                                                       // keeps "4 inches" and "5.00 USD" from splitting across lines
+    const money = (n) => AmountText(n) + (currency ? NB + currency : '');
+    const round = (v, places) => Math.round(v * 10 ** places) / 10 ** places;
+    const inchText = (v) => `${v}${NB}${v === 1 ? 'inch' : 'inches'}`;
+    const limitInches = cap > 0 ? cap : MAX_MESSAGE_INCHES;
+    const ceiling = inchText(round(limitInches, cap > 0 ? 2 : 1));
+    const ceilingName = cap > 0 ? 'the maximum length you set' : 'the longest any message prints';
+    // inches a Super Chat of n may print: null when that is past the ceiling
+    const inches = (n) => { const v = n / perInch; return v > limitInches ? null : v < 0.01 ? `less than 0.01${NB}inches` : inchText(round(v, 2)); };
+    let text;
+    if (!(perInch > 0) && !(cap > 0)) text = 'Off: YouTube High Roller messages print in full.';
+    else if (!(amount > 0)) text = 'YouTube High Roller (amount) is 0, so no Super Chat is a High Roller and this has no effect.';
+    else if (!(perInch > 0)) text = `No amount per inch limit. A YouTube High Roller message prints up to ${ceiling}, then fades out.`;
+    else {
+        const low = amount, high = round(amount * 4, 2);
+        if (inches(low) === null) text = `At ${money(perInch)} per inch, even a ${money(low)} Super Chat reaches ${ceiling}, ${ceilingName}.`;
+        else text = `At ${money(perInch)} per inch, a ${money(low)} Super Chat gets up to ${inches(low)}, and a ${money(high)} one up to ` +
+            (inches(high) === null ? `${ceiling} (${ceilingName}).` : `${inches(high)}.`);
+    }
+    line.textContent = text;
+}
+
 // ---- Printers per browser (3.0.0-beta.3)
 const PER_BROWSER_MAX = 100;                // the action takes a whole number from 1 to 100 and refuses anything else (PbSettings.PerBrowserValid)
 const PER_BROWSER_DEFAULT_MAX_BROWSERS = 16;
@@ -1679,6 +1912,7 @@ function RenderBitsPerInchExample() {
             (inches(high) === null ? `${ceiling} (${ceilingName}).` : `${inches(high)}.`);
     }
     $('bits-per-inch-example').textContent = text;
+    RenderYouTubeExample();                                                   // 3.0.2: the maximum length is the ceiling of a YouTube High Roller message too
     RenderAdvancedHint();
 }
 
@@ -2063,12 +2297,14 @@ async function CopyFolder() {
 // The three update switches (Download updates, Install updates automatically, Try prerelease versions) are not in the file and a file never sets them,
 // so a restored file cannot start a download or an install that the person did not switch on in this dock. The update address belongs to the action and stays out too.
 const BACKUP_FORMAT = 1;
-const BACKUP_KEYS = ['printer', 'paperWidthMm', 'paperSize', 'mode', 'printProfile', 'letterLayout', 'letterImageFit', 'dither', 'cut', 'feedDots', 'highRollerBits', 'allowHighRoller', 'allowImages', 'uncutHypeTrain', 'highRollerBitsPerInch', 'highRollerMaxInches',
+const BACKUP_KEYS = ['printer', 'paperWidthMm', 'paperSize', 'mode', 'printProfile', 'letterLayout', 'letterImageFit', 'dither', 'cut', 'feedDots', 'highRollerBits', 'allowHighRoller', 'allowImages', 'allowYouTubeHighRoller', 'uncutHypeTrain', 'highRollerBitsPerInch', 'highRollerMaxInches',
+    'youtubeHighRollerAmount', 'youtubeHighRollerAmountPerInch', 'localCurrency',
     'ignoreTestTriggers', 'keepDebugFiles', 'freePrintsPerMinute', 'printersPerBrowser', 'hideLinks', 'imageSites', 'hypeTrain', 'hypeEndWaitSeconds', 'extraPrinters', 'routing'];
 const BACKUP_TYPES = {
-    printer: 'string', mode: 'string', dither: 'string', cut: 'string', paperSize: 'string', printProfile: 'string', letterLayout: 'string', letterImageFit: 'string',
+    printer: 'string', mode: 'string', dither: 'string', cut: 'string', paperSize: 'string', printProfile: 'string', letterLayout: 'string', letterImageFit: 'string', localCurrency: 'string',
     paperWidthMm: 'number', feedDots: 'number', highRollerBits: 'number', highRollerBitsPerInch: 'number', highRollerMaxInches: 'number', freePrintsPerMinute: 'number', printersPerBrowser: 'number', hypeEndWaitSeconds: 'number',
-    ignoreTestTriggers: 'boolean', keepDebugFiles: 'boolean', hideLinks: 'boolean', hypeTrain: 'boolean', allowHighRoller: 'boolean', allowImages: 'boolean', uncutHypeTrain: 'boolean',
+    youtubeHighRollerAmount: 'number', youtubeHighRollerAmountPerInch: 'number',
+    ignoreTestTriggers: 'boolean', keepDebugFiles: 'boolean', hideLinks: 'boolean', hypeTrain: 'boolean', allowHighRoller: 'boolean', allowImages: 'boolean', allowYouTubeHighRoller: 'boolean', uncutHypeTrain: 'boolean',
     extraPrinters: 'array', routing: 'object', imageSites: 'array',
 };
 const BACKUP_MAX_FILE = 200000;          // the most that is read from a file or a pasted text
@@ -2196,14 +2432,29 @@ function PrepareRestore(text) {
             if (RT_FITS.includes(doc.settings[key])) settings[key] = doc.settings[key];
             continue;
         }
+        if (key === 'localCurrency') {
+            // 3.0.2: the currency of the streamer. Only a currency that the action lists (status.exchange.currencies) is restored. Any other value (a code it does not list, other text, a number,
+            // null) is left out without a word and the other settings of the file are restored. A file from an older version has no such entry (the setting is left alone).
+            if (CurrencyListed(doc.settings[key])) settings[key] = doc.settings[key];
+            continue;
+        }
         if (TypeOfValue(doc.settings[key]) !== BACKUP_TYPES[key]) { wrong.push(key); continue; }
         if (key === 'printersPerBrowser' && PerBrowserOf(String(doc.settings[key])) === null) { outside.push(key); continue; }
         if (key === 'hypeEndWaitSeconds' && hypeWaitBox.of(String(doc.settings[key])) === null) { outside.push(key); continue; }
+        if (key === 'youtubeHighRollerAmount' || key === 'youtubeHighRollerAmountPerInch') {
+            // 3.0.2: a number from 0 to 1,000,000,000, sent with two digits after the point as the action keeps it (so the check after the restore finds what it sent). Anything else makes the file unusable.
+            const amount = AmountOf(String(doc.settings[key]), false);
+            if (amount === null) { outside.push(key); continue; }
+            settings[key] = amount;
+            continue;
+        }
         settings[key] = doc.settings[key];
     }
     if (wrong.length) { BackupMessage(`The file cannot be used. These entries have the wrong kind of value: ${wrong.join(', ')}.`, 'error'); return; }
     if (outside.length) {
-        BackupMessage(outside.includes('hypeEndWaitSeconds') ? 'The file cannot be used. The Hype Train end wait must be a whole number of seconds from 90 to 300.' : `The file cannot be used. Printers per browser must be a whole number from 1 to ${PER_BROWSER_MAX}.`, 'error');
+        BackupMessage(outside.includes('hypeEndWaitSeconds') ? 'The file cannot be used. The Hype Train end wait must be a whole number of seconds from 90 to 300.'
+            : outside.includes('printersPerBrowser') ? `The file cannot be used. Printers per browser must be a whole number from 1 to ${PER_BROWSER_MAX}.`
+                : 'The file cannot be used. The YouTube High Roller amount and the amount per inch must be numbers from 0 to 1,000,000,000.', 'error');
         return;
     }
     if (Object.keys(settings).length === 0) { BackupMessage('The file holds no settings this dock knows.', 'error'); return; }
