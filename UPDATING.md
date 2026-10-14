@@ -34,17 +34,17 @@ The dock shows its cards in this order: the status, **Settings**, **Test**, **Ba
 - **If a new version won't start.** Printer Bot goes back to the version that ran before, which is the built-in one when there is no other. The card says "The new version did not start, so the old one is running again. Printer Bot is running 2.4.0 (built in)." (with your own version numbers). The card offers the new version again, and a click tries it again. A version that only started too slowly is dropped and can be installed again the same way. When Streamer.bot ends before a new version has settled in (a crash, a power loss, a killed task), Printer Bot starts that version again at the next start. When that happens twice in a row, Printer Bot pauses the version. The built-in version runs, the log says so, and the card offers the version again with a **Try 2.4.1 again** button (with the number of that version). Only the first revision of the updater, which the imports of 2.4.0, 2.4.1 and 2.4.2 hold, sets a version aside for good. [When an update does not work](#when-an-update-does-not-work) has the way out.
 - **If a downloaded version stops working.** A downloaded version that raises three load errors in a minute (its own files are broken or a part is missing) is dropped. Printer Bot goes back to the built-in version. The card says "Printer Bot went back to the built-in version." in amber, with "Version 2.4.1 stopped working, so Printer Bot paused it." That version is paused. The card offers it again with a **Try 2.4.1 again** button.
 
-## From 2.5.0 or newer to 3.0.0
+## From 2.5.0 or newer to 3.0.1
 
-3.0.0 needs no new import for a Printer Bot that is 2.5.0 or newer. Your settings stay in their own folder.
+3.0.1 (and 3.0.0 before it) needs no new import for a Printer Bot that is 2.5.0 or newer. Your settings stay in their own folder.
 
-1. Open the Updates card of the dock and press **Check now**. The card says "Update available: 3.0.0".
-2. Press **Update to 3.0.0**. The button changes to "Update now? Click again". Press it again within 5 seconds.
-3. When the card says "Updated to 3.0.0.", restart Streamer.bot, then press **Reload dock**. The dock now opens the page of 3.0.0.
+1. Open the Updates card of the dock and press **Check now**. The card says "Update available: 3.0.1".
+2. Press **Update to 3.0.1**. The button changes to "Update now? Click again". Press it again within 5 seconds.
+3. When the card says "Updated to 3.0.1.", restart Streamer.bot, then press **Reload dock**. The dock opens the page of 3.0.0, which 3.0.1 improves in place.
 
 The hidden receipt browser is started again once after the update, so that it can reach the image sites, and the Streamer.bot log says so. Every printer prints as it did until you choose something new: a printer on Letter paper keeps the layout *Scaled like 80 mm*, and the sites under *Images in messages* stay off.
 
-A Printer Bot that runs a 3.0 prerelease is offered 3.0.0 as well, with **Try prerelease versions** on or off, because the release is above every prerelease. One that is older than 2.5.0 needs the import once: the dock shows the bar described under [A later change to the import](#a-later-change-to-the-import), and the steps are those of [From 2.3.0 or 2.3.1](#from-230-or-231-import-once).
+A Printer Bot that runs 3.0.0 or a 3.0 prerelease is offered 3.0.1 as well, with **Try prerelease versions** on or off, because the release is above every prerelease. One that is older than 2.5.0 needs the import once: the dock shows the bar described under [A later change to the import](#a-later-change-to-the-import), and the steps are those of [From 2.3.0 or 2.3.1](#from-230-or-231-import-once).
 
 The switch **Try prerelease versions** needs revision 3 of the updater, which the import of 3.0.0 carries and an update from a 2.5 import does not. After an update from 2.5 the switch is greyed out until you import `import.txt` once (see *The switch Try prerelease versions is greyed out* below).
 

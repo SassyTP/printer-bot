@@ -37,10 +37,10 @@ const RT_LAYOUTS = ['scaled', 'message'];
 const RT_LAYOUT_NAMES = { scaled: 'Scaled like 80 mm', message: 'Large message' };
 const RtLayoutOf = (value) => RT_LAYOUTS.includes(value) ? value : 'scaled';
 // 3.0.0: how a picture in a message is set in the space the large layout gives it. Only these three exact texts are a fit. Any other value (a number, a list, other text, capitals, spaces,
-// nothing) shows as fill and is sent as fill, which is what the action does with it too.
+// nothing) shows as fit and is sent as fit, which is what the action does with it too (the default was fill until 3.0.1).
 const RT_FITS = ['fill', 'fit', 'stretch'];
 const RT_FIT_NAMES = { fill: 'Fill', fit: 'Fit', stretch: 'Stretch' };
-const RtFitOf = (value) => RT_FITS.includes(value) ? value : 'fill';
+const RtFitOf = (value) => RT_FITS.includes(value) ? value : 'fit';
 const RT_CUTS = ['partial', 'full', 'none'];
 const RT_CUT_NAMES = { partial: 'Partial', full: 'Full', none: 'None' };
 const RT_DEFAULT_LIMITS = { printers: 100, rules: 300, conditions: 4, valueChars: 48 };
@@ -108,7 +108,7 @@ function RtCleanExtra(p) {
         mode: RT_MODES.includes(p.mode) ? p.mode : 'escpos',
         printProfile: RT_PROFILES.includes(p.printProfile) ? p.printProfile : 'bw',
         letterLayout: RtLayoutOf(p.letterLayout),                                               // 3.0.0-beta.10: the layout of a Letter page, scaled or message (a file or a status from before has none: scaled)
-        letterImageFit: RtFitOf(p.letterImageFit),                                              // 3.0.0: how a picture is set in the large layout: fill, fit or stretch (a file or a status from before has none: fill)
+        letterImageFit: RtFitOf(p.letterImageFit),                                              // 3.0.0: how a picture is set in the large layout: fill, fit or stretch (a file or a status from before has none: fit)
         allowHighRoller: typeof p.allowHighRoller === 'boolean' ? p.allowHighRoller : true,
         allowImages: typeof p.allowImages === 'boolean' ? p.allowImages : true,                // 3.0.0-beta.9: pictures from links in messages print on this printer (a file from before has none: yes)
         uncutHypeTrain: p.uncutHypeTrain === true,
@@ -800,7 +800,7 @@ function RtExtraPrinterRow(slot) {
 const RT_PAPER_TEXT = 'Letter paper (8.5 x 11 in) works with the Windows printer driver and the preview. A thermal printer prints on its roll.';
 const RT_PROFILE_TEXT = 'Color prints the receipt as it looks, with nothing shaded. Black and white shades pictures into dots.';
 const RT_LAYOUT_TEXT = 'Scaled like 80 mm keeps the receipt as it is on a roll, blown up to the page: a big picture and a small box for the message. Large message puts a small picture, the amount, the name and the time at the top and the platform logo at the bottom, and gives all the space between to the message and its pictures. A list of gifted subs uses all that space too, so up to 100 names fit one page.';
-const RT_HIGH_ROLLER_TEXT = 'This printer prints High Roller cheers with their styled message. Off prints them as ordinary cheers with plain text.';
+const RT_HIGH_ROLLER_TEXT = 'This printer prints High Roller cheers with their styled message and the pictures in it. Off prints them as ordinary cheers with plain text and no pictures.';
 
 const RtIsLetter = (c) => c.paperSize === 'letter' && c.mode !== 'escpos';
 // The row Image fit shows where the large layout is on: Letter paper (RtIsLetter) and the Letter layout of that printer is Large message. The layout is the one that is shown now,
@@ -876,7 +876,7 @@ function RtExtraHighRoller(slot) {
 // "Allow images" shows under every printer while at least one image site is on (settings.imageSites is not empty), the way Allow High Roller prints shows while High Roller (bits) is above 0.
 // A printer with it off prints a link to a picture as text (or [link], with Hide links), as it does when no site is on. Printer 1 has the top-level setting allowImages, and the printers
 // 2 and up have it in their own entry of extraPrinters. The rows have the class img-row, and RtRenderImages shows and hides all of them.
-const RT_IMAGES_TEXT = 'Pictures from links in messages print on this printer. Switch it off to print such links as text on this printer only.';
+const RT_IMAGES_TEXT = 'Pictures from links in High Roller messages print on this printer. Switch it off to print such links as text on this printer only.';
 
 const RtImagesOn = () => typeof ImageSitesNow === 'function' && ImageSitesNow().length > 0;
 
@@ -998,7 +998,7 @@ function RtExtraLayout(slot) {
 // and nowhere else (RtIsMessage), and it follows the choice of the Letter layout at once, also while that choice waits for its save. A hidden row keeps its value. Printer 1 has the
 // top-level setting letterImageFit, and the printers 2 and up have it in their own entry of extraPrinters.
 
-const RT_FIT_INTRO = 'How a picture in a message is set in the space that the large layout gives it.';
+const RT_FIT_INTRO = 'How a picture in a High Roller message is set in the space that the large layout gives it. Fit is the default.';
 const RT_FIT_OPTIONS = [
     ['Fill:', 'the picture is scaled until it covers all of the space and keeps its proportions, so what does not fit is cropped at the edges.'],
     ['Fit:', 'the picture is scaled until all of it fits in the space and keeps its proportions, so the space can have empty margins.'],
@@ -1014,7 +1014,7 @@ function RtFitWords() {
 
 const RtFitKnown = () => !!pbStatus && isObj(pbStatus.settings) && hasOwn(pbStatus.settings, 'letterImageFit');
 
-// The row of a printer in a card (printer 1 has its own, which the page moves into its card). A value that is not one of the three texts shows as fill and is sent as fill.
+// The row of a printer in a card (printer 1 has its own, which the page moves into its card). A value that is not one of the three texts shows as fit and is sent as fit.
 function RtExtraFit(slot) {
     const extra = working.extras[slot - 2];
     const select = RtFocus(RtSelect(RT_FITS.map(f => [f, RT_FIT_NAMES[f]]), RtFitOf(extra.letterImageFit), { id: `image-fit-${slot}`, 'aria-describedby': `image-fit-text-${slot}` }), `if${slot}`);

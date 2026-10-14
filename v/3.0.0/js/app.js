@@ -674,7 +674,7 @@ function FillSettings(s) {
     }
     setValue('printProfile', str(st.printProfile, 20) === 'color' ? 'color' : 'bw');
     setValue('letterLayout', RtLayoutOf(st.letterLayout));           // 3.0.0-beta.10: only the exact texts scaled and message are a layout, anything else shows as scaled (the row itself shows with Letter paper, RtRenderPaper1)
-    setValue('letterImageFit', RtFitOf(st.letterImageFit));         // 3.0.0: only the exact texts fill, fit and stretch are a fit, anything else shows as fill (the row shows with the large layout on Letter paper, RtRenderPaper1)
+    setValue('letterImageFit', RtFitOf(st.letterImageFit));         // 3.0.0: only the exact texts fill, fit and stretch are a fit, anything else shows as fit (the row shows with the large layout on Letter paper, RtRenderPaper1)
     setValue('dither', str(st.dither, 40));
     setValue('cut', str(st.cut, 40));
     setValue('feedDots', num(st.feedDots));

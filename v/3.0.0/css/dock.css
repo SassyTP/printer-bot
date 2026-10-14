@@ -36,6 +36,13 @@
     --mandatory-field-color: #c93f3f;
 
     --blur-intensity: 20px;
+
+    /* Spacing: one scale for the whole page. Every gap and every margin below is one of these four steps (or 0), so the same kind of thing has the same gap everywhere.
+       The steps are in rem on purpose: an em is the font size of the element that carries the gap, so the same 0.9em was 13 px on a hint and 14.4 px on a row. */
+    --gap-text: 0.3rem;     /* a line of small text under another line of the same block: an example, an error, the lines of Image fit */
+    --gap-part: 0.5rem;     /* the parts of one control or block: buttons side by side, the fields of a test, the parts of a rule, a text and the box that belongs to it */
+    --gap-row: 0.9rem;      /* the rows and blocks of a card, of a group and of a printer card, and above and below a divider line */
+    --gap-card: 1rem;       /* the cards of the page and the padding of a card */
 }
 
 
@@ -122,7 +129,7 @@ h2 {
 #page-notices {
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
+    gap: var(--gap-part);
 }
 
 #page-notices:empty {
@@ -134,13 +141,13 @@ h2 {
     padding-left: 1.4em;
     display: flex;
     flex-direction: column;
-    gap: 0.3em;
+    gap: var(--gap-text);
     font-size: 0.95em;
 }
 
 .saved {
     white-space: nowrap;
-    margin-left: 0.6em;
+    margin-left: var(--gap-part);
     font-size: 0.85em;
     font-weight: 400;
     text-transform: none;
@@ -200,7 +207,7 @@ button:disabled {
 .inline-button {
     display: inline-flex;
     width: auto;
-    margin-left: 0.5em;
+    margin-left: var(--gap-part);
     padding: 0.2em 0.7em;
     font-size: 0.9em;
 }
@@ -209,19 +216,19 @@ button:disabled {
 #action-outdated .inline-button {
     display: flex;
     width: fit-content;
-    margin: 0.6em 0 0;
+    margin: var(--gap-part) 0 0;
 }
 
 /* the Reload dock button in the "dock page is older" note does the same */
 #dock-outdated .inline-button {
     display: flex;
     width: fit-content;
-    margin: 0.6em 0 0;
+    margin: var(--gap-part) 0 0;
 }
 
 .button-row {
     display: flex;
-    gap: 0.6em;
+    gap: var(--gap-part);
 }
 
 .button-row > * {
@@ -273,14 +280,14 @@ select:focus {
 .field {
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    gap: var(--gap-part);
 }
 
 /* "Remember on this computer" */
 .check {
     display: flex;
     align-items: center;
-    gap: 0.6em;
+    gap: var(--gap-part);
     cursor: pointer;
 }
 
@@ -295,7 +302,7 @@ select:focus {
 
 .field-row {
     display: flex;
-    gap: 1em;
+    gap: var(--gap-card);
 }
 
 .field-row .field {
@@ -388,8 +395,8 @@ input:checked + .slider::before {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 1em;
-    padding: 0 1em;
+    gap: var(--gap-card);
+    padding: 0 var(--gap-card);
     box-shadow: 0 0 10px rgba(0, 0, 0, 1);
     z-index: 1;
 }
@@ -409,13 +416,13 @@ input:checked + .slider::before {
 #main {
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    gap: var(--gap-card);
 }
 
 #content {
     flex: 1;
     overflow: auto;
-    padding: 1em;
+    padding: var(--gap-card);
 }
 
 
@@ -426,8 +433,8 @@ input:checked + .slider::before {
 .card {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
-    padding: 1em;
+    gap: var(--gap-row);
+    padding: var(--gap-card);
     background: var(--card-background);
     border: 1px solid var(--border-soft);
     border-radius: 0.6em;
@@ -436,7 +443,7 @@ input:checked + .slider::before {
 .status-line {
     display: flex;
     align-items: center;
-    gap: 0.6em;
+    gap: var(--gap-part);
     font-weight: 600;
 }
 
@@ -457,7 +464,7 @@ input:checked + .slider::before {
 .kv {
     display: grid;
     grid-template-columns: max-content 1fr;
-    gap: 0.35em 1em;
+    gap: var(--gap-text) var(--gap-card);
     margin: 0;
     font-size: 0.9em;
 }
@@ -496,7 +503,7 @@ input:checked + .slider::before {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0.8em;
+    gap: var(--gap-row);
 }
 
 .setting > div:first-child {
@@ -523,7 +530,7 @@ input:checked + .slider::before {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 0.4em;
+    gap: var(--gap-part);
     font-size: 0.9em;               /* the same em as the inputs and dropdowns, so 14em is the same width */
 }
 
@@ -542,13 +549,13 @@ button.confirming {
 }
 
 .skipped {
-    margin-top: 0.3em;
+    margin-top: var(--gap-text);
     color: var(--warn-color);
 }
 
 /* A value that was typed and is not allowed: the message under the label and a red box. Nothing is saved while it shows. */
 .field-error {
-    margin: 0.4em 0 0;
+    margin: var(--gap-text) 0 0;
     font-size: 0.9em;
     color: var(--error-color);
 }
@@ -558,12 +565,13 @@ input[aria-invalid="true"]:focus {
     outline: 1px solid var(--error-color);
 }
 
-/* What the action says about a printer that may not take ESC/POS: a line or two, and the buttons that go with it (3.0.0-beta.4) */
+/* What the action says about a printer that may not take ESC/POS: a line or two, and the buttons that go with it (3.0.0-beta.4).
+   The text, the buttons of the block and the next block (Clear print queue, the note about Hype Trains) are rows like the rows of the card, so every gap from the text of
+   Check this printer down to the next row is the same one, --gap-row. (Until 3.0.0 a block had 0.6em of margin on top of the gap of its parent and 0.5em inside.) */
 .care {
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
-    margin-top: 0.6em;
+    gap: var(--gap-row);
 }
 
 .care[hidden] {
@@ -585,18 +593,18 @@ input[aria-invalid="true"]:focus {
 .care-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4em;
+    gap: var(--gap-part);
 }
 
 .example-line {
-    margin-top: 0.3em;
+    margin-top: var(--gap-text);
     opacity: 0.8;
 }
 
 /* "Advanced": a collapsible group at the bottom of the settings card */
 .advanced {
     border-top: 1px solid var(--border-soft);
-    padding-top: 0.8em;
+    padding-top: var(--gap-row);
 }
 
 .advanced > summary {
@@ -622,19 +630,26 @@ input[aria-invalid="true"]:focus {
     transform: rotate(90deg);
 }
 
-.advanced > .setting {
-    margin-top: 0.9em;
+/* Everything in an open group (Advanced, More, Paper and output, Settings as text, Check where an event prints, the Updates card) is a row under the heading of the group:
+   the same gap from the heading to the first row and from row to row, whatever the row is (a setting, a hint, a box, a button, a note). */
+.advanced > :not(summary) {
+    margin-top: var(--gap-row);
 }
 
 .example {
-    margin-top: 0.4em;
+    margin-top: var(--gap-text);
     min-height: 2.7em;          /* two lines: the rows below don't jump while the example changes as you type */
     opacity: 0.8;
     font-weight: 400;
 }
 
-.advanced .note {
-    margin-top: 0.5em;
+/* an example that has nothing to say takes no room, and the count of remembered viewers never changes while a person types, so it needs no reserve */
+.example:empty {
+    display: none;
+}
+
+#avatar-cache-count.example {
+    min-height: 0;
 }
 
 /* Images in messages (3.0.0-beta.9): a box for each site the action lists, the line that says no site is on, the marks of a save and the note under them.
@@ -648,15 +663,15 @@ input[aria-invalid="true"]:focus {
 .image-sites {
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
-    margin-top: 0.6em;
+    gap: var(--gap-part);
+    margin-top: var(--gap-part);
 }
 
 .image-site {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 0.6em;
-    row-gap: 0.1em;
+    column-gap: var(--gap-part);
+    row-gap: 0;
     align-items: start;
 }
 
@@ -695,11 +710,11 @@ input[aria-invalid="true"]:focus {
 
 .image-sites-none,
 .image-sites-unsaved {
-    margin: 0.6em 0 0;
+    margin: var(--gap-part) 0 0;
 }
 
 .image-sites-know {
-    margin-top: 0.8em;
+    margin-top: var(--gap-part);
     padding: 0.7em 0.9em;
     background-color: var(--callout-background);
     border: 1px solid var(--border-soft);
@@ -713,7 +728,7 @@ input[aria-invalid="true"]:focus {
 }
 
 .image-sites-know p {
-    margin: 0.3em 0 0;
+    margin: var(--gap-text) 0 0;
 }
 
 /* narrow docks (OBS panels): the input or buttons go under their text, so the text doesn't get squeezed into a thin column
@@ -724,6 +739,7 @@ input[aria-invalid="true"]:focus {
     .backup-body > .setting.stack-narrow {
         flex-direction: column;
         align-items: stretch;
+        gap: var(--gap-part);           /* the control sits close under its own text, closer than the next row */
     }
 
     .example {
@@ -760,30 +776,26 @@ input[aria-invalid="true"]:focus {
 .backup-body {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
-    margin-top: 0.9em;
+    gap: var(--gap-row);
 }
 
-.backup-body .note {
-    margin-top: 0;
+/* the note that shows what a file holds: its lines, then its buttons, one gap between them */
+#settings-restore-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-part);
 }
 
 #settings-restore-summary p {
-    margin: 0 0 0.4em;
+    margin: 0;
 }
 
-#settings-restore-preview > .button-row {
-    margin-top: 0.7em;
+#settings-restore-summary p + p {
+    margin-top: var(--gap-part);
 }
 
 #backup-message.error {
     color: var(--error-color);
-}
-
-#backup-text-box > .hint,
-#backup-text-box > .button-row,
-#backup-text-box > textarea {
-    margin-top: 0.6em;
 }
 
 #backup-text-box > textarea {
@@ -827,19 +839,14 @@ input[aria-invalid="true"]:focus {
 .updates-body {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
-    margin-top: 0.9em;
-}
-
-.updates-body .note {
-    margin-top: 0;
+    gap: var(--gap-row);
 }
 
 .update-layouts {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
-    padding-top: 0.9em;
+    gap: var(--gap-row);
+    padding-top: var(--gap-row);
     border-top: 1px solid var(--border-soft);
 }
 #update-source-state {
@@ -848,7 +855,7 @@ input[aria-invalid="true"]:focus {
 .update-main {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
+    gap: var(--gap-row);
 }
 
 /* the small dot next to the connection icon while an update is available.
@@ -904,7 +911,7 @@ progress::-webkit-progress-value {
 
 /* the release notes: plain text, line breaks kept */
 .update-notes {
-    margin: 0.3em 0 0;
+    margin: var(--gap-text) 0 0;
     padding: 0.6em 0.8em;
     font-size: 0.9em;
     overflow-wrap: anywhere;
@@ -918,7 +925,7 @@ progress::-webkit-progress-value {
 #update-reimport {
     display: flex;
     flex-direction: column;
-    gap: 0.7em;
+    gap: var(--gap-part);
 }
 
 #update-reimport p {
@@ -928,13 +935,8 @@ progress::-webkit-progress-value {
 
 /* a newer updater exists: a calm hint, no warning color */
 #update-reimport:not(.note) {
-    padding-top: 0.2em;
     font-size: 0.9em;
     font-weight: 100;
-}
-
-#update-more > .setting .setting-description {
-    margin-top: 0.2em;
 }
 
 
@@ -945,11 +947,16 @@ progress::-webkit-progress-value {
 .import-result {
     display: flex;
     flex-direction: column;
-    gap: 0.4em;
-    margin-top: 0.6em;
+    gap: var(--gap-part);
+}
+
+/* inside a note the result is not a row of a column, so it brings its own gap */
+#outdated-import > .import-result {
+    margin-top: var(--gap-part);
 }
 
 .import-result p {
+    margin: 0;
     overflow-wrap: anywhere;
 }
 
@@ -990,7 +997,7 @@ textarea.import-code {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5em;
+    gap: var(--gap-part);
     padding: 0.8em;
     background: #fff;
     border-radius: 0.5em;
@@ -1011,10 +1018,10 @@ textarea.import-code {
 }
 
 .setting-description + .callout {
-    margin-top: 0.5em;
+    margin-top: var(--gap-part);
 }
 .callout + .setting-description {
-    margin-top: 0.4em;
+    margin-top: var(--gap-part);
 }
 .callout {
     padding: 0.7em 0.9em;
@@ -1046,12 +1053,12 @@ textarea.import-code {
     z-index: 1000;
     display: none;
     flex-direction: column;
-    gap: 1em;
+    gap: var(--gap-card);
     box-sizing: border-box;
     width: 90%;
     max-width: 30em;
     max-height: 90vh;
-    padding: 1em;
+    padding: var(--gap-card);
     overflow-x: hidden;
     overflow-y: auto;
     font-size: 1em;
@@ -1084,7 +1091,7 @@ textarea.import-code {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 1em;
+    gap: var(--gap-card);
 }
 
 #sb-connect-button:enabled:hover {
@@ -1118,25 +1125,25 @@ textarea.import-code {
 .printer-more-body > #printer-one-more {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
+    gap: var(--gap-row);
 }
 
 #printers-multi {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
+    gap: var(--gap-row);
 }
 
 .printer-cards {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
+    gap: var(--gap-row);
 }
 
 .printer-card {
     display: flex;
     flex-direction: column;
-    gap: 0.8em;
+    gap: var(--gap-row);
     padding: 0.8em;
     background: var(--callout-background);
     border: 1px solid var(--border-soft);
@@ -1147,7 +1154,7 @@ textarea.import-code {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.4em 0.6em;
+    gap: var(--gap-part);
 }
 
 .printer-card-title {
@@ -1169,7 +1176,7 @@ textarea.import-code {
     display: flex;
     flex: none;
     align-items: center;
-    gap: 0.6em;
+    gap: var(--gap-part);
 }
 
 .printer-card-else {
@@ -1183,10 +1190,12 @@ textarea.import-code {
     font-size: 0.85em;
 }
 
+/* the content of a card is its settings and then its rules: rows like every other rows, with the divider line of the rules between them (the gap above the line is --gap-row, the gap below it is the padding of .routing) */
+.printer-card-content,
 .printer-body {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
+    gap: var(--gap-row);
 }
 
 .printer-more {
@@ -1195,7 +1204,7 @@ textarea.import-code {
 }
 
 .printer-more > summary .printer-more-hint {
-    margin-left: 0.5em;
+    margin-left: var(--gap-part);
     font-size: 0.85em;
     font-weight: 100;
 }
@@ -1203,8 +1212,7 @@ textarea.import-code {
 .printer-more-body {
     display: flex;
     flex-direction: column;
-    gap: 0.9em;
-    margin-top: 0.9em;
+    gap: var(--gap-row);
 }
 
 .routing-title {
@@ -1218,21 +1226,26 @@ textarea.import-code {
 .routing {
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
-    padding-top: 0.8em;
+    gap: var(--gap-row);
+    padding-top: var(--gap-row);
     border-top: 1px solid var(--border-soft);
 }
 
 .rules {
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
+    gap: var(--gap-part);
+}
+
+/* no rule yet: an empty list is not a part of the column, or it would add a second gap between the title and the button Add a rule */
+.rules:empty {
+    display: none;
 }
 
 .rule {
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    gap: var(--gap-part);
     padding: 0.6em;
     background: var(--card-background);
     border: 1px solid var(--border-color);
@@ -1247,7 +1260,7 @@ textarea.import-code {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5em;
+    gap: var(--gap-part);
 }
 
 .rule-head select {
@@ -1266,7 +1279,12 @@ textarea.import-code {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.4em;
+    gap: var(--gap-part);
+}
+
+/* the fields of one test are --gap-part apart, also where they wrap; the tests of a rule are rows, so one test ends clearly before the next one starts */
+.rule > .cond + .cond {
+    margin-top: calc(var(--gap-row) - var(--gap-part));
 }
 
 .cond > select {
@@ -1298,7 +1316,7 @@ textarea.import-code {
 .rule-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4em;
+    gap: var(--gap-part);
 }
 
 .rule-summary {
@@ -1337,15 +1355,7 @@ textarea.import-code {
 .route-check .check-fields {
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
-}
-
-.route-check > .hint,
-.route-check > .setting,
-.route-check > .check-fields,
-.route-check > .button-row,
-.route-check > #check-result {
-    margin-top: 0.9em;
+    gap: var(--gap-part);
 }
 
 #check-result {
@@ -1443,14 +1453,14 @@ textarea.import-code {
 .printers-toolbar {
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    gap: var(--gap-part);
 }
 
 .printers-toolbar-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5em;
+    gap: var(--gap-part);
 }
 
 .printers-toolbar-row .small-button {
@@ -1471,7 +1481,7 @@ textarea.import-code {
 
 /* the status card with many printers: one summary row and a list of those that cannot print */
 .status-problems {
-    margin-top: 0.4em;
+    margin-top: var(--gap-part);
 }
 
 .status-problems > summary {
@@ -1480,7 +1490,7 @@ textarea.import-code {
 }
 
 .status-problem-list {
-    margin: 0.4em 0 0;
+    margin: var(--gap-part) 0 0;
     padding-left: 1.2em;
     font-size: 0.9em;
 }
@@ -1490,7 +1500,7 @@ textarea.import-code {
        of its longest name, so that no name is cut, and the value takes what is left of that line, or the line below when it has less than a short box needs. A variable name and
        its kind share a line between them. Only the order on the screen changes, the order of the parts for the keyboard stays. */
     .cond > .cond-field {
-        flex: 1 1 calc(100% - 3em);
+        flex: 1 1 calc(100% - 2.5em - var(--gap-part) - 1px);
         order: 1;
     }
 
@@ -1541,7 +1551,7 @@ textarea.import-code {
     .printer-card .printer-row {
         flex-direction: column;
         align-items: stretch;
-        gap: 0.4em;
+        gap: var(--gap-part);
     }
 
     .printer-card .printer-row > select {
@@ -1555,6 +1565,7 @@ textarea.import-code {
     #add-printer-row.stack-narrow {
         flex-direction: column;
         align-items: stretch;
+        gap: var(--gap-part);
     }
 
     #route-else-row.stack-narrow > select,
@@ -1570,7 +1581,7 @@ textarea.import-code {
     .image-fit-row {
         flex-direction: column;
         align-items: stretch;
-        gap: 0.4em;
+        gap: var(--gap-part);
     }
 
     .letter-layout-row > select,
@@ -1587,5 +1598,39 @@ textarea.import-code {
 }
 
 .fit-line + .fit-line {
-    margin-top: 0.3em;
+    margin-top: var(--gap-text);
+}
+
+/* A list or a box on the right of a row is half the row, at most 14em. The longest choice of the Output list (Thermal printer (ESC/POS)) needs the 14em (about 201 px), so where half
+   of the row is less (a window of 468 px or less for the rows of Settings, 496 px or less inside a card, which has two more paddings and a border) the list cut its words, and the text
+   beside it was a column of ten letters. There the list or box wraps onto a line of its own under the text, the way the rows of Advanced do at 640 px. A switch and a button group stay
+   where they are. */
+@media (max-width: 470px) {
+    .setting {
+        flex-wrap: wrap;
+        row-gap: var(--gap-part);
+    }
+
+    .setting > select,
+    .setting > input {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 500px) {
+    .printer-card .setting {
+        flex-wrap: wrap;
+        row-gap: var(--gap-part);
+    }
+
+    .printer-card .setting > select,
+    .printer-card .setting > input {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
 }

@@ -9,9 +9,9 @@
     <title>Printer Bot</title>
     <!-- Every address below ends in ?v=<build>. The build tool rewrites the stamp when a file of this folder changes,
          so a changed file gets a new address and a browser that caches hard still fetches it. -->
-    <link rel="icon" href="assets/logo.png?v=9f4c21f0b456" type="image/png">
+    <link rel="icon" href="assets/logo.png?v=a20900b68d7f" type="image/png">
 
-    <link rel="stylesheet" href="css/dock.css?v=9f4c21f0b456" />
+    <link rel="stylesheet" href="css/dock.css?v=a20900b68d7f" />
 </head>
 
 <body>
@@ -19,7 +19,7 @@
 
         <!-- Header -->
         <div id="header">
-            <img class="brand-logo" src="assets/logo.png?v=9f4c21f0b456" alt="" />
+            <img class="brand-logo" src="assets/logo.png?v=a20900b68d7f" alt="" />
             <label id="title" class="title"></label>
             <div id="header-end">
                 <!-- A small dot while an update is available. It scrolls to the Updates card. -->
@@ -174,11 +174,11 @@
                     <div class="setting image-fit-row" id="image-fit-row" hidden>
                         <div>
                             <label class="setting-label" for="letterImageFit">Image fit</label>
-                            <div class="setting-description" id="image-fit-description"><span class="fit-line">How a picture in a message is set in the space that the large layout gives it.</span> <span class="fit-line"><b>Fill:</b> the picture is scaled until it covers all of the space and keeps its proportions, so what does not fit is cropped at the edges.</span> <span class="fit-line"><b>Fit:</b> the picture is scaled until all of it fits in the space and keeps its proportions, so the space can have empty margins.</span> <span class="fit-line"><b>Stretch:</b> the picture is scaled to exactly the size of the space, so nothing is cropped and there are no margins, but the picture can look squashed or stretched.</span></div>
+                            <div class="setting-description" id="image-fit-description"><span class="fit-line">How a picture in a High Roller message is set in the space that the large layout gives it. Fit is the default.</span> <span class="fit-line"><b>Fill:</b> the picture is scaled until it covers all of the space and keeps its proportions, so what does not fit is cropped at the edges.</span> <span class="fit-line"><b>Fit:</b> the picture is scaled until all of it fits in the space and keeps its proportions, so the space can have empty margins.</span> <span class="fit-line"><b>Stretch:</b> the picture is scaled to exactly the size of the space, so nothing is cropped and there are no margins, but the picture can look squashed or stretched.</span></div>
                         </div>
                         <select id="letterImageFit" aria-describedby="image-fit-description">
                             <option value="fill">Fill</option>
-                            <option value="fit">Fit</option>
+                            <option value="fit" selected>Fit</option>
                             <option value="stretch">Stretch</option>
                         </select>
                     </div>
@@ -219,7 +219,7 @@
                     <div class="setting hr-row" hidden>
                         <div>
                             <label class="setting-label" for="allowHighRoller">Allow High Roller prints</label>
-                            <div class="setting-description">This printer prints High Roller cheers with their styled message. Off prints them as ordinary cheers with plain text.</div>
+                            <div class="setting-description">This printer prints High Roller cheers with their styled message and the pictures in it. Off prints them as ordinary cheers with plain text and no pictures.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="allowHighRoller">
@@ -230,7 +230,7 @@
                     <div class="setting img-row" hidden>
                         <div>
                             <label class="setting-label" for="allowImages">Allow images</label>
-                            <div class="setting-description" id="allow-images-description">Pictures from links in messages print on this printer. Switch it off to print such links as text on this printer only.</div>
+                            <div class="setting-description" id="allow-images-description">Pictures from links in High Roller messages print on this printer. Switch it off to print such links as text on this printer only.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="allowImages" aria-describedby="allow-images-description">
@@ -318,7 +318,7 @@
                     <div class="setting">
                         <div>
                             <div class="setting-label">High Roller (bits)</div>
-                            <div class="setting-description">Cheers of at least this many bits may style their message with HTML (colors, sizes, rotated text, tables). Scripts, links and anything loaded from outside are always removed. Smaller cheers print as plain text only. 0 = plain text for everyone. Each printer has a switch, Allow High Roller prints, that keeps it out of this.</div>
+                            <div class="setting-description">Cheers of at least this many bits may style their message with HTML (colors, sizes, rotated text, tables). Scripts, links and anything loaded from outside are always removed. Smaller cheers print as plain text only, with no pictures. 0 = plain text for everyone. Each printer has a switch, Allow High Roller prints, that keeps it out of this.</div>
                         </div>
                         <input type="number" id="highRollerBits" min="0" step="5">
                     </div>
@@ -383,13 +383,13 @@
                                     <div class="setting-label" id="image-sites-title">Images in messages</div>
                                     <span id="image-sites-saved" class="saved" hidden>Saved &#x2713;</span>
                                 </div>
-                                <div class="setting-description" id="image-sites-help">Print a picture when a viewer's message holds a link to one. Switch on the sites you accept pictures from. A link from a site that is off stays text.</div>
+                                <div class="setting-description" id="image-sites-help">Print a picture when a High Roller message holds a link to one. A message that is not a High Roller message prints its words only, with no pictures. Switch on the sites you accept pictures from. A link from a site that is off stays text.</div>
                                 <div class="image-sites" id="image-sites-list" role="group" aria-labelledby="image-sites-title" aria-describedby="image-sites-help"></div>
                                 <p class="setting-description muted image-sites-none" id="image-sites-none" hidden>No site is on, so every link prints as text.</p>
                                 <p class="unsaved-line image-sites-unsaved" id="image-sites-unsaved" role="status" hidden>Not saved yet. Waiting for Streamer.bot.</p>
                                 <div class="image-sites-know" id="image-sites-know">
                                     <div class="image-sites-know-title">Good to know</div>
-                                    <p class="setting-description" id="image-sites-know-text">Printer Bot loads the picture from the site when the message prints, so that site sees this PC's address. It does not look at what a picture shows: anyone who can write a message can make this printer print a picture from a site you switched on. Up to three pictures print per message. A picture that does not load in time prints as [image]. Pictures also show when Hide links is on; other links still read [link].</p>
+                                    <p class="setting-description" id="image-sites-know-text">Printer Bot loads the picture from the site when the message prints, so that site sees this PC's address. It does not look at what a picture shows: anyone whose cheer reaches the High Roller threshold can make this printer print a picture from a site you switched on. Up to three pictures print per message. A picture that does not load in time prints as [image]. Pictures also show when Hide links is on; other links still read [link].</p>
                                 </div>
                             </div>
                         </div>
@@ -689,7 +689,7 @@
         <div id="sb-connect-dialog" class="dialog" role="dialog" aria-label="Connect to Streamer.bot">
             <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">&#xD7;</button>
             <div class="dialog-brand">
-                <img class="brand-logo" src="assets/icons/plug.svg?v=9f4c21f0b456" loading="lazy" decoding="async" alt="" />
+                <img class="brand-logo" src="assets/icons/plug.svg?v=a20900b68d7f" loading="lazy" decoding="async" alt="" />
                 <label class="title">Streamer.bot</label>
             </div>
             <div class="field-row">
@@ -728,11 +728,11 @@
         </div>
     </div>
 
-    <script src="vendor/streamerbot-client.js?v=9f4c21f0b456"></script>
-    <script src="js/version.js?v=9f4c21f0b456"></script>
-    <script src="js/catalog.js?v=9f4c21f0b456"></script>
-    <script src="js/printers.js?v=9f4c21f0b456"></script>
-    <script src="js/app.js?v=9f4c21f0b456"></script>
+    <script src="vendor/streamerbot-client.js?v=a20900b68d7f"></script>
+    <script src="js/version.js?v=a20900b68d7f"></script>
+    <script src="js/catalog.js?v=a20900b68d7f"></script>
+    <script src="js/printers.js?v=a20900b68d7f"></script>
+    <script src="js/app.js?v=a20900b68d7f"></script>
 </body>
 
 </html>

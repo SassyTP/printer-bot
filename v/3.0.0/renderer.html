@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <!-- Second layer behind the sanitizer. If a message gets something through, the page still can't run it or send anything out.
      Only the renderer's own script (matched by hash) runs. Connections go only to the two avatar lookups. No frames, forms or objects. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-hPq9hI7udlsxSAanBm2ZSjEEYJtELWFuu+EM1RyzpYg='; style-src 'unsafe-inline'; img-src data: https://static-cdn.jtvnw.net https://files.kick.com https://cdn.betterttv.net https://cdn.7tv.app https://cdn.frankerfacez.com https://kick.com https://*.ggpht.com https://*.googleusercontent.com https://*.ytimg.com https://i.imgur.com https://files.catbox.moe https://i.ibb.co; connect-src https://decapi.me https://kick.com; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'">
-<meta name="printer-bot-renderer" content="202610132200">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-sjT1y2Sbstw1aEwOeoxxm4kAEX50rymppDAQa5ZZ56Q='; style-src 'unsafe-inline'; img-src data: https://static-cdn.jtvnw.net https://files.kick.com https://cdn.betterttv.net https://cdn.7tv.app https://cdn.frankerfacez.com https://kick.com https://*.ggpht.com https://*.googleusercontent.com https://*.ytimg.com https://i.imgur.com https://files.catbox.moe https://i.ibb.co; connect-src https://decapi.me https://kick.com; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'">
+<meta name="printer-bot-renderer" content="202610140456">
 <style>
 /*
  * Printer Bot receipt
@@ -558,13 +558,14 @@ img.msg-image {
 //                                                           (http://, https://, www., domain.tld/path, bare domains on common endings)
 //                                                           prints as "[link]". Does not apply to High Roller messages (their links are always removed).
 //                                    imageSites             list of site ids, default none (3.0.0-beta.9). The sites of IMAGE_SITES (allowed-hosts.json) that the streamer switched on in the
-//                                                           dock. A link in a viewer's message to a picture on one of them prints as that picture. See "Images in messages" below.
+//                                                           dock. A link in a High Roller message to a picture on one of them prints as that picture (3.0.1: only there, a message that is not
+//                                                           a High Roller message has no picture and no styling). See "Images in messages" below.
 //                                    layout                 'message' or nothing (3.0.0-beta.10). 'message' = the layout "large message" of a page of Letter paper: a small picture at the top left
 //                                                           with the amount, the name and the time beside it, the platform logo at the bottom, and everything between for the message.
 //                                                           Any other value, and any paper without a page height (pageHeightPx), gives the receipt as it always was.
 //                                    imageFit               'fill', 'fit' or 'stretch' (3.0.0): how a picture of a message is set in the space that the layout 'message' gives it. Only read with that layout.
 //                                                           fill covers the space and keeps its proportions (what sticks out is cropped), fit shows the whole picture and keeps its proportions
-//                                                           (the space can have empty margins), stretch draws it to the size of the space. Any other value is 'fill'.
+//                                                           (the space can have empty margins), stretch draws it to the size of the space. Any other value is 'fit' (3.0.1; it was 'fill' in 3.0.0).
 //                                    allowHighRoller        boolean, default true (3.0.0-beta.5). false = this printer prints a High Roller cheer as an ordinary
 //                                                           cheer: its message is plain text, with no styling and no length limit of its own. The receipt is the same
 //                                                           event, so a Hype Train tally counts it once whichever printers allow High Roller.
@@ -581,7 +582,7 @@ img.msg-image {
 window.PrinterBot = (function () {
     'use strict';
 
-    const VERSION = '202610132200';
+    const VERSION = '202610140456';
     const ICONS = {"twitch":"data:image/png;base64,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","youtube":"data:image/png;base64,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","kick":"data:image/png;base64,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"};
 
     // CSS px (~1.3 m of paper). The hard ceiling for every receipt except a gift list or the item list of an order. Such a list (the `roomy` flag, see show())
@@ -637,8 +638,7 @@ window.PrinterBot = (function () {
     // Safety: nothing a viewer writes may ever run code, load anything, or break the layout.
     //
     //   plainText(s)       normal messages: used as TEXT (textContent) and never parsed as HTML. There is
-    //                      nothing to sanitize, and no formatting from the viewer survives. (3.0.0-beta.9: a link to a picture on a site that the streamer switched on
-    //                      becomes an <img> that this page builds itself, see "Images in messages". The viewer's text is still text.)
+    //                      nothing to sanitize, and no formatting from the viewer survives. (3.0.1: no picture either. Only a High Roller message has pictures, see "Images in messages".)
     //   displayName(s)     names, amounts and other short labels (title, subtitle, "<b>name</b> gifted ..."): cleaned, one line,
     //                      at most MAX_NAME_CHARS characters, no invisible direction/formatting characters.
     //   sanitizeRich(html) High Roller messages: HTML styling is kept, code is dropped. The input is parsed in an inert
@@ -833,9 +833,10 @@ window.PrinterBot = (function () {
     const hostNote = (what, v) => v.host ? what + ' host not allowed: ' + v.host.slice(0, 60) : what + ' URL rejected (' + v.why + ')';
 
     // ---- images in messages (3.0.0-beta.9) ----------------------------------------------------------------------------------------------
-    // A viewer's message may carry a link to a picture on a site that the streamer switched on in the dock (opts.imageSites, ids from IMAGE_SITES). The link is replaced by the
-    // picture. Everything else about a message stays as it was: it is TEXT (the link is found in the cleaned text, and the picture is an <img> that this code makes, never markup
-    // from the viewer), and a site that was not switched on does nothing at all. What counts as a picture:
+    // A High Roller message may carry a link to a picture on a site that the streamer switched on in the dock (opts.imageSites, ids from IMAGE_SITES). The link is replaced by the
+    // picture. 3.0.1: a message that is not a High Roller message (a cheer below the threshold, a printer that does not allow High Roller prints, any other kind of message) has no picture,
+    // as it has no styling: its links stay text, and its HTML is printed as the words it says (flattenMarkup). The picture is an <img> that this code makes, never markup from the viewer,
+    // and a site that was not switched on does nothing at all. What counts as a picture:
     //   * the address is https, with no user name, no password and no port; its host is one of the hosts of that site (exactly: no look-alike, no sub-domain); and its path has the
     //     shape of a DIRECT link of that site (IMAGE_PATHS) and ends in png, jpg, jpeg, gif or webp. A page of the site (an album, a viewer page), a video and an SVG are no picture
     //     here and stay text. A picture here is a raster picture inside an <img>, which cannot run a script and cannot load anything else.
@@ -908,14 +909,27 @@ window.PrinterBot = (function () {
         return pieces;
     }
 
-    // The part of a receipt for a viewer's message: the text as before, or its pieces when it holds a picture of a switched-on site
+    // A viewer's message that holds HTML tags and is printed as an ordinary message (a High Roller message on a printer that does not allow High Roller prints, or a cheer below the threshold) is printed
+    // as the words it says: the tags are not printed as words (3.0.0; before it, "<img src=" and "</a><span style=..." came out on the paper, with the picture in the middle of them). An <img> goes
+    // with its address (3.0.1: a message that is not a High Roller message has no picture and no styling, only its words), the tags that break a line become line breaks, a script or a style goes with
+    // what is inside it, a comment goes (with the decoding), and the entities are decoded (they were written for HTML). A message with no tag in it is not touched, and the result is only ever
+    // text: it is set as text nodes.
+    const TAG_LIKE = /<\/?[a-z][^>]*>|<!--/i;
+    function flattenMarkup(value) {
+        let s = String(value ?? '');
+        if (!TAG_LIKE.test(s)) return s;
+        s = s.slice(0, MAX_RICH_CHARS);
+        s = s.replace(/<(script|style)\b[\s\S]*?(?:<\/\1\s*>|$)/gi, ' ');
+        s = s.replace(/<img\b[^>]*>/gi, ' ');
+        s = s.replace(/<\/?(?:br|p|div|li|ul|ol|tr|h[1-6]|blockquote|pre|hr|table|tbody|thead|tfoot|caption|center)\b[^>]*>/gi, '\n');
+        s = s.replace(/<\/?[a-z][^>]*>/gi, '');
+        return decodeEntities(s);
+    }
+
+    // The part of a receipt for a viewer's message that is not a High Roller message: its words, as text. 3.0.1: no picture and no styling in it, whatever sites are switched on (a link to a picture
+    // is a link, printed as text or as "[link]"). Pictures belong to the High Roller messages, which are built from rich content (see pictureLinksInRich).
     function messagePart(value, opts) {
-        const enabled = enabledImageSites(opts);
-        if (enabled.size) {
-            const pieces = messagePieces(plainText(value, null), opts, enabled);
-            if (pieces.some(p => p.image !== undefined)) return { kind: 'message', pieces };
-        }
-        return { kind: 'message', text: plainText(value, opts) };           // no picture in it: exactly the text of every earlier version
+        return { kind: 'message', text: plainText(flattenMarkup(value), opts) };
     }
 
     // Builds the pieces of a message into `div`: text as text nodes, a picture as an <img> that is a block of its own. An address that failed a moment ago is "[image]" at once.
@@ -968,8 +982,15 @@ window.PrinterBot = (function () {
     // choice of the printer (fill, fit or stretch) says what the picture does inside it. The styled text keeps everything else it had. Pictures of another kind (emotes) stay where they are.
     function hoistSitePictures(content, opts) {
         const urls = [];
+        let first = null;                                                                                   // the styled part that held the first picture, and whether words came before it
         for (const img of Array.from(content.querySelectorAll('.part.raw img'))) {
             if (!sitePictures.has(img) && !img.classList.contains('msg-image')) continue;                  // a picture of a site (an <img> tag, or a link that became one): not an emote
+            if (first === null) {
+                const part = img.closest('.part.raw');
+                const before = document.createRange();
+                before.setStart(part, 0); before.setEndBefore(img);
+                first = { part, wordsFirst: before.toString().trim().length > 0 };
+            }
             const src = img.getAttribute('src');
             img.remove();
             if (src && urls.length < MAX_MESSAGE_IMAGES) urls.push(src);
@@ -978,7 +999,10 @@ window.PrinterBot = (function () {
         const div = document.createElement('div');
         div.className = 'part message pictures';
         fillMessage(div, urls.map(u => ({ image: u })), opts);
-        content.appendChild(div);
+        // 3.0.1: the pictures keep the side of the words the viewer gave them: a message that starts with its picture (before any word) prints the picture first, as the HTML reads. A picture that
+        // comes after words, or in the middle of them, is set after the message (the styled text is one box and cannot be cut around a frame).
+        if (first && !first.wordsFirst && first.part.parentNode === content) content.insertBefore(div, first.part);
+        else content.appendChild(div);
     }
 
     // 3.0.0: a message with pictures must not take a second page. In the layout of a roll scaled to the page a picture is as tall as its own shape asks (4 inches at most), so before any word is cut
@@ -1160,7 +1184,7 @@ window.PrinterBot = (function () {
     // 3.0.0: how a picture of a message is set in the large layout. Only these three texts count, anything else is the default, fill. The choice reaches the stylesheet as a class of the receipt
     // (fit-fill, fit-fit, fit-stretch) and nothing else: the pictures get their size from the space the message has, and `object-fit` does the rest.
     const IMAGE_FITS = ['fill', 'fit', 'stretch'];
-    function imageFitOf(opts) { const v = opts ? opts.imageFit : undefined; return IMAGE_FITS.indexOf(v) >= 0 ? v : 'fill'; }
+    function imageFitOf(opts) { const v = opts ? opts.imageFit : undefined; return IMAGE_FITS.indexOf(v) >= 0 ? v : 'fit'; }
 
     function highRollerMaxHeight(bits, opts) {
         const perInch = opts ? Number(opts.highRollerBitsPerInch) : 0;
@@ -2399,7 +2423,7 @@ window.PrinterBot = (function () {
         const parts = [].concat(view.content || []).filter(Boolean)
             .map(p => typeof p === 'string' ? { html: p } : p)
             .map(p => p.kind === 'message' && p.value != null ? messagePart(p.value, opts) : p)
-            .filter(p => p.html || p.text || p.rich || p.pieces);
+            .filter(p => p.html || p.text || p.rich);
         $('receipt-rule-top').style.display = parts.length ? '' : 'none';
         content.style.display = parts.length ? '' : 'none';
         // Gift lists and the item list of an order get a box with no height limit (a viewer's message keeps its 1600 px box, see receipt.css), and render()
@@ -2418,14 +2442,13 @@ window.PrinterBot = (function () {
             content.style.setProperty('max-height', Math.min(view.maxPx, view.ignoreCeiling ? Infinity : ceilingScaled) + 'px', 'important');
         }
         else if (ceilingScale !== 1 && Number.isFinite(ceilingScaled)) content.style.setProperty('max-height', ceilingScaled + 'px', 'important');
-        activeImageSites = enabledImageSites(opts);                         // a picture in a High Roller message may come from a switched-on site while this receipt is built
+        const sites = enabledImageSites(opts);                             // 3.0.1: a picture comes only from a High Roller message (a part with rich content), and only while that part is built
         try {
             for (const p of parts) {
                 const div = document.createElement('div');
-                div.className = 'part ' + (p.kind || 'text') + (p.left ? ' left' : '') + (p.pieces ? ' pictures' : '');
-                if (p.rich != null) { const rich = sanitizeRich(p.rich); pictureLinksInRich(rich, opts); div.appendChild(rich); }     // High Roller: the allow-listed copy goes in, the original markup stays out
-                else if (p.pieces) fillMessage(div, p.pieces, opts);          // viewer text as text, a link to a picture of a switched-on site as an <img> made here
-                else if (p.list && pageHeightPx(opts) !== null) fillList(div, p.list);     // a gift list or an order on Letter paper: names that present() sets in columns (fitNames)
+                div.className = 'part ' + (p.kind || 'text') + (p.left ? ' left' : '');
+                if (p.rich != null) { activeImageSites = sites; const rich = sanitizeRich(p.rich); pictureLinksInRich(rich, opts); activeImageSites = new Set(); div.appendChild(rich); }     // High Roller: the allow-listed copy goes in, the original markup stays out
+                else if (p.list && (pageHeightPx(opts) !== null || p.list.perPage > 0)) fillList(div, p.list, pageHeightPx(opts) !== null, p.html);     // a gift list or an order on Letter paper, a gift list on a roll: names that present() sets in columns (fitNames, rollColumns)
                 else if (p.text != null) div.textContent = p.text;             // viewer text: text only
                 else div.innerHTML = p.html;                                   // our own templates (viewer values already cleaned and esc()'d)
                 content.appendChild(div);
@@ -2452,10 +2475,15 @@ window.PrinterBot = (function () {
     const NAME_PAGE_PAD = 6, NAME_PAGE_RESERVE = 6;         // blank CSS px at the top of a page that a list goes on at, and at the bottom of a page that it goes on from
     const nameLists = new WeakMap();                         // the part of a list -> its names per page (0: one page)
 
-    function fillList(div, list) {
+    const listHtml = new WeakMap();                          // the part of a list on a roll -> its names as they were before the columns (one name to a line)
+
+    // paged is true on a page of Letter paper. A roll gets the names as boxes too, for a gift list (perPage > 0): rollColumns sets them in two columns when every name fits half the width,
+    // and puts the plain list back when one does not (so a roll with long names prints what it printed before).
+    function fillList(div, list, paged, html) {
         div.classList.add('names');
         const perPage = list.perPage > 0 ? list.perPage : 0;
-        const limit = perPage ? perPage * MAX_NAME_PAGES : Infinity;
+        if (!paged) listHtml.set(div, String(html ?? ''));
+        const limit = paged && perPage ? perPage * MAX_NAME_PAGES : Infinity;
         let items = list.items.slice(), tail = list.tail || null;
         if (items.length + (tail ? 1 : 0) > limit) {
             const hidden = items.length - (limit - 1);
@@ -2469,6 +2497,21 @@ window.PrinterBot = (function () {
         if (tail) add(tail, 'nm tail');
         div.appendChild(page);
         nameLists.set(div, perPage);
+    }
+
+    // A gift list on a roll (80 mm or 58 mm): two columns when every name fits in half the width on one line, else the plain list of one name to a line, as it always was. Names are
+    // the handler's own, cleaned and escaped; the width test is made on the page, with the fonts of the receipt.
+    function rollColumns(div) {
+        const page = div.firstElementChild, names = page ? Array.from(page.children) : [];
+        const plain = () => { div.classList.remove('names'); div.innerHTML = listHtml.get(div) || ''; };
+        if (names.length < 2) { plain(); return; }
+        page.style.setProperty('--pb-cols', '2');
+        const probe = document.createElement('span');
+        probe.className = 'nm'; probe.textContent = 'x';
+        page.appendChild(probe);
+        const line = probe.getBoundingClientRect().height;
+        page.removeChild(probe);
+        for (const n of names) if (n.getBoundingClientRect().height > line * 1.5) { plain(); return; }
     }
 
     // Sets the list in the plainest columns that fit and returns the number of pages it takes. The first page holds what fits under the header (at most the names for a page, fewer when
@@ -2676,8 +2719,9 @@ window.PrinterBot = (function () {
         const box = $('receipt-content');
         const pagePx = pageHeightPx(opts);
         // A gift list is the one receipt that takes more than one page: names set in columns, up to NAMES_PER_PAGE to a page (fitNames). Its pages are the page limit below.
-        const nameBox = pagePx !== null ? box.querySelector(':scope > .part.names') : null;
-        const pages = nameBox ? fitNames(nameBox, opts) : 1;
+        const nameBox = box.querySelector(':scope > .part.names');
+        const pages = nameBox && pagePx !== null ? fitNames(nameBox, opts) : 1;
+        if (nameBox && pagePx === null) rollColumns(nameBox);
         let limited = view.maxPx != null;
         // Only what a viewer wrote (a message, a list of names) is cut at the end of the page: its words are the part that can go. Every other receipt (a Hype Train, a subscription) has nothing
         // that may be cut, and is made smaller as a whole below if it is still too tall.
@@ -2790,7 +2834,7 @@ window.PrinterBot = (function () {
         imageSiteLink: (raw, ids) => imageSiteLink(raw, new Set(Array.isArray(ids) ? ids : [])),
         messagePieces: (text, opts) => { const e = enabledImageSites(opts); return e.size ? messagePieces(plainText(text, null), opts, e) : [{ text: plainText(text, opts) }]; },
         enabledImageSites: (opts) => Array.from(enabledImageSites(opts)),
-        displayName, replaceLinks, formatDate,
+        displayName, replaceLinks, formatDate, flattenMarkup,
         shareCuts, gapRooms: () => Object.assign({}, GAP_ROOM),
         largerAvatarUrl, variants: () => ({ misses: Array.from(variantMisses.entries()), lull: Array.from(variantLull.entries()) }),
         allowedCss: () => Array.from(ALLOWED_CSS),
