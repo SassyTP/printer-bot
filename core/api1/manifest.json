@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.6",
-  "built": "202610151342",
+  "version": "3.0.7",
+  "built": "202610151922",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.6.bin",
+      "name": "core-3.0.7.bin",
       "size": 655360,
-      "sha256": "ff1e8fc1644af3a2c71e04a0277067d0df2a618d77715110a5601d4eabf456aa"
+      "sha256": "c306f5ca69aea7836b6dee1e45646f5c6c3b50dc5f9602bfadf377fa86c7780a"
     }
   ],
-  "notes": "Printer Bot 3.0.6 cleans up the words of a cheer. The cheermotes in a cheer's message (Cheer100 and the like) are taken out together with their space, so no gap is left after the opening quote and no double space in the middle, wherever they stand and however many there are. Only real cheer amounts count as cheermotes, 1 to 100,000 bits, so words like Cheer0 or Cheer100001 print as typed. The dock no longer shows the setup card by mistake when the connection to Streamer.bot drops just as it connects. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.6 on GitHub.",
+  "notes": "Printer Bot 3.0.7 makes test prints with your own values work. The Test card of the dock sends the values you type (the bits, the names, the message) in a form Streamer.bot passes on, and Printer Bot reads it, so the receipt prints with your values and TEST at its bottom. Before, every such test print was refused with \"The dock sent an event that cannot be read\". From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.7 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }

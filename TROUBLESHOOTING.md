@@ -230,6 +230,10 @@ Twitch puts the cheermotes that pay the bits into the message of a real cheer (`
 
 From 3.0.4 a receipt that the dock's **Test print** made from values you typed has a line TEST at its bottom. That is on purpose: such a receipt can never pass for a real donation or Super Chat, even if someone else sends one. A sample whose values you did not change prints without it, and so does every real event. To print the sample again, press **Reset to the sample** under the list.
 
+### A test print with my own values says "Test print not sent. The dock sent an event that cannot be read."
+
+Printer Bot 3.0.4 to 3.0.6 refused every test print with values you typed: Streamer.bot does not pass the values through in the form the dock sent them, so the action could not read them. Since 3.0.7 the dock sends them as text and the action reads it. Update to 3.0.7 in the Updates card (**Check now**, then **Update to 3.0.7**), restart Streamer.bot and press **Reload dock**. Test prints of the samples, with no values typed, worked all along.
+
 ### A test print says "Test print not sent" and names a value
 
 Printer Bot refused the values you typed and printed nothing. The last print in the dock and the Streamer.bot log say why, for example `"isTest" cannot be set in a test print.` (a name that steers Printer Bot itself, such as `isTest`, `printers` or `followRules`, or a picture address), `The value of "message" is longer than 4,000 characters.`, or that a value is not text, a number or yes/no. The dock checks the same limits before it sends, so you see this only when something other than this dock page sent the test print (another tool on the Streamer.bot WebSocket, for example). Change or remove that value and press **Test print** again.

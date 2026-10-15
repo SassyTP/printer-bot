@@ -2170,7 +2170,7 @@ function TestPrint() {
     if (hasUnsaved) SaveSettings();             // the same save as any other, with the same handling of a failure (an older action ignores the copy sent with the test)
     const follow = PrintersTestFollowsRules();          // 3.0.0-beta.4: the rules choose the printers, and "printers" is not sent
     const printers = follow ? undefined : PrintersTestTarget();              // 3.0: "all" or the number of one printer, as text. Nothing with one printer
-    Send('testPrint', { sample: $('sample').value, ...(event ? { event } : {}), ...(follow ? { followRules: true } : printers ? { printers } : {}), ...(hasUnsaved ? { settingsJson: JSON.stringify(unsaved) } : {}) });
+    Send('testPrint', { sample: $('sample').value, ...(event ? { event: JSON.stringify(event) } : {}), ...(follow ? { followRules: true } : printers ? { printers } : {}), ...(hasUnsaved ? { settingsJson: JSON.stringify(unsaved) } : {}) });
 }
 
 function TogglePreview() {
@@ -2208,6 +2208,8 @@ function RenderPreview(p) {
 // typed one entry per line as indexed names, an amount in millionths (microAmount) shown in whole units. An empty box is not sent. Values that are still the sample's send
 // the sample itself, as before 3.0.4, so that receipt is the sample's own (the long cheer at the Twitch High Roller threshold, a Hype Train step with the test train). The action
 // marks a receipt made from typed values with TEST at its bottom.
+// The event goes as JSON text (3.0.7), as the values of a route check and the settings do: Streamer.bot does not pass an object in the arguments of an action through as it
+// is, and an action of 3.0.4 to 3.0.6 refused every typed test print with "The dock sent an event that cannot be read". An action of 3.0.7 reads the text.
 // Only an action that reports status.testEvents (3.0.4) takes an event: with an older one the card is the card of 3.0.3, with no values and no event. The page holds the
 // values to the limits the action names there, and a value it would refuse stops the test print here, with the reason next to the value. Names and values from the browser
 // storage or a status go into the page with textContent and value only, so they can never become markup.
