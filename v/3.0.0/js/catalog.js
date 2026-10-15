@@ -176,3 +176,125 @@ const ROUTE_CATALOG = (() => {
 
     return { triggers, families, operators, noValue };
 })();
+
+
+// ============================================================================
+// Test prints with the values the person types (3.0.4)
+//
+// The Test card offers every trigger above. An entry of its list is a sample of the action (status.samples) or, for a trigger that has no sample, the trigger itself.
+// For each trigger, `receipt` lists the values its receipt reads (the handlers of renderer.js), in the order the form shows them. Every other field of the trigger
+// in ROUTE_CATALOG shows under More values. An item of `receipt` is
+//   'name'                          a field of the trigger in ROUTE_CATALOG
+//   { name, note }                  such a field with a sentence under it (what makes the receipt print nothing, for example)
+//   { name, label, type }           a value the receipt reads that ROUTE_CATALOG leaves out
+//   { list, label }                 a list typed one entry per line, sent as indexed names:
+//                                     'gift'   Twitch gift bomb: gift.recipientUser0, gift.recipientUser1, ... (one name per line)
+//                                     'kick'   Kick mass gift: recipient.0.userName, recipient.1.userName, ... (one name per line)
+//                                     'items'  Fourthwall order: fw.variants[0].quantity and fw.variants[0].name, ... (one item per line, such as 2 x Shirt)
+// `samples` holds the values each sample of the action starts with, as the receipt page has them (SAMPLES in renderer.js, the Hype Train steps as hypeSampleStep
+// brings the test train up to each of them: the bits of the top cheerer are the ones the train has counted for that cheerer by then). The end-to-end Hype Train test
+// is six events and has no entry here. `defaults` holds the values of the entries of the triggers that have no sample. `long` names the texts that get a box of
+// several lines.
+// ============================================================================
+
+const TEST_EVENTS = (() => {
+    const own = (name, label, type) => ({ name, label, type });
+    const list = (kind, label) => ({ list: kind, label });
+    const note = (name, text) => ({ name, note: text });
+    const bitsTop = ['top.bits.user', 'top.bits.userName', 'top.bits.total'];
+    const subTop = ['top.subscription.user', 'top.subscription.userName', 'top.subscription.total'];
+    const trainKind = ['trainType', 'isTreasureTrain', 'isGoldenKappaTrain'];
+    const kickLogin = own('userLogin', 'Login name for the picture', 'text');
+
+    const receipt = {
+        TwitchCheer: ['bits', 'user', 'userName', 'message'],
+        TwitchRewardRedemption: ['rewardName', 'rewardCost', 'userName', 'rawInput'],
+        TwitchSub: ['tier', 'user', 'userName', 'multiMonthDuration'],
+        TwitchReSub: ['tier', 'user', 'userName', 'cumulative', 'monthStreak', 'multiMonthDuration', 'messageStripped'],
+        TwitchGiftSub: ['user', 'anonymous', 'tier', 'recipientUser', 'recipientUserName', note('fromGiftBomb', 'Yes prints nothing: the gift bomb prints one receipt for all its subs.')],
+        TwitchGiftBomb: ['user', 'userName', 'anonymous', 'tier', 'gifts', 'totalGifts', list('gift', 'Recipients, one name per line')],
+        TwitchRaid: ['user', 'userName', 'viewers'],
+        TwitchHypeTrainStart: [].concat(trainKind, ['level', 'id'], bitsTop),
+        TwitchHypeTrainUpdate: [].concat(['id', 'level'], bitsTop, subTop),
+        TwitchHypeTrainLevelUp: [].concat(['id', 'level'], trainKind, bitsTop, subTop),
+        TwitchHypeTrainEnd: [].concat(['id', 'level'], trainKind, bitsTop, subTop),
+        TwitchCustomPowerUpRedemption: ['customPowerUp.bitsCost', 'user', 'userName', 'rawInput'],
+
+        YouTubeNewSponsor: ['user', 'levelName', 'isUpgrade'],
+        YouTubeMemberMileStone: ['user', 'levelName', 'months', 'message'],
+        YouTubeMembershipGift: ['user', 'count', 'tier'],
+        YouTubeGiftMembershipReceived: ['gifterUser', 'user'],
+        YouTubeSuperChat: ['user', 'microAmount', 'currencyCode', 'amount', 'message'],
+        YouTubeSuperSticker: ['user', 'microAmount', 'currencyCode', 'amount'],
+
+        KickSubscription: ['user', kickLogin, 'monthsSubscribed', 'duration'],
+        KickResubscription: ['user', kickLogin, 'monthsSubscribed', 'duration'],
+        KickGiftSubscription: ['user', 'recipient.userName', 'recipient.userLogin'],
+        KickMassGiftSubscription: ['user', 'count', list('kick', 'Recipients, one name per line')],
+        KickIncomingRaid: ['user', 'viewers'],
+        KickKicksGifted: ['sender', 'amount', 'gift', note('giftType', 'Only LEVEL_UP prints a receipt.'), 'message'],
+
+        StreamElementsTip: ['tipUsername', 'tipAmount', 'tipCurrency', 'tipMessage'],
+        StreamlabsDonation: ['donationFrom', 'donationAmount', 'donationCurrency', 'donationFormattedAmount', 'donationMessage'],
+
+        FourthwallDonation: ['fw.username', 'fw.amount', 'fw.currency', 'fw.message'],
+        FourthwallOrderPlaced: ['fw.username', note('fw.total', '0 or less prints nothing.'), 'fw.currency', list('items', 'Items, one per line, such as 2 x Shirt'), 'fw.statmessageus'],
+        FourthwallSubscriptionPurchased: ['fw.nickname', 'fw.amount', 'fw.currency'],
+    };
+
+    // ---- the samples (renderer.js SAMPLES and HYPE_STEPS)
+    const names = (count, width) => Array.from({ length: count }, (_, i) => 'Viewer' + String(i + 1).padStart(width, '0'));
+    const listed = (values, key, items) => { items.forEach((name, i) => { values[key(i)] = name; }); return values; };
+    const bomb = (gifts, totalGifts, people) => listed({ gifts, totalGifts, tier: 'tier 1', user: 'SassyTP', userName: 'sassytp' }, i => 'gift.recipientUser' + i, people);
+    const train = (level, extra) => Object.assign({ id: 'sample-train', level, trainType: 'regular' }, extra);
+    const cheerer = (login, name, bits) => ({ 'top.bits.userName': login, 'top.bits.user': name, 'top.bits.total': bits });
+    const gifter = (points) => ({ 'top.subscription.userName': 'sample.gifter01', 'top.subscription.user': 'Gifter01', 'top.subscription.total': points });
+    const sample = (trigger, values, extra) => Object.assign({ trigger, values }, extra);
+
+    const samples = {
+        TwitchSub: sample('TwitchSub', { tier: 'prime', user: 'SassyTP', userName: 'sassytp' }),
+        TwitchReSub: sample('TwitchReSub', { tier: 'tier 1', cumulative: 8, monthStreak: 5, isMultiMonth: true, multiMonthDuration: 6, multiMonthTenure: 0,
+            messageStripped: 'Thanks for the stream!', user: 'SassyTP', userName: 'sassytp' }),
+        TwitchCheer: sample('TwitchCheer', { bits: 100, user: 'SassyTP', userName: 'sassytp', message: 'Thanks for the stream!' }),
+        // the long message: its bits are 100, or the Twitch High Roller threshold when that is higher, so that it is always a High Roller cheer
+        TwitchCheerLong: sample('TwitchCheer', { bits: 100, user: 'SassyTP', userName: 'sassytp', message: Array.from({ length: 60 }, (_, i) => `<b>Line ${i + 1}</b> of 60`).join('<br>') }, { bitsAtThreshold: true }),
+        TwitchRewardRedemption: sample('TwitchRewardRedemption', { rewardName: 'Receipt', rewardCost: 50, rawInput: 'Hello from channel points', user: 'SassyTP', userName: 'sassytp' }),
+        TwitchRaid: sample('TwitchRaid', { viewers: 42, user: 'SassyTP', userName: 'sassytp' }),
+        YouTubeSuperChat: sample('YouTubeSuperChat', { amount: '$5.00', microAmount: 5000000, currencyCode: 'USD', user: 'SassyTP', message: 'Great stream!' }),
+        KickSubscription: sample('KickSubscription', { user: 'SassyTP', duration: 3 }),
+        TwitchGiftBomb: sample('TwitchGiftBomb', bomb(50, 120, names(50, 2))),
+        TwitchGiftBombBig: sample('TwitchGiftBomb', bomb(500, 1500, names(500, 3))),
+        YouTubeNewSponsor: sample('YouTubeNewSponsor', { user: 'SassyTP', levelName: 'Super Fan', isUpgrade: false }),
+        YouTubeMemberMileStone: sample('YouTubeMemberMileStone', { user: 'SassyTP', levelName: 'Super Fan', months: 6, message: 'Six months already!' }),
+        YouTubeMembershipGift: sample('YouTubeMembershipGift', { user: 'SassyTP', count: 5, tier: 'Super Fan' }),
+        YouTubeGiftMembershipReceived: sample('YouTubeGiftMembershipReceived', { gifterUser: 'SassyTP', user: 'Viewer01' }),
+        KickGiftSubscription: sample('KickGiftSubscription', { user: 'SassyTP', 'recipient.userName': 'Viewer01', 'recipient.userLogin': '' }),
+        KickMassGiftSubscription: sample('KickMassGiftSubscription', listed({ count: 5, user: 'SassyTP' }, i => 'recipient.' + i + '.userName', names(5, 2))),
+        TwitchHypeTrainStart: sample('TwitchHypeTrainStart', train(1)),
+        TwitchHypeTrainConductor: sample('TwitchHypeTrainUpdate', train(1, cheerer('sample.viewer01', 'Viewer01', 600))),
+        TwitchHypeTrainConductorSwitch: sample('TwitchHypeTrainUpdate', train(1, cheerer('sassytp', 'SassyTP', 800))),
+        TwitchHypeTrainSubConductor: sample('TwitchHypeTrainUpdate', train(1, Object.assign(cheerer('sassytp', 'SassyTP', 800), gifter(1500)))),
+        TwitchHypeTrainLevelUp: sample('TwitchHypeTrainLevelUp', train(2, Object.assign({ prevLevel: 1 }, cheerer('sassytp', 'SassyTP', 800), gifter(2500)))),
+        TwitchHypeTrainEnd: sample('TwitchHypeTrainEnd', train(2, Object.assign(cheerer('sassytp', 'SassyTP', 800), gifter(3500)))),
+    };
+
+    // ---- the triggers that have no sample
+    const defaults = {
+        TwitchGiftSub: { user: 'SassyTP', userName: 'sassytp', anonymous: false, tier: 'tier 1', recipientUser: 'Viewer01', fromGiftBomb: false },
+        TwitchCustomPowerUpRedemption: { 'customPowerUp.bitsCost': 50, user: 'SassyTP', userName: 'sassytp', rawInput: 'Hello from a power-up' },
+        YouTubeSuperSticker: { user: 'SassyTP', microAmount: 2000000, currencyCode: 'USD', amount: '$2.00' },
+        KickResubscription: { user: 'SassyTP', monthsSubscribed: 6 },
+        KickIncomingRaid: { user: 'SassyTP', viewers: 42 },
+        KickKicksGifted: { sender: 'SassyTP', amount: 100, gift: 'Rage Quit', giftType: 'LEVEL_UP', message: 'Hello from Kick' },
+        StreamElementsTip: { tipUsername: 'SassyTP', tipAmount: 5, tipCurrency: 'USD', tipMessage: 'For the coffee fund' },
+        StreamlabsDonation: { donationFrom: 'SassyTP', donationAmount: 5, donationCurrency: 'USD', donationFormattedAmount: '$5.00', donationMessage: 'For the coffee fund' },
+        FourthwallDonation: { 'fw.username': 'SassyTP', 'fw.amount': 5, 'fw.currency': 'USD', 'fw.message': 'Thanks for the stream!' },
+        FourthwallOrderPlaced: { 'fw.username': 'SassyTP', 'fw.total': 20, 'fw.currency': 'USD', 'fw.variants[0].quantity': 2, 'fw.variants[0].name': 'Shirt',
+            'fw.variants[1].quantity': 1, 'fw.variants[1].name': 'Mug', 'fw.statmessageus': 'Thanks for the support!' },
+        FourthwallSubscriptionPurchased: { 'fw.nickname': 'SassyTP', 'fw.amount': 5, 'fw.currency': 'USD' },
+    };
+
+    const long = ['message', 'messageStripped', 'rawInput', 'rewardPrompt', 'systemMessage', 'tipMessage', 'donationMessage', 'fw.message', 'fw.statmessageus'];
+
+    return { receipt, samples, defaults, long };
+})();

@@ -212,7 +212,19 @@ Streamer.bot has to be logged in to Kick first. Its log (lines that start with `
 
 ### A test from Streamer.bot prints a bare receipt
 
-Streamer.bot's own Test button sends sparse events. A gift bomb comes without names and a YouTube member without a level name. Real events carry that data. The dock's **Test print** samples show a full receipt (see **Test print** in [The dock's settings](PRINTER_OPERATION.md#the-docks-settings)).
+Streamer.bot's own Test button sends sparse events. A gift bomb comes without names and a YouTube member without a level name, and for a YouTube event you cannot change what it sends. Real events carry that data. The dock's **Test print** samples show a full receipt, and from 3.0.4 you can type the values of any event under the list of samples and print them (see *Your own values* in [The dock's settings](PRINTER_OPERATION.md#the-docks-settings)).
+
+### A real cheer printed differently from my test ("Cheer100" on the receipt, the picture below the words)
+
+Twitch puts the cheermotes that pay the bits into the message of a real cheer (`Cheer2000 Look at this`), and a test from Streamer.bot sends the message without them. Up to 3.0.3 Printer Bot printed them as words, and a picture that opened a High Roller message went below them, because a word came first. From 3.0.4 the cheermotes are left out of a cheer's message, so a real cheer prints as its test does. Update Printer Bot if you still see them.
+
+### A test print says TEST at its bottom
+
+From 3.0.4 a receipt that the dock's **Test print** made from values you typed has a line TEST at its bottom. That is on purpose: such a receipt can never pass for a real donation or Super Chat, even if someone else sends one. A sample whose values you did not change prints without it, and so does every real event. To print the sample again, press **Reset to the sample** under the list.
+
+### A test print says "Test print not sent" and names a value
+
+Printer Bot refused the values you typed and printed nothing. The last print in the dock and the Streamer.bot log say why, for example `"isTest" cannot be set in a test print.` (a name that steers Printer Bot itself, such as `isTest`, `printers` or `followRules`, or a picture address), `The value of "message" is longer than 4,000 characters.`, or that a value is not text, a number or yes/no. The dock checks the same limits before it sends, so you see this only when something other than this dock page sent the test print (another tool on the Streamer.bot WebSocket, for example). Change or remove that value and press **Test print** again.
 
 ### An event did not print
 

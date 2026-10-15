@@ -1064,6 +1064,136 @@ textarea.import-code {
 
 
 /* ------------------------------------------------------------------ */
+/* Test card: the values of a test print (3.0.4)                      */
+/* ------------------------------------------------------------------ */
+
+/* The values of the chosen entry sit in a box under the list, like the box of an open group: the rows of the receipt, More values, the line that says what Test print
+   does, and Reset. A row is a row of Settings: the label, the name of the parameter under it and the box on the right, under the label in a narrow dock. */
+.test-event {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-row);
+    padding: var(--box-pad);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+}
+
+.test-event-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-row);
+}
+
+.test-event-fields:empty,
+.test-event-other:empty {
+    display: none;
+}
+
+/* the name of the parameter as Streamer.bot sends it (gift.recipientUser0, microAmount) */
+.test-field-name {
+    font-family: monospace;
+    opacity: 0.75;
+    overflow-wrap: anywhere;
+}
+
+/* a message or a list: the box takes the whole width under its label */
+.test-event-fields > .setting.test-field-long {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--gap-part);
+}
+
+textarea.test-text {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 0.5em;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.9em;
+    line-height: normal;
+    color: white;
+    background-color: var(--input-background);
+    border: none;
+    border-radius: 0.5em;
+    outline: 1px solid var(--border-color);
+}
+
+textarea.test-text:focus {
+    outline: 1px solid var(--accent-color);
+}
+
+textarea[aria-invalid="true"],
+textarea[aria-invalid="true"]:focus {
+    outline: 1px solid var(--error-color);
+}
+
+#test-event-state,
+#test-event-problem {
+    margin: 0;
+}
+
+/* Other values: a name, a kind, a value and the x of each, on one line where there is room */
+.test-event-other {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-part);
+}
+
+.test-other-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap-part);
+}
+
+.test-other-row > input,
+.test-other-row > select {
+    flex: 1 1 8em;
+    min-width: 0;
+}
+
+.test-other-row > .test-other-kind {
+    flex: 0 1 7em;
+}
+
+.test-other-row > .test-other-value {
+    flex: 1 1 5em;
+}
+
+.test-other-row > .icon-small {
+    flex: none;
+}
+
+.test-other-row > .field-error {
+    flex: 1 1 100%;
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .test-event-fields > .setting.stack-narrow {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--gap-part);
+    }
+
+    .test-event-fields > .setting.stack-narrow > input,
+    .test-event-fields > .setting.stack-narrow > select {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 399px) {
+    /* a narrow dock: the name of an other value has a line of its own, the kind, the value and the x share the next one */
+    .test-other-row > .test-other-name {
+        flex: 1 1 100%;
+    }
+}
+
+
+/* ------------------------------------------------------------------ */
 /* Preview + callout                                                  */
 /* ------------------------------------------------------------------ */
 

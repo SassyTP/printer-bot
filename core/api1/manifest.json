@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.3",
-  "built": "202610142007",
+  "version": "3.0.4",
+  "built": "202610150141",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.3.bin",
-      "size": 636928,
-      "sha256": "c685f3bf1f2726072ad93a760c698b45e72995d439264b29f8d4d467f1bea377"
+      "name": "core-3.0.4.bin",
+      "size": 647168,
+      "sha256": "dbe7870ac27d5a6562da72280c51a6ce8dd2f8661b67b7bc9ea295557c0f22c9"
     }
   ],
-  "notes": "Printer Bot 3.0.3 fixes Save settings in an OBS dock: Printer Bot now writes the file itself, into the folder backups of its data folder, and the dock shows its name. The Advanced box is now grouped into Twitch, YouTube and All platforms, both High Roller thresholds are in it with matching names, and an open box (Advanced, Paper and output and the others) has a border around what it shows. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.3 on GitHub.",
+  "notes": "Printer Bot 3.0.4 lets you test every event from the dock with values you type: pick an event under Test print, change the name, the amount, the currency, the message or anything else it carries, and print it. YouTube Super Chats and memberships can now be tried as easily as a Twitch cheer, and your rules and High Roller decide with the values you typed. A receipt made from typed values says TEST at its bottom. A cheer no longer prints its cheermotes (Cheer100) as words, so a picture at the start of its message stays first. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.4 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }

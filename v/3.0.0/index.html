@@ -9,9 +9,9 @@
     <title>Printer Bot</title>
     <!-- Every address below ends in ?v=<build>. The build tool rewrites the stamp when a file of this folder changes,
          so a changed file gets a new address and a browser that caches hard still fetches it. -->
-    <link rel="icon" href="assets/logo.png?v=73086b6c9da9" type="image/png">
+    <link rel="icon" href="assets/logo.png?v=71da90522f60" type="image/png">
 
-    <link rel="stylesheet" href="css/dock.css?v=73086b6c9da9" />
+    <link rel="stylesheet" href="css/dock.css?v=71da90522f60" />
 </head>
 
 <body>
@@ -19,7 +19,7 @@
 
         <!-- Header -->
         <div id="header">
-            <img class="brand-logo" src="assets/logo.png?v=73086b6c9da9" alt="" />
+            <img class="brand-logo" src="assets/logo.png?v=71da90522f60" alt="" />
             <label id="title" class="title"></label>
             <div id="header-end">
                 <!-- A small dot while an update is available. It scrolls to the Updates card. -->
@@ -519,7 +519,7 @@
                     <div id="test-rules-row" class="setting" hidden>
                         <div>
                             <label class="setting-label" for="test-rules">Follow the rules</label>
-                            <div class="setting-description" id="test-rules-description">Sends the sample where your rules send an event of its kind, tested with the values the sample carries (its bits, tier, viewers and so on). Print on is not used.</div>
+                            <div class="setting-description" id="test-rules-description">Sends the test where your rules send an event of its kind, tested with the values it carries (its bits, tier, viewers and so on, as the sample has them or as you typed them below). Print on is not used.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="test-rules" aria-describedby="test-rules-description">
@@ -530,6 +530,35 @@
                         <select id="sample"></select>
                         <button type="button" id="test-print-button">Test print</button>
                     </div>
+
+                    <!-- 3.0.4: the values of the chosen entry, for a Printer Bot that takes typed values (status.testEvents). The script builds the rows: the values the receipt
+                         reads, then every other value of the trigger under More values, then the values the person names. Hidden for an older Printer Bot. -->
+                    <div id="test-event" class="test-event" hidden>
+                        <p class="hint" id="test-event-intro">The values of this event as Streamer.bot sends them. Change any of them, then press Test print. An empty box is not sent.</p>
+                        <div id="test-event-fields" class="test-event-fields"></div>
+                        <details id="test-event-more" class="advanced test-event-more">
+                            <summary>More values</summary>
+                            <div class="details-body">
+                                <p class="hint">The other values Streamer.bot sends with this event. Your routing rules can test them, so Follow the rules can be tried with them.</p>
+                                <div id="test-event-more-fields" class="test-event-fields"></div>
+                                <div class="test-event-other-head">
+                                    <div class="setting-label">Other values</div>
+                                    <div class="setting-description">A value that is not in the list above: its name as Streamer.bot sends it, its kind and its value.</div>
+                                </div>
+                                <div id="test-event-other" class="test-event-other"></div>
+                                <div class="button-row">
+                                    <button type="button" id="test-event-add-button">Add a value</button>
+                                </div>
+                            </div>
+                        </details>
+                        <datalist id="test-currencies"></datalist>
+                        <p id="test-event-state" class="hint" role="status"></p>
+                        <p id="test-event-problem" class="field-error" role="alert" hidden></p>
+                        <div class="button-row">
+                            <button type="button" id="test-event-reset-button">Reset to the sample</button>
+                        </div>
+                    </div>
+
                     <div class="button-row">
                         <button type="button" id="preview-button">Show last receipt</button>
                     </div>
@@ -755,7 +784,7 @@
         <div id="sb-connect-dialog" class="dialog" role="dialog" aria-label="Connect to Streamer.bot">
             <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">&#xD7;</button>
             <div class="dialog-brand">
-                <img class="brand-logo" src="assets/icons/plug.svg?v=73086b6c9da9" loading="lazy" decoding="async" alt="" />
+                <img class="brand-logo" src="assets/icons/plug.svg?v=71da90522f60" loading="lazy" decoding="async" alt="" />
                 <label class="title">Streamer.bot</label>
             </div>
             <div class="field-row">
@@ -794,11 +823,11 @@
         </div>
     </div>
 
-    <script src="vendor/streamerbot-client.js?v=73086b6c9da9"></script>
-    <script src="js/version.js?v=73086b6c9da9"></script>
-    <script src="js/catalog.js?v=73086b6c9da9"></script>
-    <script src="js/printers.js?v=73086b6c9da9"></script>
-    <script src="js/app.js?v=73086b6c9da9"></script>
+    <script src="vendor/streamerbot-client.js?v=71da90522f60"></script>
+    <script src="js/version.js?v=71da90522f60"></script>
+    <script src="js/catalog.js?v=71da90522f60"></script>
+    <script src="js/printers.js?v=71da90522f60"></script>
+    <script src="js/app.js?v=71da90522f60"></script>
 </body>
 
 </html>

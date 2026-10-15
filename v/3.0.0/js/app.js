@@ -493,6 +493,8 @@ function NormalizeStatus(d) {
         exchange: ExchangeOf(d.exchange),
         // 3.0.3: how the last Save settings went in the action. Null from an action that does not save the file itself (see BackupOf)
         backup: BackupOf(d.backup),
+        // 3.0.4: the triggers whose events a test print may carry with typed values, and the limits of those values. Null from an action that takes none (see TestEventsOf)
+        testEvents: TestEventsOf(d.testEvents),
     };
 }
 
@@ -772,14 +774,17 @@ function FillSettings(s) {
     ApplyModeVisibility(mode);
     $('mode-description').textContent = modeText(mode);
 
+    // The list of the Test card: the samples of the action, and from 3.0.4 an entry for each trigger that has no sample (TestEntries)
     const sample = $('sample');
-    const samplesNow = JSON.stringify(s.samples);
+    const entries = TestEntries(s);
+    const samplesNow = JSON.stringify(entries);
     if (samplesNow !== sampleSignature) {
         sampleSignature = samplesNow;
         const keep = sample.value;
-        sample.replaceChildren(...s.samples.map(n => new Option(n, n)));
-        if (s.samples.includes(keep)) sample.value = keep;
+        sample.replaceChildren(...entries.map(n => new Option(n, n)));
+        if (entries.includes(keep)) sample.value = keep;
     }
+    RenderTestEditor();
     PrintersRender(s);
 }
 
@@ -2134,6 +2139,10 @@ function UseLegacyPrinter() {
 //////////////////
 
 function TestPrint() {
+    // 3.0.4: the values of the form under the list (see TEST PRINTS WITH YOUR VALUES below). undefined: the sample itself, as before. null: a value is not allowed, the form
+    // says which, and nothing is sent
+    const event = TestEventToSend();
+    if (event === null) return;
     const button = $('test-print-button');
     button.disabled = true;
     setTimeout(() => { button.disabled = false; }, 1500);
@@ -2144,7 +2153,7 @@ function TestPrint() {
     if (hasUnsaved) SaveSettings();             // the same save as any other, with the same handling of a failure (an older action ignores the copy sent with the test)
     const follow = PrintersTestFollowsRules();          // 3.0.0-beta.4: the rules choose the printers, and "printers" is not sent
     const printers = follow ? undefined : PrintersTestTarget();              // 3.0: "all" or the number of one printer, as text. Nothing with one printer
-    Send('testPrint', { sample: $('sample').value, ...(follow ? { followRules: true } : printers ? { printers } : {}), ...(hasUnsaved ? { settingsJson: JSON.stringify(unsaved) } : {}) });
+    Send('testPrint', { sample: $('sample').value, ...(event ? { event } : {}), ...(follow ? { followRules: true } : printers ? { printers } : {}), ...(hasUnsaved ? { settingsJson: JSON.stringify(unsaved) } : {}) });
 }
 
 function TogglePreview() {
@@ -2167,6 +2176,434 @@ function RenderPreview(p) {
     $('preview-img').src = 'data:image/png;base64,' + png;
     lastPreviewAt = str(p.at, 60);
     $('preview-caption').textContent = `${Math.round(num(p.width))}\u00D7${Math.round(num(p.height))}, exactly what the printer receives`;
+}
+
+
+//////////////////////////////////
+// TEST PRINTS WITH YOUR VALUES //
+//////////////////////////////////
+
+// 3.0.4. Streamer.bot's own tests of an event (of a YouTube Super Chat above all) send what Streamer.bot chooses, so the Test card lets the person type the values of any event
+// that Printer Bot prints. Under the list of the card the chosen entry shows its values: first the ones its receipt reads (TEST_EVENTS in catalog.js), then, under More values,
+// every other parameter of its trigger (ROUTE_CATALOG), which the routing rules can test, and any other value the person names. They start as the values of the sample, or as
+// values of our own for a trigger that has no sample. What the person types is kept in this browser for each entry (pbTestValues.<entry>) until Reset to the sample.
+// Test print sends the values with testPrint as  event: { trigger, values }, as Streamer.bot would send the parameters: a number as a number, yes or no as true or false, a list
+// typed one entry per line as indexed names, an amount in millionths (microAmount) shown in whole units. An empty box is not sent. Values that are still the sample's send
+// the sample itself, as before 3.0.4, so that receipt is the sample's own (the long cheer at the Twitch High Roller threshold, a Hype Train step with the test train). The action
+// marks a receipt made from typed values with TEST at its bottom.
+// Only an action that reports status.testEvents (3.0.4) takes an event: with an older one the card is the card of 3.0.3, with no values and no event. The page holds the
+// values to the limits the action names there, and a value it would refuse stops the test print here, with the reason next to the value. Names and values from the browser
+// storage or a status go into the page with textContent and value only, so they can never become markup.
+
+const TEST_DEFAULT_LIMITS = { maxValues: 600, maxKeyChars: 80, maxTextChars: 4000 };       // what the action of 3.0.4 takes, for a status that names a limit badly
+const TEST_LIMIT_CEILINGS = { maxValues: 5000, maxKeyChars: 200, maxTextChars: 100000 };    // a status that names more is held to this
+const TEST_MAX_NUMBER = 1e15;               // the largest number, plus or minus, that the action takes as a value
+const TEST_NAME = /^[A-Za-z][A-Za-z0-9_.[\]]*$/;
+const TEST_RESERVED = ['isTest', 'sample', 'values', 'event', 'printers', 'followRules', 'pbCommand', 'triggerCustomCodeEventName', 'userProfileUrl', 'gifterProfileUrl', 'stickerImageUrl', 'profileImageUrl'];
+const TEST_NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+const TEST_CURRENCY = /^[A-Za-z]{3}$/;
+const TEST_ITEM = /^(\d{1,15})\s*[xX]\s+(\S.*)$/;      // a line of an order: "2 x Shirt" (a line without a number is one of the item)
+const TEST_KINDS = [['text', 'text'], ['number', 'a number'], ['flag', 'yes or no']];
+const TEST_LIST_NOTE = 'A list of more than 100 lines counts as 10 of the 20 test prints a minute.';      // the action counts it like the big gift bomb sample
+const TEST_LIST_NAMES = { gift:'gift.recipientUser0, gift.recipientUser1, ...', kick: 'recipient.0.userName, recipient.1.userName, ...', items: 'fw.variants[0].quantity, fw.variants[0].name, ...' };
+const TEST_STORE_KEY = 'pbTestValues.';     // + the entry
+const TEST_STORE_MAX = 300000;              // the most characters kept for one entry
+const TEST_SAME_TEXT = 'These are the values of the sample, so Test print prints the sample.';
+const TEST_CHANGED_TEXT = 'Test print prints your values. The receipt says TEST at its bottom.';
+const TEST_OWN_TEXT = 'Test print prints these values. The receipt says TEST at its bottom.';
+const TEST_WRONG_TEXT = 'Test print sends nothing until the values marked above are fixed.';
+const TEST_FIX_TEXT = 'Fix the values marked above, then press Test print again.';
+const TestCount = (n) => Number(n).toLocaleString('en-US');
+
+let testForm = null;            // the form that shows: { spec, controls, other, baseValues }, or null
+let testFormSig = '';           // the entry the form was made for
+let testCurrencySig = '';
+let testControlSeq = 0;
+let testRefused = false;        // the last Test print was stopped by a value that is not allowed, and that value is still there
+
+// status.testEvents: the triggers (only those of the catalog, each once) and the three limits (a whole number of 1 or more, held to the ceiling; anything else is the limit of 3.0.4)
+function TestEventsOf(x) {
+    if (!isObj(x) || !Array.isArray(x.triggers)) return null;
+    const triggers = [];
+    for (const t of x.triggers.slice(0, 500)) {
+        if (typeof t === 'string' && RT_TRIGGERS.has(t) && hasOwn(TEST_EVENTS.receipt, t) && !triggers.includes(t)) triggers.push(t);
+    }
+    const limit = (key) => { const v = x[key]; return typeof v === 'number' && Number.isSafeInteger(v) && v >= 1 ? Math.min(v, TEST_LIMIT_CEILINGS[key]) : TEST_DEFAULT_LIMITS[key]; };
+    return { triggers, maxValues: limit('maxValues'), maxKeyChars: limit('maxKeyChars'), maxTextChars: limit('maxTextChars') };
+}
+
+const TestLimits = () => pbStatus && pbStatus.testEvents ? pbStatus.testEvents : TEST_DEFAULT_LIMITS;
+
+// The entries of the list: the samples of the action (as before 3.0.4) and, with an action that takes typed values, each trigger it takes that no sample stands for, in the order of the catalog
+function TestEntries(s) {
+    const entries = s.samples.slice();
+    if (!s.testEvents) return entries;
+    const covered = new Set();
+    for (const n of s.samples) if (hasOwn(TEST_EVENTS.samples, n)) covered.add(TEST_EVENTS.samples[n].trigger);
+    for (const t of ROUTE_CATALOG.triggers) {
+        if (s.testEvents.triggers.includes(t.id) && !covered.has(t.id) && !entries.includes(t.id) && hasOwn(TEST_EVENTS.defaults, t.id)) entries.push(t.id);
+    }
+    return entries;
+}
+
+// The form of an entry: { key, trigger, base (the values it starts with), sample (a sample of the action, sent by its name while its values are the sample's) }, or null for an entry
+// that has none: an action that takes no typed values, the end-to-end Hype Train test, a sample this page does not know, a trigger the action does not take
+function TestEntrySpec(key) {
+    const s = pbStatus;
+    if (!s || !s.testEvents || typeof key !== 'string' || key === '') return null;
+    let trigger, base, sample;
+    if (s.samples.includes(key)) {
+        if (!hasOwn(TEST_EVENTS.samples, key)) return null;
+        const spec = TEST_EVENTS.samples[key];
+        trigger = spec.trigger; base = Object.assign({}, spec.values); sample = true;
+        // the long cheer is a High Roller cheer whatever the threshold is: its bits are the threshold when that is above 100, as in the receipt page
+        if (spec.bitsAtThreshold) base.bits = Math.max(base.bits, parseInt($('highRollerBits').value, 10) || 0);
+    } else if (hasOwn(TEST_EVENTS.defaults, key)) {
+        trigger = key; base = Object.assign({}, TEST_EVENTS.defaults[key]); sample = false;
+    } else return null;
+    if (!s.testEvents.triggers.includes(trigger) || !RT_TRIGGERS.has(trigger)) return null;
+    return { key, trigger, base, sample };
+}
+
+// The fields of a trigger: the values its receipt reads, in the order of TEST_EVENTS, and every other field of the catalog (More values)
+function TestFieldsOf(trigger) {
+    const all = RT_TRIGGERS.get(trigger).fields;
+    const receipt = [], more = [], taken = new Set();
+    for (const item of TEST_EVENTS.receipt[trigger]) {
+        let f = null;
+        if (typeof item === 'string') f = all.find(x => x.name === item) || null;
+        else if (item.list) f = { list: item.list, label: item.label, name: '', type: 'list' };
+        else if (item.note) { const at = all.find(x => x.name === item.name); f = at ? Object.assign({}, at, { note: item.note }) : null; }
+        else f = { name: item.name, label: item.label, type: item.type };
+        if (!f) continue;
+        receipt.push(f);
+        if (f.name) taken.add(f.name);
+    }
+    for (const f of all) if (!taken.has(f.name)) more.push(f);
+    return { receipt, more };
+}
+
+// One value of the form: a row with the label, the name of the parameter, a sentence when there is one and the message of a value that is not allowed, and the box
+function TestControl(f) {
+    const id = 'test-v-' + (++testControlSeq);
+    const c = { f, key: f.list ? 'list:' + f.list : f.name, type: f.list ? 'list' : f.type, factor: f.factor || 1, currency: f.name === 'currencyCode' };
+    let el, choices = null;
+    if (c.type === 'flag') el = RtSelect([['', '(not sent)'], ['true', 'yes'], ['false', 'no']], '', { id });
+    else if (c.type === 'list' || (c.type === 'text' && TEST_EVENTS.long.includes(f.name))) {
+        el = h('textarea', { id, class: 'test-text', rows: c.type === 'list' ? '6' : '3', spellcheck: 'false', placeholder: c.type !== 'list' ? 'Not sent' : f.list === 'items' ? 'One item per line' : 'One name per line' });
+    } else {
+        el = h('input', { id, type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: 'Not sent' });
+        if (c.type === 'number') el.setAttribute('inputmode', 'decimal');
+        if (c.currency) el.setAttribute('list', 'test-currencies');                 // the currencies of the action, and any other code of three letters
+        else if (f.choices) {
+            el.setAttribute('list', id + '-choices');
+            choices = h('datalist', { id: id + '-choices' }, ...f.choices.map(ch => { const o = document.createElement('option'); o.value = ch[0]; o.textContent = ch[1]; return o; }));
+        }
+    }
+    el.setAttribute('data-name', c.key);
+    const note = f.note || (f.list ? TEST_LIST_NOTE : '');
+    const described = [id + '-name'];
+    if (note) described.push(id + '-note');
+    described.push(id + '-error');
+    el.setAttribute('aria-describedby', described.join(' '));
+    c.el = el;
+    c.err = h('p', { class: 'field-error', id: id + '-error', hidden: '' });
+    c.row = h('div', { class: 'setting stack-narrow test-field' + (el.tagName === 'TEXTAREA' ? ' test-field-long' : '') },
+        h('div', null,
+            h('label', { class: 'setting-label', for: id }, f.label),
+            h('div', { class: 'setting-description test-field-name', id: id + '-name' }, f.list ? TEST_LIST_NAMES[f.list] : f.name),
+            note ? h('div', { class: 'setting-description', id: id + '-note' }, note) : null,
+            c.err),
+        el, choices);
+    el.addEventListener('input', TestEdited);
+    el.addEventListener('change', TestEdited);
+    return c;
+}
+
+// A value under Other values: its name, its kind, its value and a button that takes it out
+function TestOtherRow(form, name, kind, text) {
+    const r = { err: h('p', { class: 'field-error', id: 'test-o-' + (++testControlSeq) + '-error', hidden: '' }) };
+    r.name = h('input', { type: 'text', class: 'test-other-name', autocomplete: 'off', spellcheck: 'false', placeholder: 'Variable name', 'aria-label': 'Variable name', 'aria-describedby': r.err.id });
+    r.name.value = name;
+    r.kind = RtSelect(TEST_KINDS, TEST_KINDS.some(k => k[0] === kind) ? kind : 'text', { class: 'test-other-kind', 'aria-label': 'Kind of value' });
+    const valueBox = (value) => {
+        const el = r.kind.value === 'flag'
+            ? RtSelect([['true', 'yes'], ['false', 'no']], value === 'false' ? 'false' : 'true', { class: 'test-other-value', 'aria-label': 'Value' })
+            : h('input', { type: 'text', class: 'test-other-value', autocomplete: 'off', spellcheck: 'false', placeholder: 'Not sent', 'aria-label': 'Value' });
+        if (el.tagName === 'INPUT') { el.value = value; if (r.kind.value === 'number') el.setAttribute('inputmode', 'decimal'); }
+        el.setAttribute('aria-describedby', r.err.id);
+        el.addEventListener('input', TestEdited);
+        el.addEventListener('change', TestEdited);
+        return el;
+    };
+    r.value = valueBox(text);
+    r.kind.addEventListener('change', () => { const fresh = valueBox(r.value.tagName === 'INPUT' ? r.value.value : ''); r.value.replaceWith(fresh); r.value = fresh; TestEdited(); });
+    r.name.addEventListener('input', TestEdited);
+    r.name.addEventListener('change', TestEdited);
+    const remove = h('button', { type: 'button', class: 'icon-small', 'aria-label': 'Remove this value', title: 'Remove this value' }, '\u00D7');
+    remove.addEventListener('click', () => { const at = form.other.indexOf(r); if (at >= 0) form.other.splice(at, 1); r.row.remove(); TestEdited(); });
+    r.row = h('div', { class: 'test-other-row' }, r.name, r.kind, r.value, remove, r.err);
+    return r;
+}
+
+function TestAddOther(form, name, kind, text) {
+    const r = TestOtherRow(form, name, kind, text);
+    form.other.push(r);
+    $('test-event-other').append(r.row);
+    return r;
+}
+
+// The lines of a list in an event, in the order of their numbers. covered gets the names that were read
+function TestListLines(kind, values, covered) {
+    const pattern = kind === 'gift' ? /^gift\.recipientUser(\d+)$/ : kind === 'kick' ? /^recipient\.(\d+)\.userName$/ : /^fw\.variants\[(\d+)\]\.(name|quantity)$/;
+    const found = new Map();
+    for (const key of Object.keys(values)) {
+        const m = pattern.exec(key);
+        if (!m) continue;
+        const n = Number(m[1]), e = found.get(n) || {};
+        if (kind === 'items') e[m[2]] = values[key]; else e.name = values[key];
+        found.set(n, e);
+        covered.add(key);
+    }
+    return Array.from(found.keys()).sort((a, b) => a - b).map(n => {
+        const e = found.get(n);
+        return kind === 'items' && e.quantity != null ? `${str(e.quantity, 40)} x ${str(e.name, 1e6)}` : str(e.name, 1e6);
+    });
+}
+
+const TestNumberText = (n) => String(Number(n.toPrecision(15)));
+
+// The text a box shows for a value of the event (an amount in millionths in whole units, yes or no as the list entry, a list one entry per line)
+function TestTextOf(c, values, covered) {
+    if (c.type === 'list') return TestListLines(c.f.list, values, covered).join('\n');
+    if (!hasOwn(values, c.key)) return '';
+    covered.add(c.key);
+    const v = values[c.key];
+    if (c.type === 'flag') return v === true ? 'true' : v === false ? 'false' : '';
+    if (c.type === 'number' && typeof v === 'number') return TestNumberText(v / c.factor);
+    return str(v, 1e6);
+}
+
+function TestSetBox(el, text) {
+    el.value = text;
+    if (el.tagName === 'SELECT' && el.selectedIndex < 0) el.selectedIndex = 0;
+}
+
+// Puts values into the form: the values of the entry, or what the person typed (saved, as TestLoad reads it). A value of the entry that no box holds goes under Other values
+function TestFill(form, saved) {
+    const covered = new Set();
+    for (const c of form.controls) {
+        const text = TestTextOf(c, form.spec.base, covered);
+        TestSetBox(c.el, saved && hasOwn(saved.f, c.key) ? saved.f[c.key] : text);
+    }
+    for (const r of form.other) r.row.remove();
+    form.other = [];
+    const rows = saved ? saved.o : Object.keys(form.spec.base).filter(n => !covered.has(n)).map(n => {
+        const v = form.spec.base[n];
+        return [n, typeof v === 'boolean' ? 'flag' : typeof v === 'number' ? 'number' : 'text', typeof v === 'boolean' ? String(v) : str(v, 1e6)];
+    });
+    for (const row of rows) TestAddOther(form, row[0], row[1], row[2]);
+}
+
+// What the person typed for an entry, from the browser storage, or null. Only texts are taken, and only rows of the three kinds.
+function TestLoad(key) {
+    let doc = null;
+    try {
+        const text = store.get(TEST_STORE_KEY + key);
+        if (typeof text === 'string' && text.length <= TEST_STORE_MAX) doc = JSON.parse(text);
+    } catch (e) { doc = null; }
+    if (!isObj(doc) || doc.v !== 1 || !isObj(doc.f)) return null;
+    const f = Object.create(null);
+    for (const k of Object.keys(doc.f)) if (typeof doc.f[k] === 'string') f[k] = doc.f[k];
+    const o = (Array.isArray(doc.o) ? doc.o : []).filter(r => Array.isArray(r) && r.length === 3 && typeof r[0] === 'string' && TEST_KINDS.some(k => k[0] === r[1]) && typeof r[2] === 'string')
+        .slice(0, TestLimits().maxValues);
+    return { f, o };
+}
+
+function TestSave(form) {
+    const f = {};
+    for (const c of form.controls) f[c.key] = c.el.value;
+    let text;
+    try { text = JSON.stringify({ v: 1, f, o: form.other.map(r => [r.name.value, r.kind.value, r.value.value]) }); } catch (e) { return; }
+    if (text.length > TEST_STORE_MAX) store.remove(TEST_STORE_KEY + form.spec.key);
+    else store.set(TEST_STORE_KEY + form.spec.key, text);
+}
+
+// What is wrong with a name, or ''
+function TestNameProblem(name, limits) {
+    if (name.length > limits.maxKeyChars || !TEST_NAME.test(name)) return `A name starts with a letter and holds only letters, digits and _ . [ ], at most ${limits.maxKeyChars} characters.`;
+    if (TEST_RESERVED.some(r => r.toLowerCase() === name.toLowerCase())) return `"${name}" cannot be set in a test print.`;
+    return '';
+}
+
+// A number as it is typed: { value } (times the factor of the field), or { error }
+function TestNumberOf(text, factor) {
+    const t = text.trim();
+    if (!TEST_NUMBER.test(t)) return { error: 'Enter a number, such as 5 or 2.50 (with a point), or leave the box empty.' };
+    let n = Number(t);
+    if (factor !== 1) n = Math.round(n * factor);
+    if (!Number.isFinite(n) || Math.abs(n) > TEST_MAX_NUMBER) { const most = TestCount(TEST_MAX_NUMBER / factor); return { error: `Enter a number from -${most} to ${most}.` }; }
+    return { value: n };
+}
+
+// Reads one box into values. A value that is not allowed goes into bad as { el, err, msg }
+function TestRead(c, limits, values, bad) {
+    const raw = c.el.value;
+    let msg = '';
+    const put = (name, v) => { if (!msg) msg = TestNameProblem(name, limits); if (!msg) values[name] = v; };
+    if (c.type === 'list') {
+        const lines = raw.split('\n').map(l => l.trim()).filter(l => l !== '');
+        const long = lines.findIndex(l => l.length > limits.maxTextChars);
+        if (lines.length > limits.maxValues) msg = `This list has ${TestCount(lines.length)} lines. Printer Bot tests at most ${TestCount(limits.maxValues)} values in all.`;
+        else if (long >= 0) msg = `Line ${long + 1} is longer than ${TestCount(limits.maxTextChars)} characters.`;
+        else lines.forEach((line, i) => {
+            if (c.f.list === 'gift') put('gift.recipientUser' + i, line);
+            else if (c.f.list === 'kick') put('recipient.' + i + '.userName', line);
+            else { const m = TEST_ITEM.exec(line); put(`fw.variants[${i}].quantity`, m ? Number(m[1]) : 1); put(`fw.variants[${i}].name`, m ? m[2] : line); }
+        });
+    }
+    else if (raw === '' || (c.type !== 'text' && raw.trim() === '')) { }             // an empty box is not sent
+    else if (c.type === 'flag') put(c.f.name, raw === 'true');
+    else if (c.type === 'number') { const n = TestNumberOf(raw, c.factor); if (n.error) msg = n.error; else put(c.f.name, n.value); }
+    else if (c.currency) { if (TEST_CURRENCY.test(raw.trim())) put(c.f.name, raw.trim().toUpperCase()); else msg = 'Enter a currency code of three letters, such as USD, or leave the box empty.'; }
+    else if (raw.length > limits.maxTextChars) msg = `This text has ${TestCount(raw.length)} characters. Printer Bot takes at most ${TestCount(limits.maxTextChars)}.`;
+    else put(c.f.name, raw);
+    if (msg) bad.push({ el: c.el, err: c.err, msg });
+}
+
+// Reads a value under Other values. A row with no name and no value is left out, and so is a value that is empty
+function TestReadOther(form, r, limits, values, bad) {
+    const name = r.name.value.trim(), raw = r.value.value, kind = r.kind.value;
+    let msg = '', at = r.name;
+    if (name === '' && (kind === 'flag' || raw.trim() === '')) return;
+    if (name === '') msg = 'Give this value a name.';
+    else if ((msg = TestNameProblem(name, limits))) { }
+    else if (hasOwn(values, name) || form.controls.some(c => c.key === name)) msg = `"${name}" is already one of the values above.`;
+    else {
+        at = r.value;
+        if (kind === 'flag') values[name] = raw === 'true';
+        else if (raw.trim() === '') { }
+        else if (kind === 'number') { const n = TestNumberOf(raw, 1); if (n.error) msg = n.error; else values[name] = n.value; }
+        else if (raw.length > limits.maxTextChars) msg = `This text has ${TestCount(raw.length)} characters. Printer Bot takes at most ${TestCount(limits.maxTextChars)}.`;
+        else values[name] = raw;
+    }
+    if (msg) bad.push({ el: at, err: r.err, msg });
+}
+
+// The values of the form: { values, bad (the values that are not allowed), problem (a sentence about the event as a whole, or '') }
+function TestCollect(form) {
+    const limits = TestLimits();
+    const values = {}, bad = [];
+    for (const c of form.controls) TestRead(c, limits, values, bad);
+    for (const r of form.other) TestReadOther(form, r, limits, values, bad);
+    const count = Object.keys(values).length;
+    const problem = count > limits.maxValues ? `This event has ${TestCount(count)} values. Printer Bot tests at most ${TestCount(limits.maxValues)}, so take some out.` : '';
+    return { values, bad, problem };
+}
+
+const TestSame = (a, b) => CanonicalJson(a) === CanonicalJson(b);
+
+// Shows what is wrong next to each value, says what Test print does now, and returns the values
+function TestRefresh(form) {
+    const result = TestCollect(form);
+    for (const c of form.controls) { c.err.textContent = ''; c.err.hidden = true; c.el.removeAttribute('aria-invalid'); }
+    for (const r of form.other) { r.err.textContent = ''; r.err.hidden = true; r.name.removeAttribute('aria-invalid'); r.value.removeAttribute('aria-invalid'); }
+    for (const b of result.bad) {
+        if (b.err.hidden) { b.err.textContent = b.msg; b.err.hidden = false; }
+        b.el.setAttribute('aria-invalid', 'true');
+    }
+    const wrong = result.bad.length > 0 || result.problem !== '';
+    if (!wrong) testRefused = false;
+    $('test-event-state').textContent = wrong ? TEST_WRONG_TEXT : !form.spec.sample ? TEST_OWN_TEXT : TestSame(result.values, form.baseValues) ? TEST_SAME_TEXT : TEST_CHANGED_TEXT;
+    const line = $('test-event-problem');
+    line.textContent = wrong && testRefused ? 'Nothing was sent. ' + (result.problem || TEST_FIX_TEXT) : result.problem;
+    line.hidden = !line.textContent;
+    $('test-event-add-button').disabled = form.other.length >= TestLimits().maxValues;
+    return result;
+}
+
+function TestBuildForm(spec) {
+    const fields = TestFieldsOf(spec.trigger);
+    const form = { spec, controls: [], other: [], baseValues: {} };
+    const rows = (list) => list.map(f => { const c = TestControl(f); form.controls.push(c); return c.row; });
+    $('test-event-fields').replaceChildren(...rows(fields.receipt));
+    $('test-event-more-fields').replaceChildren(...rows(fields.more));
+    $('test-event-other').replaceChildren();
+    $('test-event-more').open = false;
+    $('test-event-reset-button').textContent = spec.sample ? 'Reset to the sample' : 'Reset to the defaults';
+    TestFill(form, null);
+    form.baseValues = TestCollect(form).values;          // the values of the entry as the form sends them
+    const saved = TestLoad(spec.key);
+    if (saved) TestFill(form, saved);
+    return form;
+}
+
+// The form of the chosen entry. It is made again only when the entry changes (or the action stops or starts taking it), so a status never takes what the person is typing
+function RenderTestEditor() {
+    RenderTestCurrencies();
+    const spec = TestEntrySpec($('sample').value);
+    const sig = spec ? `${spec.key}|${spec.trigger}|${spec.sample}` : '';
+    if (sig === testFormSig) { if (testForm) TestRefresh(testForm); return; }
+    testFormSig = sig;
+    testRefused = false;
+    if (!spec) {
+        testForm = null;
+        $('test-event').hidden = true;
+        $('test-event').removeAttribute('data-trigger');
+        for (const id of ['test-event-fields', 'test-event-more-fields', 'test-event-other']) $(id).replaceChildren();
+        return;
+    }
+    testForm = TestBuildForm(spec);
+    $('test-event').setAttribute('data-trigger', spec.trigger);          // the trigger the values are sent as
+    $('test-event').hidden = false;
+    TestRefresh(testForm);
+}
+
+// The currencies offered for currencyCode: the ones of status.exchange (the list of YouTube currency), each as its code with its name
+function RenderTestCurrencies() {
+    const list = pbStatus && pbStatus.exchange ? pbStatus.exchange.currencies : [];
+    const sig = JSON.stringify(list);
+    if (sig === testCurrencySig) return;
+    testCurrencySig = sig;
+    $('test-currencies').replaceChildren(...list.map(c => { const o = document.createElement('option'); o.value = c.code; o.textContent = c.name || c.code; return o; }));
+}
+
+function TestEdited() {
+    if (!testForm) return;
+    TestSave(testForm);
+    TestRefresh(testForm);
+}
+
+// The event of a Test print: undefined for the sample itself (no form, or the sample's own values), null when a value is not allowed (nothing is sent), else { trigger, values }
+function TestEventToSend() {
+    if (!testForm || $('test-event').hidden) return undefined;
+    const result = TestCollect(testForm);
+    if (result.bad.length || result.problem) {
+        testRefused = true;
+        TestRefresh(testForm);
+        const first = result.bad.length ? result.bad[0].el : null;
+        if (first) { if ($('test-event-more').contains(first)) $('test-event-more').open = true; first.focus(); }
+        return null;
+    }
+    if (testForm.spec.sample && TestSame(result.values, testForm.baseValues)) return undefined;
+    return { trigger: testForm.spec.trigger, values: result.values };
+}
+
+function TestReset() {
+    if (!testForm) return;
+    store.remove(TEST_STORE_KEY + testForm.spec.key);
+    const spec = TestEntrySpec(testForm.spec.key);           // the values of now (the long cheer follows the threshold as it is now)
+    if (!spec) return;
+    testRefused = false;
+    testForm = TestBuildForm(spec);
+    TestRefresh(testForm);
+}
+
+function TestAddValue() {
+    if (!testForm || testForm.other.length >= TestLimits().maxValues) return;
+    const r = TestAddOther(testForm, '', 'text', '');
+    TestRefresh(testForm);
+    r.name.focus();
 }
 
 
@@ -2627,6 +3064,9 @@ $('settings-text-check-button').addEventListener('click', () => PrepareRestore($
 RenderPrereleaseNote();
 $('mirror-note-dismiss').addEventListener('click', () => { store.set(MIRROR_KEY, '1'); $('mirror-note').hidden = true; });
 $('test-print-button').addEventListener('click', TestPrint);
+$('sample').addEventListener('change', RenderTestEditor);            // 3.0.4: the values of the chosen entry
+$('test-event-reset-button').addEventListener('click', TestReset);
+$('test-event-add-button').addEventListener('click', TestAddValue);
 
 // Follow the rules in the Test card. The choice is kept in this browser (it is a way of working, not a setting of Printer Bot), and it starts off.
 const TEST_RULES_KEY = 'pbTestFollowRules';
