@@ -76,6 +76,7 @@ let minActionVersion = '';    // from config.json: an imported action older than
 let pbStatus = null;          // last status the action sent
 let statusSeen = false;       // has the action answered since the last (re)connect?
 let sbConnected = false;
+let connectionTurn = 0;       // counts every connect and every disconnect: a check of the action that finds another turn belongs to a connection that is gone (CheckAction)
 let legacyActionsFound = false;
 let previewOpen = false, lastPreviewAt = '';
 let statusTimer = null, saveTimer = null, savedFlagTimer = null;
@@ -262,6 +263,7 @@ function PersistConnection() {
 
 function SetConnectionState(isConnected) {
     sbConnected = isConnected;
+    connectionTurn++;
     // A save that is still waiting for its answer when the connection changes is put back at once. The client library never ends such a request until its 10 s are up.
     // It may or may not have reached the action, and sending the same values again does no harm.
     for (const [send, record] of outstandingSends) { record.handled = true; SaveFailed(send, record.patch, record.at); }
@@ -350,10 +352,17 @@ function Send(command, extra) {
 }
 
 // Checks that the action is imported. Shows setup help if it is not, otherwise the control panel.
+// A check belongs to the connection that started it. When that connection closes while the check waits (for config.json or for the list of actions), the
+// check stops and leaves the page alone: the disconnect has put up the connect dialog, and the next connection runs a check of its own. Before 3.0.6 a
+// list that failed this way was logged as an error and showed the setup card ("not in Streamer.bot yet") behind the connect dialog, and a list whose
+// connection closed after it was sent could time out 10 seconds later and show that card over the dock of the next connection.
 async function CheckAction() {
+    const turn = connectionTurn;
+    const stillOurs = () => sbConnected && connectionTurn === turn;
     let config;
     try { config = await configPromise; }
     catch (err) { return; }                       // the page already says why (see AddPageNotice above)
+    if (!stillOurs()) return;
     actionId = config.actionId;
 
     let found = false;
@@ -361,7 +370,15 @@ async function CheckAction() {
         const response = await sbClient.getActions();
         found = response.actions.some(a => a.id === actionId);
         legacyActionsFound = response.actions.some(a => a.name === 'Printer Bot | Events' || a.name === 'Printer Bot | Print Routine');
-    } catch (err) { console.error('Could not list actions:', err); }
+    } catch (err) {
+        // The client says "not connected" when the socket closed before the request (its close event, and so our disconnect, may come a moment later),
+        // and "aborted" when it gave a waiting request up. Both are a normal part of a reconnect, as in Send. Any other failure of a live connection is an error.
+        if (!stillOurs() || /not connected|aborted/i.test(String(err && err.message))) {
+            console.warn('The list of actions was not read: the connection to Streamer.bot closed.', err);
+            return;
+        }
+        console.error('Could not list actions:', err);
+    }
 
     if (!found) {
         $('main').hidden = true;

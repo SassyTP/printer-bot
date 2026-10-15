@@ -63,6 +63,10 @@ A change you made has not reached Printer Bot yet. The dock lost its connection 
 
 The dock tried six times (once, then again after 1, 2, 4, 8 and 16 seconds) and Streamer.bot did not take the change. The fields show what Printer Bot has. Check that the Printer Bot action is enabled and read the Streamer.bot log, then change the setting again.
 
+### The dock showed "The Printer Bot action is not in Streamer.bot yet" for a moment after Streamer.bot restarted
+
+Up to 3.0.5 this could happen when the connection to Streamer.bot dropped just as the dock connected, for example during a restart of Streamer.bot. The dock showed that card behind the connect dialog, or up to 10 seconds later over a dock that had already connected again, although the action was there all along. Press **Reload dock**, or wait for the next connection. The dock page of 3.0.6, which the host hands out to every Printer Bot from 3.0.0 on, waits for the next connection and shows the right card. If the card stays after the dock has connected, the action is really missing: import it as the card says.
+
 ### Nothing prints
 
 Check in this order:
@@ -220,7 +224,7 @@ Streamer.bot's own Test button sends sparse events. A gift bomb comes without na
 
 ### A real cheer printed differently from my test ("Cheer100" on the receipt, the picture below the words)
 
-Twitch puts the cheermotes that pay the bits into the message of a real cheer (`Cheer2000 Look at this`), and a test from Streamer.bot sends the message without them. Up to 3.0.3 Printer Bot printed them as words, and a picture that opened a High Roller message went below them, because a word came first. From 3.0.4 the cheermotes are left out of a cheer's message, so a real cheer prints as its test does. Update Printer Bot if you still see them.
+Twitch puts the cheermotes that pay the bits into the message of a real cheer (`Cheer2000 Look at this`), and a test from Streamer.bot sends the message without them. Up to 3.0.3 Printer Bot printed them as words, and a picture that opened a High Roller message went below them, because a word came first. From 3.0.4 the cheermotes are left out of a cheer's message, so a real cheer prints as its test does. From 3.0.6 the space next to each cheermote goes with it (3.0.4 and 3.0.5 printed a gap after the opening quote when the message started with one, and two spaces where one stood in the middle), and only a real cheer amount counts, 1 to 100,000 bits written without a leading zero: `Cheer0`, `Cheer007` or `Cheer100001` print as typed. Update Printer Bot if you still see them.
 
 ### A test print says TEST at its bottom
 
