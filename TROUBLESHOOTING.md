@@ -232,7 +232,7 @@ From 3.0.4 a receipt that the dock's **Test print** made from values you typed h
 
 ### A test print with my own values says "Test print not sent. The dock sent an event that cannot be read."
 
-Printer Bot 3.0.4 to 3.0.6 refused every test print with values you typed: Streamer.bot does not pass the values through in the form the dock sent them, so the action could not read them. Since 3.0.7 the dock sends them as text and the action reads it. Update to 3.0.7 in the Updates card (**Check now**, then **Update to 3.0.7**), restart Streamer.bot and press **Reload dock**. Test prints of the samples, with no values typed, worked all along.
+Printer Bot 3.0.4 to 3.0.6 refused every test print with values you typed: Streamer.bot does not pass the values through in the form the dock sent them, so the action could not read them. Since 3.0.7 the dock sends them as text and the action reads it. Update to 3.0.7 or newer in the Updates card (**Check now**, then **Update to** the version it offers), restart Streamer.bot and press **Reload dock**. Test prints of the samples, with no values typed, worked all along.
 
 ### A test print says "Test print not sent" and names a value
 

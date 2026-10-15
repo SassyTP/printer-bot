@@ -798,7 +798,7 @@ function FillSettings(s) {
     if (samplesNow !== sampleSignature) {
         sampleSignature = samplesNow;
         const keep = sample.value;
-        sample.replaceChildren(...entries.map(n => new Option(n, n)));
+        sample.replaceChildren(...TestEntryGroups(entries));
         if (entries.includes(keep)) sample.value = keep;
     }
     RenderTestEditor();
@@ -1920,6 +1920,11 @@ const updatesBox = $('updates-box');
 updatesBox.open = store.get('pbUpdatesOpen') === '1';
 updatesBox.addEventListener('toggle', () => store.set('pbUpdatesOpen', updatesBox.open ? '1' : '0'));
 
+// The Test card is a group like that too (the owner, 15 October 2026: the card had grown too large). It is closed until opened and remembers whether it was left open.
+const testBox = $('test-box');
+testBox.open = store.get('pbTestOpen') === '1';
+testBox.addEventListener('toggle', () => store.set('pbTestOpen', testBox.open ? '1' : '0'));
+
 // The maximum length in the box: a number of inches from 0.01 to 40, or 0 when the box is empty, junk or off (then the built-in limit applies)
 function MaxInchesSetting() {
     const v = parseFloat($('highRollerMaxInches').value);
@@ -2265,6 +2270,30 @@ function TestEntries(s) {
     return entries;
 }
 
+// The entries of the list in groups, one for each platform, in the order of the trigger list of a rule (the owner, 15 October 2026: the list was to be grouped as that one is).
+// An entry goes under the platform of its trigger and, within it, in the order of the catalog; a sample that names no trigger here (the end-to-end Hype Train test) goes
+// under the platform its name starts with, after the others. The values and the texts of the entries are what they were.
+const TEST_PLATFORMS = ['Twitch', 'YouTube', 'Kick', 'StreamElements', 'Streamlabs', 'Fourthwall'];
+function TestEntryGroups(entries) {
+    const order = ROUTE_CATALOG.triggers.map(t => t.id);
+    const triggerOf = (n) => hasOwn(TEST_EVENTS.samples, n) ? TEST_EVENTS.samples[n].trigger : n;
+    const placed = entries.map((n, i) => {
+        const t = RT_TRIGGERS.get(triggerOf(n));
+        const at = order.indexOf(triggerOf(n));
+        return { n, i, platform: t ? t.platform : (TEST_PLATFORMS.find(p => n.startsWith(p)) || 'Other'), at: at < 0 ? order.length : at };
+    });
+    const groups = [];
+    for (const platform of TEST_PLATFORMS.concat(['Other'])) {
+        const items = placed.filter(e => e.platform === platform).sort((a, b) => a.at - b.at || a.i - b.i);
+        if (!items.length) continue;
+        const g = document.createElement('optgroup');
+        g.label = platform;
+        g.append(...items.map(e => new Option(e.n, e.n)));
+        groups.push(g);
+    }
+    return groups;
+}
+
 // The form of an entry: { key, trigger, base (the values it starts with), sample (a sample of the action, sent by its name while its values are the sample's) }, or null for an entry
 // that has none: an action that takes no typed values, the end-to-end Hype Train test, a sample this page does not know, a trigger the action does not take
 function TestEntrySpec(key) {
@@ -2292,6 +2321,11 @@ function TestFieldsOf(trigger) {
         let f = null;
         if (typeof item === 'string') f = all.find(x => x.name === item) || null;
         else if (item.list) f = { list: item.list, label: item.label, name: '', type: 'list' };
+        else if (item.money) {
+            const at = all.find(x => x.name === item.name);
+            f = at ? Object.assign({}, at, { money: true, shown: item.shown || '', currency: item.currency || '', note: item.note || '', label: item.shown ? 'Amount' : at.label }) : null;
+            if (f && f.shown) taken.add(f.shown);
+        }
         else if (item.note) { const at = all.find(x => x.name === item.name); f = at ? Object.assign({}, at, { note: item.note }) : null; }
         else f = { name: item.name, label: item.label, type: item.type };
         if (!f) continue;
@@ -2306,18 +2340,15 @@ function TestFieldsOf(trigger) {
 function TestControl(f) {
     const id = 'test-v-' + (++testControlSeq);
     const c = { f, key: f.list ? 'list:' + f.list : f.name, type: f.list ? 'list' : f.type, factor: f.factor || 1, currency: f.name === 'currencyCode' };
-    let el, choices = null;
+    let el;
     if (c.type === 'flag') el = RtSelect([['', '(not sent)'], ['true', 'yes'], ['false', 'no']], '', { id });
+    else if (f.choices) el = RtSelect([['', '(not sent)']].concat(f.choices), '', { id });      // a value with a fixed set (the tier of a sub): a real dropdown (the owner, 15 October 2026)
     else if (c.type === 'list' || (c.type === 'text' && TEST_EVENTS.long.includes(f.name))) {
         el = h('textarea', { id, class: 'test-text', rows: c.type === 'list' ? '6' : '3', spellcheck: 'false', placeholder: c.type !== 'list' ? 'Not sent' : f.list === 'items' ? 'One item per line' : 'One name per line' });
     } else {
         el = h('input', { id, type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: 'Not sent' });
         if (c.type === 'number') el.setAttribute('inputmode', 'decimal');
         if (c.currency) el.setAttribute('list', 'test-currencies');                 // the currencies of the action, and any other code of three letters
-        else if (f.choices) {
-            el.setAttribute('list', id + '-choices');
-            choices = h('datalist', { id: id + '-choices' }, ...f.choices.map(ch => { const o = document.createElement('option'); o.value = ch[0]; o.textContent = ch[1]; return o; }));
-        }
     }
     el.setAttribute('data-name', c.key);
     const note = f.note || (f.list ? TEST_LIST_NOTE : '');
@@ -2333,7 +2364,7 @@ function TestControl(f) {
             h('div', { class: 'setting-description test-field-name', id: id + '-name' }, f.list ? TEST_LIST_NAMES[f.list] : f.name),
             note ? h('div', { class: 'setting-description', id: id + '-note' }, note) : null,
             c.err),
-        el, choices);
+        el);
     el.addEventListener('input', TestEdited);
     el.addEventListener('change', TestEdited);
     return c;
@@ -2397,8 +2428,10 @@ function TestTextOf(c, values, covered) {
     if (c.type === 'list') return TestListLines(c.f.list, values, covered).join('\n');
     if (!hasOwn(values, c.key)) return '';
     covered.add(c.key);
+    if (c.f.money && c.f.shown) covered.add(c.f.shown);
     const v = values[c.key];
     if (c.type === 'flag') return v === true ? 'true' : v === false ? 'false' : '';
+    if (c.f.money && typeof v === 'number') return (v / c.factor).toFixed(2);
     if (c.type === 'number' && typeof v === 'number') return TestNumberText(v / c.factor);
     return str(v, 1e6);
 }
@@ -2413,7 +2446,9 @@ function TestFill(form, saved) {
     const covered = new Set();
     for (const c of form.controls) {
         const text = TestTextOf(c, form.spec.base, covered);
-        TestSetBox(c.el, saved && hasOwn(saved.f, c.key) ? saved.f[c.key] : text);
+        // a saved value that a dropdown does not offer (typed into the box of an older version, such as tier 7) gives way to the entry's own value
+        const keep = saved && hasOwn(saved.f, c.key) && (c.el.tagName !== 'SELECT' || Array.prototype.some.call(c.el.options, o => o.value === saved.f[c.key]));
+        TestSetBox(c.el, keep ? saved.f[c.key] : text);
     }
     for (const r of form.other) r.row.remove();
     form.other = [];
@@ -2483,7 +2518,12 @@ function TestRead(c, limits, values, bad) {
     }
     else if (raw === '' || (c.type !== 'text' && raw.trim() === '')) { }             // an empty box is not sent
     else if (c.type === 'flag') put(c.f.name, raw === 'true');
-    else if (c.type === 'number') { const n = TestNumberOf(raw, c.factor); if (n.error) msg = n.error; else put(c.f.name, n.value); }
+    else if (c.type === 'number') {
+        const n = TestNumberOf(raw, c.factor);
+        if (n.error) msg = n.error;
+        else if (c.f.money && Math.abs(Number(raw.trim()) * 100 - Math.round(Number(raw.trim()) * 100)) > 1e-6) msg = 'Enter an amount with at most two digits after the point, such as 5 or 2.50.';
+        else put(c.f.name, n.value);
+    }
     else if (c.currency) { if (TEST_CURRENCY.test(raw.trim())) put(c.f.name, raw.trim().toUpperCase()); else msg = 'Enter a currency code of three letters, such as USD, or leave the box empty.'; }
     else if (raw.length > limits.maxTextChars) msg = `This text has ${TestCount(raw.length)} characters. Printer Bot takes at most ${TestCount(limits.maxTextChars)}.`;
     else put(c.f.name, raw);
@@ -2514,10 +2554,19 @@ function TestCollect(form) {
     const limits = TestLimits();
     const values = {}, bad = [];
     for (const c of form.controls) TestRead(c, limits, values, bad);
+    for (const c of form.controls) if (c.f.money && c.f.shown && typeof values[c.f.name] === 'number') values[c.f.shown] = TestMoneyText(values[c.f.name] / c.factor, values[c.f.currency]);
     for (const r of form.other) TestReadOther(form, r, limits, values, bad);
     const count = Object.keys(values).length;
     const problem = count > limits.maxValues ? `This event has ${TestCount(count)} values. Printer Bot tests at most ${TestCount(limits.maxValues)}, so take some out.` : '';
     return { values, bad, problem };
+}
+
+// An amount as Streamer.bot shows it with its currency, such as $5.00 or \u20ac25.50 (the amount as shown of a Super Chat). Without a currency it can format, the amount and the code
+function TestMoneyText(amount, code) {
+    if (typeof code === 'string' && code !== '') {
+        try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: code }).format(amount); } catch (e) { }
+    }
+    return amount.toFixed(2) + (typeof code === 'string' && code !== '' ? ' ' + code : '');
 }
 
 const TestSame = (a, b) => CanonicalJson(a) === CanonicalJson(b);

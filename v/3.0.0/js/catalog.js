@@ -187,6 +187,9 @@ const ROUTE_CATALOG = (() => {
 //   'name'                          a field of the trigger in ROUTE_CATALOG
 //   { name, note }                  such a field with a sentence under it (what makes the receipt print nothing, for example)
 //   { name, label, type }           a value the receipt reads that ROUTE_CATALOG leaves out
+//   { money, name, shown, currency }  an amount of money (the field of the trigger): one box with two digits after the point. shown names the parameter that
+//                                     holds the amount as text with its currency (Amount as shown); the form fills it from the box and the currency named by currency
+//                                     and shows no box of its own for it (the owner, 15 October 2026: one Amount box)
 //   { list, label }                 a list typed one entry per line, sent as indexed names:
 //                                     'gift'   Twitch gift bomb: gift.recipientUser0, gift.recipientUser1, ... (one name per line)
 //                                     'kick'   Kick mass gift: recipient.0.userName, recipient.1.userName, ... (one name per line)
@@ -201,6 +204,7 @@ const TEST_EVENTS = (() => {
     const own = (name, label, type) => ({ name, label, type });
     const list = (kind, label) => ({ list: kind, label });
     const note = (name, text) => ({ name, note: text });
+    const money = (name, shown, currency, text) => ({ money: true, name, shown, currency, note: text });
     const bitsTop = ['top.bits.user', 'top.bits.userName', 'top.bits.total'];
     const subTop = ['top.subscription.user', 'top.subscription.userName', 'top.subscription.total'];
     const trainKind = ['trainType', 'isTreasureTrain', 'isGoldenKappaTrain'];
@@ -224,8 +228,8 @@ const TEST_EVENTS = (() => {
         YouTubeMemberMileStone: ['user', 'levelName', 'months', 'message'],
         YouTubeMembershipGift: ['user', 'count', 'tier'],
         YouTubeGiftMembershipReceived: ['gifterUser', 'user'],
-        YouTubeSuperChat: ['user', 'microAmount', 'currencyCode', 'amount', 'message'],
-        YouTubeSuperSticker: ['user', 'microAmount', 'currencyCode', 'amount'],
+        YouTubeSuperChat: ['user', money('microAmount', 'amount', 'currencyCode'), 'currencyCode', 'message'],
+        YouTubeSuperSticker: ['user', money('microAmount', 'amount', 'currencyCode'), 'currencyCode'],
 
         KickSubscription: ['user', kickLogin, 'monthsSubscribed', 'duration'],
         KickResubscription: ['user', kickLogin, 'monthsSubscribed', 'duration'],
@@ -234,12 +238,12 @@ const TEST_EVENTS = (() => {
         KickIncomingRaid: ['user', 'viewers'],
         KickKicksGifted: ['sender', 'amount', 'gift', note('giftType', 'Only LEVEL_UP prints a receipt.'), 'message'],
 
-        StreamElementsTip: ['tipUsername', 'tipAmount', 'tipCurrency', 'tipMessage'],
-        StreamlabsDonation: ['donationFrom', 'donationAmount', 'donationCurrency', 'donationFormattedAmount', 'donationMessage'],
+        StreamElementsTip: ['tipUsername', money('tipAmount'), 'tipCurrency', 'tipMessage'],
+        StreamlabsDonation: ['donationFrom', money('donationAmount', 'donationFormattedAmount', 'donationCurrency'), 'donationCurrency', 'donationMessage'],
 
-        FourthwallDonation: ['fw.username', 'fw.amount', 'fw.currency', 'fw.message'],
-        FourthwallOrderPlaced: ['fw.username', note('fw.total', '0 or less prints nothing.'), 'fw.currency', list('items', 'Items, one per line, such as 2 x Shirt'), 'fw.statmessageus'],
-        FourthwallSubscriptionPurchased: ['fw.nickname', 'fw.amount', 'fw.currency'],
+        FourthwallDonation: ['fw.username', money('fw.amount'), 'fw.currency', 'fw.message'],
+        FourthwallOrderPlaced: ['fw.username', money('fw.total', '', '', '0 or less prints nothing.'), 'fw.currency', list('items', 'Items, one per line, such as 2 x Shirt'), 'fw.statmessageus'],
+        FourthwallSubscriptionPurchased: ['fw.nickname', money('fw.amount'), 'fw.currency'],
     };
 
     // ---- the samples (renderer.js SAMPLES and HYPE_STEPS)

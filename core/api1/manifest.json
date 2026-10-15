@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.7",
-  "built": "202610151922",
+  "version": "3.0.8",
+  "built": "202610152236",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.7.bin",
+      "name": "core-3.0.8.bin",
       "size": 655360,
-      "sha256": "c306f5ca69aea7836b6dee1e45646f5c6c3b50dc5f9602bfadf377fa86c7780a"
+      "sha256": "59fd6db9d47178613a89a17bef8b537bc116f97171aa83ccfb61439d9100ac2c"
     }
   ],
-  "notes": "Printer Bot 3.0.7 makes test prints with your own values work. The Test card of the dock sends the values you type (the bits, the names, the message) in a form Streamer.bot passes on, and Printer Bot reads it, so the receipt prints with your values and TEST at its bottom. Before, every such test print was refused with \"The dock sent an event that cannot be read\". From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.7 on GitHub.",
+  "notes": "Printer Bot 3.0.8 tidies up the Test card of the dock. The card is closed until you click its heading, and its list is grouped by platform, like the event list of a rule. A Super Chat, a donation or a tip has one Amount box with two digits after the point, and the receipt shows the currency you pick with its symbol. The currency box has no dropdown arrow, and the tier of a sub, the role of a viewer and the kind of Hype Train are real dropdowns of the values Streamer.bot sends. Nothing changes on the receipts. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.8 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }

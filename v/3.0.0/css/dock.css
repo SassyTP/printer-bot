@@ -914,16 +914,19 @@ input[aria-invalid="true"]:focus {
 
 /* The whole card is one collapsible group that stays closed until it is opened. It reuses the look of "Advanced" (the same marker and summary),
    without the line above it, because the card has its own border. The heading is inside the summary and sits inline next to the marker. */
-.advanced.updates-box {
+.advanced.updates-box,
+.advanced.test-box {
     border-top: none;
     padding-top: 0;
 }
 
-.updates-box > summary {
+.updates-box > summary,
+.test-box > summary {
     opacity: 1;
 }
 
-.updates-box > summary > h2 {
+.updates-box > summary > h2,
+.test-box > summary > h2 {
     display: inline;
 }
 
@@ -936,8 +939,9 @@ input[aria-invalid="true"]:focus {
     display: none;
 }
 
-/* the body keeps the layout the card had before it became a group: a column of blocks with a gap */
-.updates-body {
+/* the body keeps the layout the card had before it became a group: a column of blocks with a gap (the Test card too, since it became a group) */
+.updates-body,
+.test-body {
     display: flex;
     flex-direction: column;
     gap: var(--gap-row);
@@ -945,7 +949,8 @@ input[aria-invalid="true"]:focus {
 
 /* 3.0.3: the open card is the box of what was hidden (see the boxes of the other groups above). A second frame inside the card would put More in a third one, so a line
    under the heading closes the box of the card at the top instead. */
-.updates-box[open] > .updates-body {
+.updates-box[open] > .updates-body,
+.test-box[open] > .test-body {
     padding-top: var(--gap-row);
     border-top: 1px solid var(--border-color);
 }
@@ -1165,6 +1170,12 @@ textarea[aria-invalid="true"]:focus {
 #test-event-state,
 #test-event-problem {
     margin: 0;
+}
+
+/* the box of a currency code is a text box: the browser draws a dropdown arrow for its list of suggestions, which offers only what matches the code already in it
+   (the owner, 15 October 2026, called it a fake dropdown). The suggestions still come as one types */
+#test-event input[list="test-currencies"]::-webkit-calendar-picker-indicator {
+    display: none !important;
 }
 
 /* Other values: a name, a kind, a value and the x of each, on one line where there is room */

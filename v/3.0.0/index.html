@@ -9,9 +9,9 @@
     <title>Printer Bot</title>
     <!-- Every address below ends in ?v=<build>. The build tool rewrites the stamp when a file of this folder changes,
          so a changed file gets a new address and a browser that caches hard still fetches it. -->
-    <link rel="icon" href="assets/logo.png?v=53a18a560f8b" type="image/png">
+    <link rel="icon" href="assets/logo.png?v=0b55a3e06b67" type="image/png">
 
-    <link rel="stylesheet" href="css/dock.css?v=53a18a560f8b" />
+    <link rel="stylesheet" href="css/dock.css?v=0b55a3e06b67" />
 </head>
 
 <body>
@@ -19,7 +19,7 @@
 
         <!-- Header -->
         <div id="header">
-            <img class="brand-logo" src="assets/logo.png?v=53a18a560f8b" alt="" />
+            <img class="brand-logo" src="assets/logo.png?v=0b55a3e06b67" alt="" />
             <label id="title" class="title"></label>
             <div id="header-end">
                 <!-- A small dot while an update is available. It scrolls to the Updates card. -->
@@ -508,8 +508,11 @@
                     </details>
                 </section>
 
-                <section class="card">
-                    <h2>Test</h2>
+                <section class="card" id="test-card">
+                    <!-- The whole card is one collapsible group, like Updates (the owner, 15 October 2026: the card had grown too large). It stays closed until it is opened. -->
+                    <details id="test-box" class="advanced test-box">
+                        <summary><h2>Test</h2></summary>
+                        <div class="test-body">
                     <div id="test-printers-row" class="setting" hidden>
                         <div>
                             <label class="setting-label" for="test-printers">Print on</label>
@@ -566,6 +569,8 @@
                         <img id="preview-img" alt="Last receipt">
                         <div id="preview-caption" class="hint"></div>
                     </div>
+                        </div>
+                    </details>
                 </section>
 
                 <section class="card" id="backup-card">
@@ -784,7 +789,7 @@
         <div id="sb-connect-dialog" class="dialog" role="dialog" aria-label="Connect to Streamer.bot">
             <button type="button" id="sb-close-button" class="dialog-nav-button" aria-label="Close">&#xD7;</button>
             <div class="dialog-brand">
-                <img class="brand-logo" src="assets/icons/plug.svg?v=53a18a560f8b" loading="lazy" decoding="async" alt="" />
+                <img class="brand-logo" src="assets/icons/plug.svg?v=0b55a3e06b67" loading="lazy" decoding="async" alt="" />
                 <label class="title">Streamer.bot</label>
             </div>
             <div class="field-row">
@@ -823,11 +828,11 @@
         </div>
     </div>
 
-    <script src="vendor/streamerbot-client.js?v=53a18a560f8b"></script>
-    <script src="js/version.js?v=53a18a560f8b"></script>
-    <script src="js/catalog.js?v=53a18a560f8b"></script>
-    <script src="js/printers.js?v=53a18a560f8b"></script>
-    <script src="js/app.js?v=53a18a560f8b"></script>
+    <script src="vendor/streamerbot-client.js?v=0b55a3e06b67"></script>
+    <script src="js/version.js?v=0b55a3e06b67"></script>
+    <script src="js/catalog.js?v=0b55a3e06b67"></script>
+    <script src="js/printers.js?v=0b55a3e06b67"></script>
+    <script src="js/app.js?v=0b55a3e06b67"></script>
 </body>
 
 </html>
