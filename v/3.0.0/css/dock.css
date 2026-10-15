@@ -556,7 +556,7 @@ button.confirming {
     color: var(--warn-color);
 }
 
-/* A value that was typed and is not allowed: the message under the label and a red box. Nothing is saved while it shows. */
+/* A value that was typed and is not allowed: the message under the label (in a narrow dock under the box, see "The box of a stacked row") and a red box. Nothing is saved while it shows. */
 .field-error {
     margin: var(--gap-text) 0 0;
     font-size: 0.9em;
@@ -696,9 +696,11 @@ input[aria-invalid="true"]:focus {
     opacity: 0.75;
 }
 
+/* The reserve of two lines is for a wide dock, where the box sits beside the words and the rows below don't jump while the example changes as you type.
+   In a narrow dock the example goes under the box and keeps no reserve (see "The box of a stacked row" below). */
 .example {
     margin-top: var(--gap-text);
-    min-height: 2.7em;          /* two lines: the rows below don't jump while the example changes as you type */
+    min-height: 2.7em;
     opacity: 0.8;
     font-weight: 400;
 }
@@ -800,11 +802,7 @@ input[aria-invalid="true"]:focus {
     .backup-body > .setting.stack-narrow {
         flex-direction: column;
         align-items: stretch;
-        gap: var(--gap-part);           /* the control sits close under its own text, closer than the next row */
-    }
-
-    .example {
-        min-height: 4.2em;      /* three lines */
+        gap: 0;                         /* the parts keep their own spacing: see "The box of a stacked row" below */
     }
 
     .details-body > .setting.stack-narrow > input,
@@ -832,6 +830,42 @@ input[aria-invalid="true"]:focus {
     .update-layouts > .setting.stack-narrow > .setting-actions button,
     .backup-body > .setting.stack-narrow > .setting-actions button {
         flex: 1;
+    }
+}
+
+/* The box of a stacked row (3.0.5). In a narrow dock every row marked stack-narrow is a column: its words (the label and the description), then its box (the number box,
+   the list or the buttons), then the message of a value that is not allowed, then the example. The box comes right under the words, --gap-part below them as before, and
+   nothing above it changes while a person types: the message and the example come, go and change their length under the box, and the example keeps no blank lines.
+   The words keep their own element in the page (the ids, aria-describedby and the scripts are as they were). display: contents lets its parts be parts of the row, so the
+   row has no gap of its own and each part keeps its spacing: the parts of the words their margins, the box --gap-part above it, the first line under the box --gap-part,
+   and the example --gap-text under a message. A wide dock is unchanged: the box sits beside the words and the example under the description. */
+@media (max-width: 640px) {
+    .setting.stack-narrow > div:first-child {
+        display: contents;
+    }
+
+    .setting.stack-narrow > input,
+    .setting.stack-narrow > select,
+    .setting.stack-narrow > textarea,
+    .setting.stack-narrow > .setting-actions {
+        order: 1;
+        margin-top: var(--gap-part);
+    }
+
+    .setting.stack-narrow > div:first-child > .field-error {
+        order: 2;
+        margin-top: var(--gap-part);
+    }
+
+    .setting.stack-narrow > div:first-child > .example {
+        order: 3;
+        margin-top: var(--gap-part);
+        min-height: 0;
+    }
+
+    /* a message with an example under it: the example sits --gap-text under the message (the margins of the parts of a row add up, they do not overlap) */
+    .setting.stack-narrow > div:first-child > .example:not(:empty) ~ .field-error {
+        margin-bottom: calc(var(--gap-text) - var(--gap-part));
     }
 }
 
@@ -1174,7 +1208,7 @@ textarea[aria-invalid="true"]:focus {
     .test-event-fields > .setting.stack-narrow {
         flex-direction: column;
         align-items: stretch;
-        gap: var(--gap-part);
+        gap: 0;                         /* the parts keep their own spacing: see "The box of a stacked row" */
     }
 
     .test-event-fields > .setting.stack-narrow > input,
@@ -1764,15 +1798,18 @@ textarea[aria-invalid="true"]:focus {
         margin-left: 0;
     }
 
+    /* Printers per browser stacks here too (3.0.5): up to 3.0.4 its box stayed beside the words down to 470 px, under three blank lines kept for the example */
     #add-printer-row-multi.stack-narrow,
     #route-else-row.stack-narrow,
-    #add-printer-row.stack-narrow {
+    #add-printer-row.stack-narrow,
+    #per-browser-row.stack-narrow {
         flex-direction: column;
         align-items: stretch;
-        gap: var(--gap-part);
+        gap: 0;                         /* the parts keep their own spacing: see "The box of a stacked row" */
     }
 
     #route-else-row.stack-narrow > select,
+    #per-browser-row.stack-narrow > input,
     #add-printer-row.stack-narrow > .setting-actions,
     #add-printer-row-multi.stack-narrow > .setting-actions {
         width: 100%;

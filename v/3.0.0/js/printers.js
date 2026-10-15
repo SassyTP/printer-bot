@@ -801,7 +801,7 @@ function RtExtraPrinterRow(slot) {
 
 const RT_PAPER_TEXT = 'Letter paper (8.5 x 11 in) works with the Windows printer driver and the preview. A thermal printer prints on its roll.';
 const RT_PROFILE_TEXT = 'Color prints the receipt as it looks, with nothing shaded. Black and white shades pictures into dots.';
-const RT_LAYOUT_TEXT = 'Scaled like 80 mm keeps the receipt as it is on a roll, blown up to the page: a big picture and a small box for the message. Large message puts a small picture, the amount, the name and the time at the top and the platform logo at the bottom, and gives all the space between to the message and its pictures. A list of gifted subs uses all that space too, so up to 100 names fit one page.';
+const RT_LAYOUT_TEXT = 'Scaled like 80 mm keeps the receipt as it is on a roll, blown up to the page: a big picture and a small box for the message. Large message puts a small picture, the amount, the name and the time at the top and the platform logo at the bottom, and gives all the space between to the message and its pictures. A list of gifted subs uses all that space too, so up to 100 names fit one page. Only High Roller cheers, High Roller Super Chats, gift subs and gifted memberships print this way; every other receipt on this printer prints Scaled like 80 mm.';
 const RT_HIGH_ROLLER_TEXT = 'This printer prints High Roller cheers with their styled message and the pictures in it. Off prints them as ordinary cheers with plain text and no pictures.';
 
 const RtIsLetter = (c) => c.paperSize === 'letter' && c.mode !== 'escpos';

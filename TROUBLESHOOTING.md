@@ -103,6 +103,10 @@ A test print that names printers takes only the printers that exist and are set 
 
 Raise **Extra feed before cut**.
 
+### Windows locked my account, or a Microsoft sign-in window opened, while Streamer.bot was running
+
+Update to 3.0.5. Before it, every receipt browser that started with a new profile (the first start of Printer Bot, and each extra browser that **Printers per browser** adds) made one failed sign-in to your Windows account: Edge finds out whether the account has an empty password by trying to sign in with an empty password. Windows locks a local account for 10 minutes after 10 failed sign-ins in 10 minutes. Edge also signed these hidden browsers in to the Microsoft account of Windows by itself, and when it later asked Windows for that account, a "Choose a way to sign in" window could open. From 3.0.5 Printer Bot prepares each browser profile before Edge starts (in `Local State` and `Default\Preferences` of the folders `edge-cdp-profile-v5...` below `%LOCALAPPDATA%\SassyTP\printer-bot`) so that Edge does neither. The folders `edge-cdp-profile-v4...` of earlier versions are no longer used; you can delete them while Streamer.bot is closed. A locked account opens again by itself after the lockout time. Close a sign-in window that Edge opened without signing in.
+
 ### "Can't start Edge: ..."
 
 Install or repair Microsoft Edge (it comes with Windows 10 and 11), then press **Test print** again.
@@ -141,7 +145,7 @@ In the **Large message** layout a picture takes the space that the words leave, 
 
 ### The row "Letter layout" is missing, or Large message changes nothing
 
-The row **Letter layout** (from 3.0) shows for a printer whose paper size is **Letter** and whose output is the **Windows printer driver** or **Preview only**. A roll, and **Thermal printer (ESC/POS)**, have no such row, and they print on their roll whatever was chosen. The dock page of an older version has no row: after an update, restart Streamer.bot and press **Reload dock**. With **Large message** a short receipt is one whole page: the viewer's small picture in the top left corner with the amount, the name and the time beside it, the message below, and the logo at the bottom. If two printers on Letter paper print the same layout, check the row under each printer: every printer has its own. A list longer than one page (a gift bomb, an order) goes on to the next page, and the logo ends the list.
+The row **Letter layout** (from 3.0) shows for a printer whose paper size is **Letter** and whose output is the **Windows printer driver** or **Preview only**. A roll, and **Thermal printer (ESC/POS)**, have no such row, and they print on their roll whatever was chosen. The dock page of an older version has no row: after an update, restart Streamer.bot and press **Reload dock**. With **Large message** a short receipt is one whole page: the viewer's small picture in the top left corner with the amount, the name and the time beside it, the message below, and the logo at the bottom. From 3.0.5 only High Roller cheers, High Roller Super Chats and gift subs and gifted memberships (Twitch, YouTube and Kick) print that way. A sub, a raid, a tip or a smaller cheer or Super Chat prints **Scaled like 80 mm** on that printer, on purpose. If two printers on Letter paper print the same layout, check the row under each printer: every printer has its own. A list longer than one page (a gift bomb, an order) goes on to the next page, and the logo ends the list.
 
 ### A High Roller cheer on Letter paper is cut short, or its message area looks empty
 
@@ -165,7 +169,7 @@ From 3.0.2 a Super Chat prints its message styled only when all of this is true:
 
 ### The dock says currency exchange is offline
 
-Printer Bot asks the U.S. Treasury for its exchange rates while a printer has **Allow YouTube High Roller prints** on, at most every 12 hours, and keeps the last good answer in `exchange-rates.json` in its data folder, so a restart without the internet still has them. The dock says offline when there are none to use: the Treasury did not answer (the Streamer.bot log says why, in a line that starts with `Could not load exchange rates`), and there are no rates from the last six months. Printer Bot tries again by itself every 15 minutes. Until then, Super Chats in your own currency still print as YouTube High Roller messages, and the others as ordinary Super Chats. A firewall or a proxy that blocks `api.fiscaldata.treasury.gov` keeps it offline.
+Printer Bot asks the U.S. Treasury for its exchange rates while a printer has **Allow YouTube High Roller prints** on or (from 3.0.5) prints on Letter paper with **Large message**, at most every 12 hours, and keeps the last good answer in `exchange-rates.json` in its data folder, so a restart without the internet still has them. The dock says offline when there are none to use: the Treasury did not answer (the Streamer.bot log says why, in a line that starts with `Could not load exchange rates`), and there are no rates from the last six months. Printer Bot tries again by itself every 15 minutes. Until then, Super Chats in your own currency still print as YouTube High Roller messages, and the others as ordinary Super Chats. A firewall or a proxy that blocks `api.fiscaldata.treasury.gov` keeps it offline.
 
 ### A printer does not cut after a Hype Train
 

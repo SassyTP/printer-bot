@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.4",
-  "built": "202610150141",
+  "version": "3.0.5",
+  "built": "202610150536",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.4.bin",
-      "size": 647168,
-      "sha256": "dbe7870ac27d5a6562da72280c51a6ce8dd2f8661b67b7bc9ea295557c0f22c9"
+      "name": "core-3.0.5.bin",
+      "size": 653312,
+      "sha256": "b6d091fbba1d9bee0ef5eabcd4de72cfb75d87b16169711522b6746a5eef5885"
     }
   ],
-  "notes": "Printer Bot 3.0.4 lets you test every event from the dock with values you type: pick an event under Test print, change the name, the amount, the currency, the message or anything else it carries, and print it. YouTube Super Chats and memberships can now be tried as easily as a Twitch cheer, and your rules and High Roller decide with the values you typed. A receipt made from typed values says TEST at its bottom. A cheer no longer prints its cheermotes (Cheer100) as words, so a picture at the start of its message stays first. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.4 on GitHub.",
+  "notes": "Printer Bot 3.0.5 stops the hidden receipt browsers from causing failed Windows sign-ins, which could lock a local Windows account, and from signing in to your Microsoft account. It also gives a YouTube Super Chat the layout of a Twitch cheer: the picture, the amount, \"Name sent a Super Chat!\" and the date at the top, and only the viewer's message in the box. A YouTube receipt without a profile picture shows a grey placeholder. On a Letter printer set to Large message, only High Roller cheers, High Roller Super Chats and gift subs print large; everything else prints Scaled like 80 mm. On a narrow dock, the box of Printers per browser no longer sits under a large gap. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, restart Streamer.bot and reload the dock. The full list of changes is in the release notes of 3.0.5 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }

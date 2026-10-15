@@ -1785,7 +1785,7 @@ function RenderExchange(s) {
     const line = $('exchange-state');
     const x = s ? s.exchange : null;
     let text = '', warn = false;
-    if (x && x.state === 'off') text = 'Exchange rates are loaded only while the YouTube High Roller threshold is above 0 and a printer allows YouTube High Roller prints.';
+    if (x && x.state === 'off') text = 'Exchange rates are loaded only while the YouTube High Roller threshold is above 0 and a printer allows YouTube High Roller prints or uses Large message on Letter paper.';
     else if (x && x.state === 'checking') text = 'Loading exchange rates from the U.S. Treasury...';
     else if (x && x.state === 'ok') {
         const when = DateInWords(x.date);
