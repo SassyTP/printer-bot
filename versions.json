@@ -4,7 +4,7 @@
   "actionId": "bdc70b66-6b06-d5ee-54a4-7030d080b8b5",
   "latest": "3.0.0",
   "core": {
-    "latest": "3.1.0",
+    "latest": "3.1.1",
     "selfUpdateSince": "2.4.0",
     "api": 1,
     "import": {

@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.1.0",
-  "built": "202610161650",
+  "version": "3.1.1",
+  "built": "202610161944",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.1.0.bin",
+      "name": "core-3.1.1.bin",
       "size": 696832,
-      "sha256": "59da62025387b65ef9cc051990680ebd156f9a364a877a9fac9fdff4857bd4d9"
+      "sha256": "756cc89bfef1d0c985429b8100be884ca94ce9b2e8b3cf824a7847397ffcc847"
     }
   ],
-  "notes": "Printer Bot 3.1.0 prints the Catbox and ImgBB links viewers copy from those sites, as 3.0.11 did for Imgur. A Catbox album (catbox.moe/c/<id>) and an ImgBB album (ibb.co/album/<id>) print their first picture only, never the rest; on ImgBB that is the picture the album shows first. An ImgBB viewer link (ibb.co/<id>) prints its picture, and a Catbox thumbnail prints the full file. Printer Bot asks the site which picture it is before the receipt prints (at most 3 seconds a message); a link with no picture prints [image]. As before, only in a High Roller message, with the site switched on and Allow images on. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.1.0 on GitHub.",
+  "notes": "Printer Bot 3.1.1 fixes one case of the Catbox albums of 3.1.0: an album whose first file is a video, with pictures after it, printed its first picture. It now prints the link as text, as an album of only a video already did, because only the first item of an album may print. Everything else is as in 3.1.0. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.1.1 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
