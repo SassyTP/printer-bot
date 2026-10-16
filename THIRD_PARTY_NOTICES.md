@@ -40,7 +40,9 @@ The receipt page may contact only the hosts below. Both the page's own policy an
 | `i.imgur.com` | Imgur pictures that a viewer's message links to (3.0). Used only while the site is switched on under *Images in messages* |
 | `imgur.com` | Which picture comes first in an Imgur album that a viewer's message links to (3.0.11). Asked for by the action, not the hidden Edge, only while Imgur is switched on, for a High Roller message on a printer with *Allow images* on |
 | `files.catbox.moe` | Catbox pictures that a viewer's message links to (3.0). Used only while the site is switched on |
+| `catbox.moe` | Which file comes first in a Catbox album that a viewer's message links to (3.1.0). Asked for by the action, not the hidden Edge, only while Catbox is switched on, for a High Roller message on a printer with *Allow images* on |
 | `i.ibb.co` | ImgBB pictures that a viewer's message links to (3.0). Used only while the site is switched on |
+| `ibb.co` | Which picture an ImgBB album shows first, or which picture an ImgBB viewer link shows, for a link in a viewer's message (3.1.0). Asked for by the action, not the hidden Edge, only while ImgBB is switched on, for a High Roller message on a printer with *Allow images* on |
 | `api.fiscaldata.treasury.gov` | The exchange rates of the U.S. Treasury (*Treasury Reporting Rates of Exchange*, public data of the U.S. government) for YouTube High Roller (3.0.2). Asked for by the action, not the hidden Edge, only while a printer has *Allow YouTube High Roller prints* on |
 
 The action also contacts the web address the dock is served from (see [Dock Selection](DOCK_SELECTION.md)) to look for signed receipt-layout and program updates, and the dock page itself is loaded from its host. For the hosted dock that is the author's Cloudflare site. The host is not part of this repository.
