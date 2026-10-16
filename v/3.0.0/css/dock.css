@@ -1172,6 +1172,13 @@ textarea[aria-invalid="true"]:focus {
     margin: 0;
 }
 
+/* under a closed More values the line that says what Test print does sits as far below the words More values as they sit below the line above them (the owner,
+   15 October 2026: the gap was uneven, 27 px of blank under the words and 19 above them). The heading keeps room under its words and the smaller line keeps room
+   above its own, so the gap between them is a part, not a row */
+.test-event-more:not([open]) ~ #test-event-state {
+    margin-top: calc(var(--gap-part) - var(--gap-row));
+}
+
 /* the box of a currency code is a text box: the browser draws a dropdown arrow for its list of suggestions, which offers only what matches the code already in it
    (the owner, 15 October 2026, called it a fake dropdown). The suggestions still come as one types */
 #test-event input[list="test-currencies"]::-webkit-calendar-picker-indicator {

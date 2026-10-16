@@ -149,7 +149,7 @@ In the **Large message** layout a picture takes the space that the words leave, 
 
 ### The row "Letter layout" is missing, or Large message changes nothing
 
-The row **Letter layout** (from 3.0) shows for a printer whose paper size is **Letter** and whose output is the **Windows printer driver** or **Preview only**. A roll, and **Thermal printer (ESC/POS)**, have no such row, and they print on their roll whatever was chosen. The dock page of an older version has no row: after an update, restart Streamer.bot and press **Reload dock**. With **Large message** a short receipt is one whole page: the viewer's small picture in the top left corner with the amount, the name and the time beside it, the message below, and the logo at the bottom. From 3.0.5 only High Roller cheers, High Roller Super Chats and gift subs and gifted memberships (Twitch, YouTube and Kick) print that way. A sub, a raid, a tip or a smaller cheer or Super Chat prints **Scaled like 80 mm** on that printer, on purpose. If two printers on Letter paper print the same layout, check the row under each printer: every printer has its own. A list longer than one page (a gift bomb, an order) goes on to the next page, and the logo ends the list.
+The row **Letter layout** (from 3.0) shows for a printer whose paper size is **Letter** and whose output is the **Windows printer driver** or **Preview only**. A roll, and **Thermal printer (ESC/POS)**, have no such row, and they print on their roll whatever was chosen. The dock page of an older version has no row: after an update, press **Reload dock**. With **Large message** a short receipt is one whole page: the viewer's small picture in the top left corner with the amount, the name and the time beside it, the message below, and the logo at the bottom. From 3.0.5 only High Roller cheers, High Roller Super Chats and gift subs and gifted memberships (Twitch, YouTube and Kick) print that way. A sub, a raid, a tip or a smaller cheer or Super Chat prints **Scaled like 80 mm** on that printer, on purpose. If two printers on Letter paper print the same layout, check the row under each printer: every printer has its own. A list longer than one page (a gift bomb, an order) goes on to the next page, and the logo ends the list.
 
 ### A High Roller cheer on Letter paper is cut short, or its message area looks empty
 
@@ -232,7 +232,7 @@ From 3.0.4 a receipt that the dock's **Test print** made from values you typed h
 
 ### A test print with my own values says "Test print not sent. The dock sent an event that cannot be read."
 
-Printer Bot 3.0.4 to 3.0.6 refused every test print with values you typed: Streamer.bot does not pass the values through in the form the dock sent them, so the action could not read them. Since 3.0.7 the dock sends them as text and the action reads it. Update to 3.0.7 or newer in the Updates card (**Check now**, then **Update to** the version it offers), restart Streamer.bot and press **Reload dock**. Test prints of the samples, with no values typed, worked all along.
+Printer Bot 3.0.4 to 3.0.6 refused every test print with values you typed: Streamer.bot does not pass the values through in the form the dock sent them, so the action could not read them. Since 3.0.7 the dock sends them as text and the action reads it. Update to 3.0.7 or newer in the Updates card (**Check now**, then **Update to** the version it offers) and press **Reload dock**. Test prints of the samples, with no values typed, worked all along.
 
 ### A test print says "Test print not sent" and names a value
 

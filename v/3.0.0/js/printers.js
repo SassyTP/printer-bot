@@ -187,6 +187,7 @@ function RtTriggerText(id) {
 }
 
 const RtFieldsOf = (triggerId) => RT_TRIGGERS.has(triggerId) ? RT_TRIGGERS.get(triggerId).fields : [];
+const RT_YOUTUBE_MONEY = ['YouTubeSuperChat', 'YouTubeSuperSticker'];      // 3.0.9: their microAmount is tested in the streamer's currency (Routing.Passes)
 const RtFieldInfo = (triggerId, name) => RtFieldsOf(triggerId).find(f => f.name === name) || null;
 const RtKindOf = (rule, cond) => { const info = RtFieldInfo(rule.trigger, cond.field); return info ? info.type : (RT_OP_KIND[cond.op] || 'text'); };
 
@@ -1624,6 +1625,8 @@ function RtBuildCheck() {
         if (!RtTriggerMatches(rule.trigger, trigger)) continue;
         for (const c of rule.when) if (RT_FIELD_NAME.test(c.field) && !seen.has(c.field)) seen.set(c.field, { rule, cond: c });
     }
+    // 3.0.9: a rule tests the amount of a Super Chat or Super Sticker in the streamer's currency, so the check asks for the currency it was paid in too (empty: the YouTube currency)
+    if (RT_YOUTUBE_MONEY.includes(trigger) && seen.has('microAmount') && !seen.has('currencyCode')) seen.set('currencyCode', { rule: seen.get('microAmount').rule, cond: { field: 'currencyCode', op: 'is', value: '' } });
     const sig = JSON.stringify([trigger, Array.from(seen, ([name, use]) => [name, RtKindOf(use.rule, use.cond)])]);
     if (sig === rtCheckSig) return;                      // the boxes are what they were: the person's typing in them stays
     rtCheckSig = sig;
@@ -1636,7 +1639,7 @@ function RtBuildCheck() {
         let control;
         if (info && info.choices) control = RtSelect([['', '(not given)']].concat(info.choices.map(c => [c[0], c[1]])), rtCheckValues[name] || '', { 'aria-label': name });
         else if (kind === 'flag') control = RtSelect([['', '(not given)'], ['true', 'yes'], ['false', 'no']], rtCheckValues[name] || '', { 'aria-label': name });
-        else control = h('input', { type: kind === 'number' ? 'number' : 'text', step: 'any', 'aria-label': name, placeholder: kind === 'number' ? 'Number' : 'Text' });
+        else control = h('input', { type: kind === 'number' ? 'number' : 'text', step: 'any', 'aria-label': name, placeholder: kind === 'number' ? 'Number' : name === 'currencyCode' && RT_YOUTUBE_MONEY.includes(trigger) ? 'Your YouTube currency' : 'Text' });
         if (control.tagName === 'INPUT') control.value = rtCheckValues[name] !== undefined ? rtCheckValues[name] : '';
         control.addEventListener('input', () => { rtCheckValues[name] = control.value; });
         control.addEventListener('change', () => { rtCheckValues[name] = control.value; });
@@ -1662,6 +1665,10 @@ function RtCheck() {
         const factor = Number(c.getAttribute('data-factor')) || 1;
         values[c.getAttribute('data-field')] = factor !== 1 && isFinite(Number(v)) ? String(Math.round(Number(v) * factor)) : v;
     });
+    if (RT_YOUTUBE_MONEY.includes(trigger) && values.microAmount !== undefined && values.currencyCode === undefined) {      // an amount with no currency given is in the YouTube currency
+        const own = document.getElementById('localCurrency');
+        if (own && /^[A-Z]{3}$/.test(own.value)) values.currencyCode = own.value;
+    }
     rtCheckId += 1;
     const result = rt$('check-result');
     result.hidden = false;

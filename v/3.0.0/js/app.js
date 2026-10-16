@@ -964,7 +964,11 @@ const ARM_MS = 5000;                  // the first click on Update stays armed t
 const PAUSE_MS = 4000;                // a button that sent a command stays off this long, or until the updater answers
 
 // The short form of a state, for the summary line of the closed card (the line after the heading Updates)
-const UPDATED_BRIEF = 'Updated. Restart Streamer.bot, then reload the dock';
+const UPDATED_BRIEF = 'Updated. Reload the dock';
+// An update needs no restart of Streamer.bot (the owner, 15 October 2026): the updater switches the program while it runs. A page that loaded after the install of the
+// running program is the new page already, so it asks for no Reload dock. The time of the install comes from the updater (core.installed, UTC, whole seconds).
+const PAGE_LOADED_MS = Date.now();
+function LoadedAfterInstall(up) { const t = up && up.core ? Date.parse(up.core.installed) : NaN; return Number.isFinite(t) && t <= PAGE_LOADED_MS; }
 function SetUpdatesHint(text) { $('updates-hint').textContent = text; }
 
 // Texts for an updater of revision 2: a version that failed before is paused and offered again, and Reinstall downloads the program again
@@ -1277,7 +1281,7 @@ function RenderUpdates() {
         case 'verifying': text = `Checking the download of ${target}\u2026`; brief = 'Updating'; level = 'info'; notes = true; break;
         case 'waiting': text = 'Waiting for a receipt to finish\u2026'; brief = 'Updating'; level = 'warn'; notes = true; break;
         case 'installing': text = SwitchingText(u.latest); brief = 'Updating'; level = 'info'; notes = true; break;
-        case 'installed': text = `Updated to ${up.core.version || target}.`; brief = UPDATED_BRIEF; level = 'ok'; notes = true; break;
+        case 'installed': text = `Updated to ${up.core.version || target}.`; brief = LoadedAfterInstall(up) ? 'Up to date' : UPDATED_BRIEF; level = 'ok'; notes = true; break;
         case 'failed':
             if (droppedFrom) { text = 'Printer Bot went back to the built-in version.'; brief = 'went back to the built-in version'; level = 'warn'; message = retry ? `Version ${droppedFrom} stopped working, so Printer Bot paused it.` : `Version ${droppedFrom} stopped working, so Printer Bot set it aside.`; }
             else { text = 'The update did not work.'; brief = 'did not work'; level = 'bad'; message = UpdateErrorText(u.error) + FailedTail(u, up.core, running) + (setAside ? ` Version ${offered} will not be tried again.` : ''); notes = !!offered; }
@@ -1327,8 +1331,7 @@ function RenderUpdates() {
     // The updater turned a click down because it tried an update a moment ago. This is a note under the button and leaves the reason of the failure alone.
     $('update-refused').textContent = showUpdate && u.refused === 'wait' ? REFUSED_WAIT_TEXT : '';
     $('update-refused').hidden = !$('update-refused').textContent;
-    $('core-reload-button').hidden = state !== 'installed';
-    $('update-restart').hidden = state !== 'installed';                    // the program is new: Streamer.bot should restart first, then the dock reloads
+    $('core-reload-button').hidden = state !== 'installed' || LoadedAfterInstall(up);       // the program is new: the dock reloads, unless this page loaded after the install
     $('update-badge').hidden = !(state === 'available' && showUpdate);
 
     // The line is for an automatic install that is under way or has just finished. A failure and a new offer never carry it.

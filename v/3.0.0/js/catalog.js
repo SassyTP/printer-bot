@@ -113,10 +113,10 @@ const ROUTE_CATALOG = (() => {
             T('tier', 'Tier'), T('gifterUser', 'Gifter display name'), T('gifterUserName', 'Gifter login name'), T('gifterUserId', 'Gifter ID'), T('id', 'Event ID'),
         ]), youtubeViewer, youtubeBroadcast)),
         T_('YouTubeSuperChat', 'Super Chat', 'YouTube', [].concat(group('Super Chat', [
-            N('microAmount', 'Amount (in whole currency units)', { factor: 1000000 }), T('currencyCode', 'Currency code'), T('amount', 'Amount as shown'), N('tier', 'Tier'), T('message', 'Message'), T('messageId', 'Event ID'),
+            N('microAmount', 'Amount (in your YouTube currency)', { factor: 1000000 }), T('currencyCode', 'Currency code'), T('amount', 'Amount as shown'), N('tier', 'Tier'), T('message', 'Message'), T('messageId', 'Event ID'),
         ]), youtubeViewer, youtubeBroadcast)),
         T_('YouTubeSuperSticker', 'Super Sticker', 'YouTube', [].concat(group('Super Sticker', [
-            N('microAmount', 'Amount (in whole currency units)', { factor: 1000000 }), T('currencyCode', 'Currency code'), T('amount', 'Amount as shown'), N('tier', 'Tier'), T('stickerAltText', 'Sticker description'),
+            N('microAmount', 'Amount (in your YouTube currency)', { factor: 1000000 }), T('currencyCode', 'Currency code'), T('amount', 'Amount as shown'), N('tier', 'Tier'), T('stickerAltText', 'Sticker description'),
             T('stickerId', 'Sticker ID'), T('stickerLanguage', 'Sticker language'), T('messageId', 'Event ID'),
         ]), youtubeViewer, youtubeBroadcast)),
 
