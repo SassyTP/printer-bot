@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.9",
-  "built": "202610160028",
+  "version": "3.0.10",
+  "built": "202610160210",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.9.bin",
+      "name": "core-3.0.10.bin",
       "size": 656896,
-      "sha256": "9ec7dbefaef34c24cda9746180163073721daa4fc8baaf9ab41667ae10745fcc"
+      "sha256": "43a508adc411a9919e491dcfda03ed2f5844c45ad14fddac441ec5cec9142853"
     }
   ],
-  "notes": "Printer Bot 3.0.9 tests the amount of a YouTube Super Chat in your own currency when a printer rule asks for it: a rule \"Amount 20 or more\" with U.S. dollars means 20 dollars, so 200 Argentine pesos no longer pass it. The Updates card no longer asks you to restart Streamer.bot after an update: press Reload dock, and the button goes away once the dock has reloaded. In the Test card, the space under a closed More values is even. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock. If your dock still says to restart Streamer.bot first, you can skip that. The full list of changes is in the release notes of 3.0.9 on GitHub.",
+  "notes": "Printer Bot 3.0.10 changes nothing you can see. It comes from a review of how the amount of a YouTube Super Chat is judged: the YouTube High Roller decision and a printer rule that tests the amount now read the amount and convert it the same way, rounded to whole cents, so the two can never disagree about one Super Chat. The receipts, the dock and your settings stay as they are. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.0.10 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
