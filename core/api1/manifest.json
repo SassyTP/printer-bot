@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.10",
-  "built": "202610160210",
+  "version": "3.0.11",
+  "built": "202610161135",
   "minDock": "2.4.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.0.10.bin",
-      "size": 656896,
-      "sha256": "43a508adc411a9919e491dcfda03ed2f5844c45ad14fddac441ec5cec9142853"
+      "name": "core-3.0.11.bin",
+      "size": 677888,
+      "sha256": "8d8e1499dd5058e723ce7b7933c39672a3d8a0e2716a68b5841327792b135fd6"
     }
   ],
-  "notes": "Printer Bot 3.0.10 changes nothing you can see. It comes from a review of how the amount of a YouTube Super Chat is judged: the YouTube High Roller decision and a printer rule that tests the amount now read the amount and convert it the same way, rounded to whole cents, so the two can never disagree about one Super Chat. The receipts, the dock and your settings stay as they are. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.0.10 on GitHub.",
+  "notes": "Printer Bot 3.0.11 prints the Imgur links viewers copy from the Imgur site. The page of one picture (imgur.com/<name>) prints that picture, and an album or post (imgur.com/a/<id>, imgur.com/gallery/<id>) prints its first picture only, never the rest. For an album, Printer Bot asks imgur.com which picture comes first before the receipt prints (at most 3 seconds); an album with no picture prints [image], and one that starts with a video stays text. As before, only in a High Roller message, with Imgur switched on and Allow images on. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.0.11 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
