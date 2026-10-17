@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.0.0-beta.10",
-  "built": "202610131623",
+  "version": "3.2.0-beta.1",
+  "built": "202610172056",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.0.0-beta.10.bin",
-      "size": 557568,
-      "sha256": "4e1fd34e40fe397285e2c3192b4be672f5191e3fa83d02cad3625394b5054af8"
+      "name": "core-3.2.0-beta.1.bin",
+      "size": 737792,
+      "sha256": "efbf88058e41b87575824343a4f4a54a4319ef7c08e2fbf7f0dc993869867ecb"
     }
   ],
-  "notes": "Prerelease 3.0.0-beta.10 is a test version of Printer Bot 3.0 and it can have mistakes. It needs no new import. New: a second layout for Letter paper. Under each printer on Letter paper the dock has a row, Letter layout. Scaled like 80 mm is the layout as before and stays the default. Large message puts a small picture, the amount, the name and the time at the top and the platform logo, small, at the bottom, and gives all the space between to the message and its pictures. Each printer has its own layout. Rolls and thermal printers print as before. Reload the dock after the update.",
+  "notes": "Printer Bot 3.2.0-beta.1 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. It prints stickers on a Brother VC-500W: a new output under every printer, over Wi-Fi by the printer's name or address on your network or over USB through its Windows print queue, with the tape, the quality and the cut as rows of the printer. A High Roller cheer or Super Chat prints as a sticker of its own layout; every other receipt prints on the tape as on a narrow roll. A printer that is asleep, out of tape or holding its last sticker keeps its receipts and the dock says why. Everything else is as in 3.1.1. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.1 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }

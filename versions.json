@@ -5,10 +5,12 @@
   "latest": "3.0.0",
   "core": {
     "latest": "3.1.1",
+    "prerelease": "3.2.0-beta.1",
     "selfUpdateSince": "2.4.0",
     "api": 1,
     "import": {
-      "release": "2.5.0"
+      "release": "2.5.0",
+      "prerelease": "2.5.0"
     }
   },
   "frontends": [
@@ -81,6 +83,11 @@
       "version": "3.0.0",
       "page": "v/3.0.0/index.html",
       "build": "68d3ce700ee1"
+    },
+    {
+      "version": "3.2.0-beta.1",
+      "page": "v/3.2.0-beta.1/index.html",
+      "build": "39fe017edc7c"
     }
   ]
 }
