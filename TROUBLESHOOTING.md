@@ -97,6 +97,7 @@ With more than one printer, check these:
 - Everything else prints on printer 1, although you picked another printer for it. The printer you picked is not set up. Its card and the line under **Everything else prints on** say so. Choose a printer for it, or pick another printer.
 - **Check where an event prints** (in Settings, under the cards) says where an event goes. Pick the trigger, type the values your rules test and press **Check**. The Streamer.bot log has the same answer for each real event (`TwitchCheer goes to printer 1 (rule 2).`).
 - A rule that is not complete keeps its last saved version. The line under the rule says what is missing.
+- An event that passes several rules of one printer uses the first of them, from the top, for that printer: its paper and its tray. A rule below a wider rule of the same printer (*Bits is greater than or equal to 2000* under *Bits is greater than or equal to 1000*) is never used for an event that both pass. From 3.2.0-beta.4, drag the narrower rule above the wider one by its handle, or Tab to its handle and press Up.
 - A rule with a test that needs a value matches nothing until the value is there. A parameter that an event does not carry fails number tests and reads as empty text in text tests.
 
 ### A test print says "Test print not sent"

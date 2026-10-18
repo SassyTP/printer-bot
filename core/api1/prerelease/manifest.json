@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.2.0-beta.3",
-  "built": "202610181144",
+  "version": "3.2.0-beta.4",
+  "built": "202610181612",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.2.0-beta.3.bin",
+      "name": "core-3.2.0-beta.4.bin",
       "size": 763904,
-      "sha256": "7a55030f9a799f2081bcd78e9d64e3089fa4ad3070f335afdf126f414905598d"
+      "sha256": "a09ae24489dd215b5f07daa5e0d18c51564af63e369e85a5ba0e1829c9810f68"
     }
   ],
-  "notes": "Printer Bot 3.2.0-beta.3 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. It adds trays for the Windows printer driver: a printer takes its Letter pages and 4 x 6 in cards from the tray of its driver that its row Tray names, and each of its rules can name the paper (Letter or the card) and the tray of the receipts it prints. When an event passes several rules of one printer, the first of them decides. Everything else is as in 3.2.0-beta.2. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.3 on GitHub.",
+  "notes": "Printer Bot 3.2.0-beta.4 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. It lets you put the rules of each printer in the order you want: drag a rule by its handle to move it among the rules of its printer, or focus the handle and press Up or Down. Each printer card now says, under Prints these events, that the rules are checked in order from the top and that the first rule an event matches is the one the printer uses. The rules of printer 1 now follow its Output, Paper size and Tray at once. Everything else is as in 3.2.0-beta.3. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.4 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
