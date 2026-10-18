@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.2.0-beta.4",
-  "built": "202610181612",
+  "version": "3.2.0-beta.5",
+  "built": "202610182002",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.2.0-beta.4.bin",
+      "name": "core-3.2.0-beta.5.bin",
       "size": 763904,
-      "sha256": "a09ae24489dd215b5f07daa5e0d18c51564af63e369e85a5ba0e1829c9810f68"
+      "sha256": "6e3837da52c48a9a0486a35f76857e4a7a948d756937cdd07e9436d69c875fd7"
     }
   ],
-  "notes": "Printer Bot 3.2.0-beta.4 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. It lets you put the rules of each printer in the order you want: drag a rule by its handle to move it among the rules of its printer, or focus the handle and press Up or Down. Each printer card now says, under Prints these events, that the rules are checked in order from the top and that the first rule an event matches is the one the printer uses. The rules of printer 1 now follow its Output, Paper size and Tray at once. Everything else is as in 3.2.0-beta.3. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.4 on GitHub.",
+  "notes": "Printer Bot 3.2.0-beta.5 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. The rules now have a section of their own, Rules, under the printer cards: each rule chooses its printer, and a rule can be dragged anywhere in the list. Its last row, Everything else, takes every event that no rule takes. The rules are read from the top, like a firewall: the first rule an event matches decides its printer, paper and tray. The switch Do not stop at first match reads every rule, as before; it is on after the update, so your setup prints as it did. The handle of a rule no longer gets thin. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.5 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
