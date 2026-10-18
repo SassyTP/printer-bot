@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.2.0-beta.1",
-  "built": "202610172056",
+  "version": "3.2.0-beta.2",
+  "built": "202610180111",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.2.0-beta.1.bin",
-      "size": 737792,
-      "sha256": "efbf88058e41b87575824343a4f4a54a4319ef7c08e2fbf7f0dc993869867ecb"
+      "name": "core-3.2.0-beta.2.bin",
+      "size": 757760,
+      "sha256": "52d34e601d6621279199a2ce8d30d19a37b0e3284e4802142ead4215bb5d1452"
     }
   ],
-  "notes": "Printer Bot 3.2.0-beta.1 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. It prints stickers on a Brother VC-500W: a new output under every printer, over Wi-Fi by the printer's name or address on your network or over USB through its Windows print queue, with the tape, the quality and the cut as rows of the printer. A High Roller cheer or Super Chat prints as a sticker of its own layout; every other receipt prints on the tape as on a narrow roll. A printer that is asleep, out of tape or holding its last sticker keeps its receipts and the dock says why. Everything else is as in 3.1.1. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.1 on GitHub.",
+  "notes": "Printer Bot 3.2.0-beta.2 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. It adds a paper size for the Windows printer driver: a card of 4 x 6 inches, printed in landscape. A High Roller message prints with its words in a narrow column at the left and its pictures in the rest of the card; every other receipt prints as the 80 mm receipt, made as large as the card allows. A test print on a sticker shows its TEST mark again. Everything else is as in 3.2.0-beta.1. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.2 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
