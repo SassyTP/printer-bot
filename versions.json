@@ -5,7 +5,7 @@
   "latest": "3.0.0",
   "core": {
     "latest": "3.1.1",
-    "prerelease": "3.2.0-beta.6",
+    "prerelease": "3.2.0-beta.7",
     "selfUpdateSince": "2.4.0",
     "api": 1,
     "import": {
@@ -113,6 +113,11 @@
       "version": "3.2.0-beta.6",
       "page": "v/3.2.0-beta.6/index.html",
       "build": "6bbbf1b8552c"
+    },
+    {
+      "version": "3.2.0-beta.7",
+      "page": "v/3.2.0-beta.7/index.html",
+      "build": "a11d12a902bc"
     }
   ]
 }

@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.2.0-beta.6",
-  "built": "202610182347",
+  "version": "3.2.0-beta.7",
+  "built": "202610191933",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.2.0-beta.6.bin",
-      "size": 763904,
-      "sha256": "5299aa8b59e7bb2f1b71680e477f6dea1295b6dd686a982f19a373091581fdcf"
+      "name": "core-3.2.0-beta.7.bin",
+      "size": 768512,
+      "sha256": "ae339561e9696891da29d5a6980c0727c293c7326cf2c4ed6ad7acbb36842e31"
     }
   ],
-  "notes": "Printer Bot 3.2.0-beta.6 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. How anything prints did not change. After an update the dock now says at its very top what is needed: Reload dock, or a restart of Streamer.bot when an update needs one. The words under Do not stop at first match say that a printer prints an event once, also when several of its rules match, and Check where an event prints names the rules that add no print. Paper size is now Default paper size, the line on the order of the rules puts the switch in quotation marks, and Image fit says that on a 4 x 6 in card it only sets the pictures of a High Roller message. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.6 on GitHub.",
+  "notes": "Printer Bot 3.2.0-beta.7 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. With Do not stop at first match on, every rule an event matches now prints, on that rule's printer with that rule's paper and tray: a printer with a rule for Letter and a rule for 4 x 6 in cards prints both. Two rules of one printer that would print the same receipt print it once. With the switch off the first match decides, as before. Check where an event prints names every receipt, and the rules that add no print. A 4 x 6 in card on a printer whose driver has no paper of that size now comes from the tray its rule names. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.7 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }
