@@ -97,7 +97,7 @@ With more than one printer, check these:
 - Everything else prints on printer 1, although you picked another printer for it. The printer you picked is not set up. Its card and the line under **Everything else** say so. Choose a printer for it, or pick another printer.
 - **Check where an event prints** (in Settings, under the rules) says where an event goes. Pick the trigger, type the values your rules test and press **Check**. The Streamer.bot log has the same answer for each real event (`TwitchCheer goes to printer 1 (rule 2).`).
 - A rule that is not complete keeps its last saved version. The line under the rule says what is missing.
-- An event that passes several rules uses the first of them, from the top: from 3.2.0-beta.5 for the whole list while **Do not stop at first match** is off (its printer, paper and tray), and for each printer's paper and tray while it is on. A rule below a wider rule (*Bits is greater than or equal to 2000* under *Bits is greater than or equal to 1000*) is never used for an event that both pass. Drag the narrower rule above the wider one by its handle, or Tab to its handle and press Up.
+- An event that passes several rules uses the first of them, from the top: from 3.2.0-beta.5 for the whole list while **Do not stop at first match** is off (its printer, paper and tray), and for each printer's paper and tray while it is on. A rule below a wider rule (*Bits is greater than or equal to 2000* under *Bits is greater than or equal to 1000*) is never used for an event that both pass. Drag the narrower rule above the wider one by its handle, or Tab to its handle and press Up. From 3.2.0-beta.6 **Check where an event prints** names the rules that add no print.
 - An event prints on one printer although it passes rules of two (from 3.2.0-beta.5). The first rule it passes decides, and the rules below it are skipped: a new setup reads its rules that way. Turn on **Do not stop at first match** at the top of **Rules** to print such an event on every printer with a rule it passes.
 - A rule with a test that needs a value matches nothing until the value is there. A parameter that an event does not carry fails number tests and reads as empty text in text tests.
 
@@ -160,6 +160,10 @@ On Letter paper the names of a gifted-subs list are set in columns and in the la
 ### A picture in a message is cut off, small or stretched in the Large message layout
 
 In the **Large message** layout a picture takes the space that the words leave, as the row **Image fit** says (the row shows only while the layout is Large message). **Fit**, the default since 3.0.1, shows the whole picture, with white margins when its shape is not the shape of the space. Choose **Fill** to cover the whole space (it crops the edges of a picture that has another shape, so a tall photo loses its top and bottom), or **Stretch** to fill the space out of proportion. A printer that was left on Fill under 3.0.0 is on Fit now. A long message leaves little room: the pictures keep at least three quarters of an inch, and words that are still too many are cut at the end of the page (the log says `the end of the page of Letter paper`). A message never prints on a second page of Letter paper.
+
+### Fit, Fill and Stretch look the same on a 4 x 6 in card
+
+On a card, **Image fit** sets only the pictures of a High Roller message: a cheer of at least the **Twitch High Roller threshold (bits)** (or a YouTube High Roller Super Chat) on a printer with **Allow Twitch High Roller prints** (or **Allow YouTube High Roller prints**) and **Allow images** on, with a link to a picture on a site you switched on. Every other receipt (a smaller cheer, a sub, a raid, a High Roller message with no picture) prints as the 80 mm receipt made as large as the card allows, and the three choices print it the same. The words of the row say so from 3.2.0-beta.6.
 
 ### The row "Letter layout" is missing, or Large message changes nothing
 
