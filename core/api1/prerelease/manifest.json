@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.2.0-beta.8",
-  "built": "202610200102",
+  "version": "3.2.0-beta.9",
+  "built": "202610201838",
   "minDock": "2.4.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.2.0-beta.8.bin",
-      "size": 775168,
-      "sha256": "6640bd94313c99523c36b7ecc11c97de6816cddc671d698accedc986f44dfb46"
+      "name": "core-3.2.0-beta.9.bin",
+      "size": 779264,
+      "sha256": "a2282a90233ae0bc88371f1acee5efdd1387c633ac17fed2e40fb32701477239"
     }
   ],
-  "notes": "Printer Bot 3.2.0-beta.8 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. The pictures of a message on a 4 x 6 in card in black and white now get the picture style; they printed like text. A sticker printer whose tape is left to it is asked for its tape before a receipt waits for its turn, so its answer holds up no other printer. The dock refuses a sticker printer address that Printer Bot cannot use at once, and says so under it. On a card or a sticker, a picture that failed a moment ago prints [image] where the pictures go. Thermal printer takes a sticker printer's card back to its roll, and the dock is faster with many printers and rules. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.8 on GitHub.",
+  "notes": "Printer Bot 3.2.0-beta.9 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. A change of the printers or the rules in the dock now starts from the settings as Printer Bot has them: a dock that still showed older settings, for example a second dock open at the same time, could put them back, such as Allow YouTube High Roller prints of a printer going off again. When printers or rules were added, removed or moved elsewhere meanwhile, the dock shows them as they are now, makes no change, and says so under Settings. On a sticker printer, a receipt that is not a High Roller message now prints as the 80 mm receipt made as wide as the tape. From 2.5.0 on, this version needs no new import; an older Printer Bot needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.9 on GitHub.",
   "successor": null,
   "revokeKeys": []
 }

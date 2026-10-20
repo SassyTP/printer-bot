@@ -63,6 +63,10 @@ A change you made has not reached Printer Bot yet. The dock lost its connection 
 
 The dock tried six times (once, then again after 1, 2, 4, 8 and 16 seconds) and Streamer.bot did not take the change. The fields show what Printer Bot has. Check that the Printer Bot action is enabled and read the Streamer.bot log, then change the setting again.
 
+### The dock says "The printers or the rules were changed somewhere else, for example in another dock."
+
+From 3.2.0-beta.9 a change of the printers or the rules starts from the settings as Printer Bot has them. When printers or rules were added, removed or moved meanwhile, for example in a second dock that is open at the same time (an OBS dock and a browser tab), the dock does not make your change, because it might land on another printer or rule than the one you saw. It shows the printers and rules as they are now: make the change again. Before 3.2.0-beta.9 a dock that still showed older settings could put them back with its next change, so a switch such as **Allow YouTube High Roller prints** of a printer could be off again after a reload.
+
 ### The dock showed "The Printer Bot action is not in Streamer.bot yet" for a moment after Streamer.bot restarted
 
 Up to 3.0.5 this could happen when the connection to Streamer.bot dropped just as the dock connected, for example during a restart of Streamer.bot. The dock showed that card behind the connect dialog, or up to 10 seconds later over a dock that had already connected again, although the action was there all along. Press **Reload dock**, or wait for the next connection. The dock page of 3.0.6, which the host hands out to every Printer Bot from 3.0.0 on, waits for the next connection and shows the right card. If the card stays after the dock has connected, the action is really missing: import it as the card says.
