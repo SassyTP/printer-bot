@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.1.1",
-  "built": "202610161944",
-  "minDock": "2.4.0",
+  "version": "3.2.0",
+  "built": "202610202210",
+  "minDock": "3.0.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.1.1.bin",
-      "size": 696832,
-      "sha256": "756cc89bfef1d0c985429b8100be884ca94ce9b2e8b3cf824a7847397ffcc847"
+      "name": "core-3.2.0.bin",
+      "size": 775680,
+      "sha256": "e265ffcb78cbf52bd7808b197fae398138691135b56a4a22a46cbb3408b206e1"
     }
   ],
-  "notes": "Printer Bot 3.1.1 fixes one case of the Catbox albums of 3.1.0: an album whose first file is a video, with pictures after it, printed its first picture. It now prints the link as text, as an album of only a video already did, because only the first item of an album may print. Everything else is as in 3.1.0. From 2.5.0 on, this version needs no new import. A Printer Bot older than 2.5.0 needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.1.1 on GitHub.",
+  "notes": "Printer Bot 3.2.0 adds the Brother VC-500W sticker printer (Wi-Fi or USB, no Brother software), 4 x 6 in cards and trays on the Windows printer driver, and a Rules section: one list that decides which printer, paper and tray each event uses, read from the top. With Do not stop at first match on, every matching rule prints. Your rules keep their printers and order, and the switch is on after the update, so everything prints as before. Also new: a notice at the top of the dock after an update, driver names in the printer lists, and a note when another dock changed the printers or rules. Fixed: a second dock could put older settings back, and the previous receipt browser could be closed twice after an update. Versions older than 3.0.0 are no longer supported. From 2.5.0 on, this version needs no new import; an older Printer Bot needs one (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart.",
   "successor": null,
   "revokeKeys": []
 }
