@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.2.0",
-  "built": "202610202210",
+  "version": "3.2.1",
+  "built": "202610220243",
   "minDock": "3.0.0",
   "install": true,
   "auto": true,
   "files": [
     {
-      "name": "core-3.2.0.bin",
-      "size": 775680,
-      "sha256": "e265ffcb78cbf52bd7808b197fae398138691135b56a4a22a46cbb3408b206e1"
+      "name": "core-3.2.1.bin",
+      "size": 792576,
+      "sha256": "8aa3b28307884d2b7f47325cc4a5d86484bfc0cd99b2a89ff406f43a6abd582f"
     }
   ],
-  "notes": "Printer Bot 3.2.0 adds the Brother VC-500W sticker printer (Wi-Fi or USB, no Brother software), 4 x 6 in cards and trays on the Windows printer driver, and a Rules section: one list that decides which printer, paper and tray each event uses, read from the top. With Do not stop at first match on, every matching rule prints. Your rules keep their printers and order, and the switch is on after the update, so everything prints as before. Also new: a notice at the top of the dock after an update, driver names in the printer lists, and a note when another dock changed the printers or rules. Fixed: a second dock could put older settings back, and the previous receipt browser could be closed twice after an update. Versions older than 3.0.0 are no longer supported. From 2.5.0 on, this version needs no new import; an older Printer Bot needs one (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart.",
+  "notes": "Printer Bot 3.2.1 lets test prints show real Twitch viewers. In the Test card a Twitch event has one Twitch name box: type a viewer's name, and the test prints their profile picture. Check beside the box tells you first whether the name is on Twitch and shows the picture, and after a test print the dock says whether the names it used were found. Names are looked up at decapi.me, as for every receipt. A Brother VC-500W printer also gets Maximum sticker length (mm): a High Roller sticker that would be longer is fitted to it, its pictures smaller first, then its message cut. From 2.5.0 on, this version needs no new import; an older Printer Bot needs one (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart.",
   "successor": null,
   "revokeKeys": []
 }
