@@ -64,6 +64,8 @@ A prerelease is a test version of the next release, with a number like 3.3.0-bet
 
 The prereleases of 3.2.0 were 3.2.0-beta.1 to 3.2.0-beta.9. A Printer Bot on one of them is offered the newest release, 3.2.1, and installs it with no import.
 
+The first prerelease of 3.3.0 is 3.3.0-beta.1: the print queue (see [The print queue](PRINTER_OPERATION.md#the-print-queue)). It needs no new import from 2.5.0 on. Receipts that wait in its print queue stay in the folder `outbox` if you go back to 3.2.1, which does not read them: they print once you are on 3.3.0-beta.1 or newer again, or you discard them there.
+
 **From one prerelease to the next.** No import is needed unless the notes of that prerelease say so: a prerelease whose import has not changed has the same triggers, the same keys and the same updater as the one before, and a program update replaces the rest. If you host your own dock, upload its files again first (see [Dock Selection](DOCK_SELECTION.md#host-it-yourself)).
 
 **The switch Try prerelease versions.** While it is off, Printer Bot offers releases only. Switch it on and Printer Bot also looks at the prereleases the author publishes. It offers the highest version of the two lists, and a release is higher than its own prereleases. So 3.2.0 is higher than 3.2.0-beta.9, 3.2.0-beta.9 is higher than 3.2.0-beta.8, and 3.2.0-beta.1 is higher than 3.1.1. You install the offer with the two clicks of the **Update** button, as for any update. The card and the button say "prerelease" next to its number. Printer Bot checks again by itself a moment after you flip the switch, so the card shows what the change brings.

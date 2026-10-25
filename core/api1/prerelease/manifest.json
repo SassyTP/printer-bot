@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.2.0-beta.9",
-  "built": "202610201838",
-  "minDock": "2.4.0",
+  "version": "3.3.0-beta.1",
+  "built": "202610251822",
+  "minDock": "3.0.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.2.0-beta.9.bin",
-      "size": 779264,
-      "sha256": "a2282a90233ae0bc88371f1acee5efdd1387c633ac17fed2e40fb32701477239"
+      "name": "core-3.3.0-beta.1.bin",
+      "size": 853504,
+      "sha256": "15113cef1370d2607a58467e3106ca50ba5fa4d14c4de8e01e2f9db19a0f8279"
     }
   ],
-  "notes": "Printer Bot 3.2.0-beta.9 is a prerelease, a test version of 3.2.0 that can have mistakes; it reaches you only with Try prerelease versions on. A change of the printers or the rules in the dock now starts from the settings as Printer Bot has them: a dock that still showed older settings, for example a second dock open at the same time, could put them back, such as Allow YouTube High Roller prints of a printer going off again. When printers or rules were added, removed or moved elsewhere meanwhile, the dock shows them as they are now, makes no change, and says so under Settings. On a sticker printer, a receipt that is not a High Roller message now prints as the 80 mm receipt made as wide as the tape. From 2.5.0 on, this version needs no new import; an older Printer Bot needs one first (see UPDATING.md on GitHub). After the update, press Reload dock; Streamer.bot needs no restart. The full list of changes is in the release notes of 3.2.0-beta.9 on GitHub.",
+  "notes": "Printer Bot 3.3.0-beta.1 is a prerelease with a print queue. A receipt that its printer cannot take right now (off, unplugged, offline, out of paper, not found, held back by a stuck job, a sticker printer asleep) no longer fails: it waits on this PC, for as long as it takes, and prints when the printer is back, in the order the receipts came, also after a restart. Printer Bot checks with Windows that each receipt printed, and one that left the Windows queue unprinted prints again. Under each printer the dock says what waits and why, with Show the receipts, Discard, Discard all, Move and Try again; under Advanced you choose what happens to the receipts of a printer you change. Waiting receipts are kept encrypted and deleted once printed. Dock test prints never wait. From 2.5.0 on, this version needs no new import. After the update, press Reload dock; Streamer.bot needs no restart.",
   "successor": null,
   "revokeKeys": []
 }

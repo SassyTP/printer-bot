@@ -109,7 +109,8 @@ The full list, with what each receipt shows, is in [What prints](PRINTER_OPERATI
 | **Backup** | Saves your printers, rules and options to a file, and restores them. Printer Bot also keeps its own copy and puts it back if the settings file is lost. |
 | **Updates** | Installs new versions from the dock, with no new import, and can go back to the previous one. Automatic updates and test versions stay off until you turn them on. |
 | **Printer care** | Warns when a printer looks like it can't take receipt commands, sends one test line when you ask, holds back a printer that is stuck so the others keep printing, and empties a print queue. |
-| **Sticker printer care** | Over Wi-Fi, shows when the VC-500W is asleep, out of tape or still holding a sticker, and keeps up to ten stickers until it's ready. |
+| **Sticker printer care** | Over Wi-Fi, shows when the VC-500W is asleep, out of tape or still holding a sticker, and keeps the stickers until it's ready. |
+| **Print queue** | From 3.3.0-beta.1 (a prerelease): a receipt that its printer can't take right now (off, unplugged, not found, held back, out of paper) waits on this PC and prints when the printer is back, in order, even after a restart. The dock lists what waits, and can discard it, move it to another printer or try again. |
 | **Light on your PC** | Receipts are drawn in a hidden Microsoft Edge that runs at low priority and rests between receipts, so your stream comes first. |
 | **Private** | No telemetry or analytics. [Privacy](PRIVACY.md) lists every service Printer Bot contacts. |
 
