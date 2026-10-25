@@ -302,7 +302,7 @@ From 3.3.0-beta.1 (a prerelease), a receipt that its printer cannot take right n
 
 **The custom trigger Print Job Sent** goes off when the print makes the receipt, as before, also when the receipt waits (as it did for a printer that Windows held). It does not go off again when the receipt prints later.
 
-**Two copies of Printer Bot** (an update that swaps them, or a second action) share the queue. Only one of them sends.
+**Two copies of Printer Bot** (an update that swaps them, a second action, or Streamer.bot itself, which loads the action's code twice when it starts) share the queue. Only one of them sends: from 3.3.0-beta.2 the copy that gets the events and the dock's commands, so the dock shows what it does and its **Try again** reaches it. Until that copy gets its first call (right after a start), the other one sends, so receipts left from before still print.
 
 ## Keeping an eye on the printer
 
@@ -345,7 +345,7 @@ The first time it runs, Printer Bot creates its own data folder, `<Streamer.bot>
 | `receipts\` | the pictures saved in *Preview only* mode (those of printers 2 and up end in `_p2`, `_p3` and so on) |
 | `avatars.json` | remembered profile-picture addresses (viewer names and picture addresses), and the names a lookup could not find, kept for two hours. **Advanced → Clear picture cache** empties it |
 | `printer-checks.json` | your answers to **Check this printer**: the name of the print queue, its driver and yes or no. Delete the file to forget them |
-| `outbox\` | from 3.3.0-beta.1, the print queue: `journal.log` (what happened to each receipt that waits; the event and the viewer in it are encrypted) and `r\`, a file for the event and one for the picture of each receipt that waits, encrypted for your Windows account. The files of a receipt are deleted once it printed, and the journal is written again empty once nothing waits. `lease.lock` marks the copy of Printer Bot that sends. Do not edit them; to drop what waits, use **Discard all** in the dock |
+| `outbox\` | from 3.3.0-beta.1, the print queue: `journal.log` (what happened to each receipt that waits; the event and the viewer in it are encrypted) and `r\`, a file for the event and one for the picture of each receipt that waits, encrypted for your Windows account. The files of a receipt are deleted once it printed, and the journal is written again empty once nothing waits. `lease.lock` marks the copy of Printer Bot that sends, and `caller.json` (from 3.3.0-beta.2) the copy that gets the calls: a number and two times, nothing of a viewer. Do not edit them; to drop what waits, use **Discard all** in the dock |
 | `renderer.html`, `renderer.html.sig` | a downloaded receipt layout and its signature, once verified and used |
 | `renderer.rejected` | the number of a downloaded layout that did not start |
 | `core\api1\` | program updates and the updater's notes: a folder for the downloaded version that runs and one for the version before it. Small files record which version runs, which came before, which versions you went back from and how often a version was running when Streamer.bot ended before it had settled in. Its `backup\` folder keeps the last three copies of `settings.json`, made before a new version starts for the first time. |
