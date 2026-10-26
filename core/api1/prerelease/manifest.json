@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.3.0-beta.5",
-  "built": "202610261632",
+  "version": "3.3.0-beta.6",
+  "built": "202610262049",
   "minDock": "3.0.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.3.0-beta.5.bin",
-      "size": 865280,
-      "sha256": "39c5335421b6ffc58596dbff06bcf58d526473c0afda0703c254eb726f19b77a"
+      "name": "core-3.3.0-beta.6.bin",
+      "size": 867328,
+      "sha256": "7fd754888cac8fdeafc10d09469f88c3724dd69aac3b1cde884719d742e4bf0e"
     }
   ],
-  "notes": "Printer Bot 3.3.0-beta.5 is a prerelease with two fixes. With a small print queue size (1 MB, say), receipts that kept only their event (the queue was full, or their printer changed) were drawn again only when the queue had 1 MB free, which never came: they waited with the printer on, Try again or not. Now the first receipt of each printer is always drawn, and Draw them again for the new settings is the default of a new setup. And a Brother VC-500W sticker printer on Wi-Fi that does not answer is checked every 10 seconds instead of once a minute, and the dock updates by itself when its state changes. From 2.5.0 on, this version needs no new import. After the update, restart Streamer.bot once, as the dock asks: it runs two copies of the action's code, and the update reaches only one of them until it starts again.",
+  "notes": "Printer Bot 3.3.0-beta.6 is a prerelease with one fix for the print queue. A receipt that a printer took just as it was turned off (Windows reported it printed, and it prints when the printer is back) counts as waiting \"with the printer\". Printer Bot kept that count in memory only, so after Streamer.bot was closed and started again with the printer still off, the dock showed one receipt fewer than printed. Now the print queue keeps it, and a restart still counts it. Nothing was ever lost or printed twice. From 2.5.0 on, this version needs no new import. After the update, restart Streamer.bot once, as the dock asks: it runs two copies of the action's code, and the update reaches only one of them until it starts again.",
   "successor": null,
   "revokeKeys": []
 }
