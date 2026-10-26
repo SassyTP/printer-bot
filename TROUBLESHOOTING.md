@@ -201,7 +201,7 @@ Rarely, a receipt prints twice: when Streamer.bot or the PC stopped right after 
 
 ### The dock says the print queue is nearly full
 
-The files of the receipts that wait may take up to 1 GB, and the dock warns at 80 percent. A printer has been unable to print for a long time: the status line and the cards say which. Fix that printer, or discard or move its receipts. Above the limit Printer Bot keeps only the event of a new receipt, and draws its picture when there is room.
+The files of the receipts that wait may take up to the print queue's size (1 GB unless you changed it; from 3.3.0-beta.4 **Advanced**, **All platforms**, **Print queue size (MB)**), and the dock warns at 80 percent. A printer has been unable to print for a long time: the status line and the cards say which. Fix that printer, or discard or move its receipts, or give the queue more room. Above the limit Printer Bot keeps only the event of a new receipt, and draws its picture when there is room.
 
 ### The dock says the print queue cannot be used
 

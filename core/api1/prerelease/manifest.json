@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.3.0-beta.3",
-  "built": "202610260141",
+  "version": "3.3.0-beta.4",
+  "built": "202610261233",
   "minDock": "3.0.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.3.0-beta.3.bin",
-      "size": 862208,
-      "sha256": "acfc9c704acc8d241306e1951788d9b67cd3c6c136c244619a36999c7ef550eb"
+      "name": "core-3.3.0-beta.4.bin",
+      "size": 864256,
+      "sha256": "83b0fabb2fa882481de123a025bb1320cbc28508f3919eb0b39bc168e69d375c"
     }
   ],
-  "notes": "Printer Bot 3.3.0-beta.3 is a prerelease with two fixes to the print queue. When a printer is turned off, Windows can report the first receipt sent to it as printed, and the printer prints it when it is back: the dock then showed one receipt fewer than would print. Now that receipt still counts as waiting, \"with the printer\", until the printer prints again; it is never sent twice. And a printer's \"Needs attention\" mark now goes away by itself once the printer works again: before, it stayed until the dock was refreshed. From 2.5.0 on, this version needs no new import. After the update, restart Streamer.bot once, as the dock asks: it runs two copies of the action's code, and the update reaches only one of them until it starts again.",
+  "notes": "Printer Bot 3.3.0-beta.4 is a prerelease. It adds a size for the print queue: Advanced, All platforms, Print queue size, from 0 MB to 100 GB (1 GB by default), with a slider and a box. Give it more room for a long stream such as a subathon. 0 MB turns the print queue off: new receipts go straight to the printers, as before 3.3.0, and the receipts that wait already still print. And a test print that was not sent because receipts waited for its printer no longer says \"Last print failed\" once they have printed. From 2.5.0 on, this version needs no new import. After the update, restart Streamer.bot once, as the dock asks: it runs two copies of the action's code, and the update reaches only one of them until it starts again.",
   "successor": null,
   "revokeKeys": []
 }
