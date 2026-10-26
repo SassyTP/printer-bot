@@ -4,19 +4,19 @@
   "keyId": "865e387993085274",
   "loaderApi": 1,
   "minLoaderRev": 2,
-  "version": "3.3.0-beta.2",
-  "built": "202610252248",
+  "version": "3.3.0-beta.3",
+  "built": "202610260141",
   "minDock": "3.0.0",
   "install": true,
   "auto": false,
   "files": [
     {
-      "name": "core-3.3.0-beta.2.bin",
-      "size": 856576,
-      "sha256": "f07090b82d937cab66ac3a4bb5fd45f407e87db9bec2ebc33362701a3cf0f4b2"
+      "name": "core-3.3.0-beta.3.bin",
+      "size": 862208,
+      "sha256": "acfc9c704acc8d241306e1951788d9b67cd3c6c136c244619a36999c7ef550eb"
     }
   ],
-  "notes": "Printer Bot 3.3.0-beta.2 is a prerelease that fixes the print queue of 3.3.0-beta.1. Streamer.bot runs two copies of the action's code, and the copy that did not get your events did the sending: the dock then showed receipts as waiting after they had printed, and Try again did nothing. Now the copy that gets your events and the dock's commands sends, so a receipt goes out at once when its printer is there, Try again works, and the dock shows what really waits and updates by itself when receipts print. The last print no longer says that its receipt waits once it has printed or was discarded. From 2.5.0 on, this version needs no new import. After the update, restart Streamer.bot once, as the dock asks: it runs two copies of the action's code, and the update reaches only one of them until it starts again.",
+  "notes": "Printer Bot 3.3.0-beta.3 is a prerelease with two fixes to the print queue. When a printer is turned off, Windows can report the first receipt sent to it as printed, and the printer prints it when it is back: the dock then showed one receipt fewer than would print. Now that receipt still counts as waiting, \"with the printer\", until the printer prints again; it is never sent twice. And a printer's \"Needs attention\" mark now goes away by itself once the printer works again: before, it stayed until the dock was refreshed. From 2.5.0 on, this version needs no new import. After the update, restart Streamer.bot once, as the dock asks: it runs two copies of the action's code, and the update reaches only one of them until it starts again.",
   "successor": null,
   "revokeKeys": []
 }
